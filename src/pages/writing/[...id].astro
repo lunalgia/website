@@ -13,10 +13,15 @@ import { emphasize, getPosts, plain, roman, wordCount } from '@/lib/utils'
 
 export async function getStaticPaths() {
   const posts = await getPosts()
-  return posts.map((post, i) => ({
-    params: { id: post.id },
-    props: { post, newer: posts[i - 1], older: posts[i + 1] },
-  }))
+  const unlisted = (await getPosts({ unlisted: true })).filter((p) => p.data.unlisted)
+  return [
+    ...posts.map((post, i) => ({
+      params: { id: post.id },
+      props: { post, newer: posts[i - 1], older: posts[i + 1] },
+    })),
+    // unlisted pieces stand alone: no newer/older links in or out
+    ...unlisted.map((post) => ({ params: { id: post.id }, props: { post, newer: undefined, older: undefined } })),
+  ]
 }
 
 const { post, newer, older } = Astro.props
@@ -41,7 +46,7 @@ const R = '<svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="c
   </script>
 
   <header class="ah" id="top">
-    <p class="ah__k">{kind} · {date}</p>
+    <p class="ah__k">{kind}{d.author && ` · BY ${d.author.toUpperCase()}`} · {date}</p>
     <h1 class="ah__t" set:html={emphasize(d.title)} />
     <p class="ah__k">
       <span>{words.toLocaleString('en-GB')} WORDS · {minutes} MIN</span>{d.tags.length > 0 && <span> · FILED UNDER {d.tags.join(', ').toUpperCase()}</span>}
@@ -93,7 +98,7 @@ const R = '<svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="c
     }
     <article class="ax__text">
       <Content />
-      <p class="ax__src">{SITE.author} · {date} · {canonical.host}{canonical.pathname}</p>
+      <p class="ax__src">{d.author ?? SITE.author} · {date} · {canonical.host}{canonical.pathname}</p>
     </article>
     <div class="sidenote-rail" aria-hidden="true"></div>
   </div>

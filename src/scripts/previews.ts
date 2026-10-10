@@ -2,7 +2,8 @@
  * Link previews, after gwern.net's popups. Only for a mouse; touch screens just
  * follow the link. Two kinds:
  *
- * - Pages of this site, inside a post only: a live, scrollable copy of the
+ * - Pages of this site, from reading text (posts, reviews, the shelf's review
+ *   panel, course pages): a live, scrollable copy of the
  *   target's text (its title and its article), fetched once and cached. Move
  *   the pointer into the card to scroll it; it stays open while you read.
  * - External links and PDFs, anywhere in running text: a small card from the
@@ -27,7 +28,9 @@ let snapsLoading: Promise<Record<string, Snapshot>> | null = null
 const loadSnaps = () =>
   (snapsLoading ??= import('@/data/previews.json').then((m) => (snaps = m.default as Record<string, Snapshot>)))
 
-const inPost = () => !!document.querySelector('.ax')
+/** reading text, where a link to another page of the site gets a live card */
+const READING = '.ax, .prose, .rv__main, .cs__panel'
+const inReading = (a: Element) => !!a.closest(READING)
 
 const pages = new Map<string, Promise<Live | null>>()
 function readPage(path: string): Promise<Live | null> {
@@ -77,7 +80,7 @@ function target(a: HTMLAnchorElement): Source | null | 'maybe-snap' {
   if (!snaps) return 'maybe-snap'
   const snap = snaps[key]
   if (snap) return { snap }
-  if (!own || a.target === '_blank' || !inPost()) return null
+  if (!own || a.target === '_blank' || !inReading(a)) return null
   if (url.pathname === location.pathname) return null // same page, or an in-page anchor
   if (/\.[a-z0-9]{2,5}$/i.test(url.pathname) && !url.pathname.endsWith('.html')) return null // files, the feed
   return { path: url.pathname }

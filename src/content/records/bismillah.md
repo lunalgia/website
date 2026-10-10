@@ -15,8 +15,8 @@ meta:
 links:
   Spotify: https://open.spotify.com/album/6IJYnCp5MidYLgOINAz7Em
 wikidata: none
-order: 1
+order: 6
 link: https://music.apple.com/in/album/bismillah/1833862435
 ---
 
-A really great album from them. Enjoyed it a lot!
+A really good album from them. Jazz anywhere but in a pure jazz context is so incredible. The laid back vocals (which are in general great) play very well with the jazzy sound underlying the album, and make it definitely worth listening to. Bonus points since they're an Indian band :D.

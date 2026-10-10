@@ -33,7 +33,10 @@ export interface ShelfItem {
   ink: string
   /** spine thickness in px */
   depth: number
+  /** the first few paragraphs, as small HTML (links and italics only) */
   excerpt: string[]
+  /** the excerpt is the whole review: only link onward when the panel cuts it short */
+  whole?: boolean
   href?: string
   words?: number
   warning?: string
@@ -148,7 +151,7 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
     <button class="cs__back" type="button">← back to the shelf</button>
     {
       items.map((b, i) => (
-        <article class="pn" data-i={i}>
+        <article class="pn" data-i={i} data-whole={b.whole ? '' : undefined}>
           <p class="pn__k">
             {kind.toUpperCase()}
             {b.when && ` · ${verb} ${b.when.toUpperCase()}`}
@@ -188,11 +191,12 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
             <>
               <div class="pn__body">
                 {b.excerpt.map((p) => (
-                  <p class="pn__p">{p}</p>
+                  <p class="pn__p" set:html={p} />
                 ))}
               </div>
               <a class="pn__more" href={b.href ?? '#'}>
-                continue reading{b.words ? `, ${b.words.toLocaleString('en-GB')} words` : ''} →
+                <span class="pn__more-cut">continue reading{b.words ? `, ${b.words.toLocaleString('en-GB')} words` : ''} →</span>
+                <span class="pn__more-whole">open as a page →</span>
               </a>
             </>
           ) : (
@@ -255,9 +259,15 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
       lenis ? lenis.scrollTo(root, { duration: 0.9 }) : root.scrollIntoView({ behavior: 'smooth' })
       requestAnimationFrame(clip)
     }
-    /** fade the excerpt only when it is cut short */
+    /** fade the excerpt only when it is cut short; a whole review that fits needs no "continue reading" */
     const clip = () =>
-      root.querySelectorAll<HTMLElement>('.pn.is-on .pn__body').forEach((b) => b.classList.toggle('is-clipped', b.scrollHeight > b.clientHeight + 2))
+      root.querySelectorAll<HTMLElement>('.pn.is-on').forEach((pn) => {
+        const b = pn.querySelector<HTMLElement>('.pn__body')
+        if (!b) return
+        const cut = b.scrollHeight > b.clientHeight + 2
+        b.classList.toggle('is-clipped', cut)
+        pn.classList.toggle('is-cut', cut)
+      })
     // scrolling away from an open shelf closes it
     const onScroll = () => {
       if (!root.classList.contains('is-inspecting') || performance.now() < settling) return
@@ -638,6 +648,12 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
   .bk__ct { font: italic calc(var(--W) * 0.12)/1 var(--font-display); overflow-wrap: anywhere; }
   .bk__ca { font: calc(var(--W) * 0.032) var(--font-din); letter-spacing: 0.16em; text-transform: uppercase; }
   .pn__p { font: 1.2rem/1.6 var(--font-body); margin-bottom: 0.8em; max-width: 34rem; }
+  /* a whole review that fits gets a quieter link to its own page instead of "continue reading" */
+  .pn__more-whole { display: none; }
+  .pn[data-whole]:not(.is-cut) .pn__more-cut { display: none; }
+  .pn[data-whole]:not(.is-cut) .pn__more-whole { display: inline; }
+  .pn[data-whole]:not(.is-cut) .pn__more { color: var(--lavender); text-decoration-color: rgb(162 151 203 / 0.5); }
+  .pn__p a { color: #fff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
   .pn__more { align-self: flex-start; margin-top: 1.2rem; font: 400 0.72rem/1.4 var(--font-din); letter-spacing: 0.16em; text-transform: uppercase; font-style: normal; color: #fff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 
   .cs.is-inspecting .cs__label { opacity: 0; pointer-events: none; }

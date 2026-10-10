@@ -19,11 +19,15 @@ const writing = defineCollection({
       /** Optional two-part subtitle, shown left and right of the title card. */
       subtitle: z.tuple([z.string(), z.string()]).optional(),
       date: z.coerce.date(),
+      /** a guest piece: who wrote it, shown in the byline instead of the site author */
+      author: z.string().optional(),
       kind: z.enum(['essay', 'note', 'journal']).default('essay'),
       image: image().optional(),
       imageCaption: z.string().optional(),
       tags: z.array(z.string()).default([]),
       draft: z.boolean().default(false),
+      /** built and reachable by its URL, but kept out of the lists, the home page and RSS (guest pieces linked from elsewhere) */
+      unlisted: z.boolean().default(false),
     }),
 })
 

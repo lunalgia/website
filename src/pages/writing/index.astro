@@ -47,7 +47,7 @@ const one = (k: string) => WRITING_KINDS[k as keyof typeof WRITING_KINDS].label.
         }
         <div class="feat__txt">
           <p class="k">
-            LATEST · {one(latest.data.kind).toUpperCase()} · {date(latest.data.date, true)}
+            LATEST · {one(latest.data.kind).toUpperCase()}{latest.data.author && ` · BY ${latest.data.author.toUpperCase()}`} · {date(latest.data.date, true)}
           </p>
           <h2 set:html={emphasize(latest.data.title)} />
           {latest.data.description && <p class="feat__d">{latest.data.description}</p>}
@@ -71,7 +71,7 @@ const one = (k: string) => WRITING_KINDS[k as keyof typeof WRITING_KINDS].label.
               {p.data.description && <span class="we__d">{p.data.description}</span>}
               <span class="we__m">
                 <span class="chip">{one(p.data.kind)}</span>
-                {date(p.data.date)} · {wordCount(p.body).toLocaleString('en-GB')} WORDS
+                {p.data.author && `BY ${p.data.author.toUpperCase()} · `}{date(p.data.date)} · {wordCount(p.body).toLocaleString('en-GB')} WORDS
               </span>
             </a>
           </li>

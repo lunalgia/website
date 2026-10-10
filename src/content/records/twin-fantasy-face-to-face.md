@@ -18,12 +18,29 @@ links:
   Spotify: https://open.spotify.com/album/20U1UWeGcGq7JVW0tf8yfH
   YouTube Music: https://music.youtube.com/browse/MPREb_uHqhqEkLRa4
 wikidata: Q48815233
-order: 5
+order: 2
 link: https://music.apple.com/in/album/twin-fantasy/1586483380
 ---
 
-Twin Fantasy is my favourite album ever. For some historical information, Face to Face refers to the 2018 re-recording of it, which is the definitive version to listen to. The original 2012 version carries the same charm, but is recorded in someone's garage. Somewhat confusingly, the first part of the 2018 album is called mirror to mirror, and the second part face to face as well. This is intentional, and you'll see it in the songs and the themes about "growing up".
+Once, I would have said that this was my favourite album ever. This perhaps does not stand so true now, but I can still look at it and say this is one of my favourites. As I have been told, I abuse praise-words a little too often, so I will try to limit the notion of favourites to ~10 records. This happens to be one of them.
 
-You can see its messy beauty from the first song itself. The real highlight for the first half is of course, the second song, beach life-in-death. This is perhaps my favourite song ever and I've listened to it endlessly. The way it portrays the feelings of societal judgement, obsession and depression speak to me so much. It is the prime example of music that makes me feel, and this song by itself has shaped me as a person. And it isn't the only song like this on the album. Bodys, High to Death, Famous Prophets (Stars), Twin Fantasy (Those Boys) are all heartbreaking and so wonderfully articulate the emotions I have felt at times.
+Twin Fantasy is a messy teenage love story, which starts from optimism and hope and erodes into defeat and finally acceptance. It deals with themes of relationships in a little more generality than just romance, though. When Toledo takes you through the journey of his _fantasy_, where his lover is no more than this ideal he had created---a reflection of himself, more than anything, I do think you can project this album on to many, less or more messy relationships that we inhabit.
 
-At its core, it is an album about escaping the fantasy Toledo plants himself in, where his image of his lover is no more than his fantasy. It is an album about messy love, depression, heartbreak and growing up. We go from seeing each other only as reflections (mirror to mirror) and living in the fantasy, to escaping it and seeing each other face to face. There is little I can express here that Toledo hasn't expressed better, and I would recommend you to just listen. Even aside from what he wants to say, there is a lot you can relate to. It is an album I always come back to, I love it a lot.
+For some historical information, Face to Face refers to the 2018 re-recording of it, which is the definitive version to listen to. The original 2012 version carries the same charm, but is recorded in Toledo's garage. Somewhat confusingly, the first part of the 2018 album is called mirror to mirror, and the second part face to face as well. This is intentional, and you'll see it in the songs and the themes about "growing up".
+
+Some highlights of it are the songs “Beach Life-in-Death” and “Famous Prophets (Stars)”. They're wonderful reflections of each other: “Beach Life-in-Death” carries a certain kind of optimism even when it deals with the themes of the relationship breaking apart, and “Famous Prophets (Stars)” is far more defeatist, there is no hope to be found there. The chorus “the ocean washed over your grave” is what reminds me of both of them. Every single chorus here leaves its mark on you, from
+
+> It'll take some time, but somewhere down the line\
+> We won't be alone
+
+and
+
+> Stop smoking, we love you\
+> And we don't want you to die
+
+(which I have ungracefully plagiarised before), to
+
+> Don't you realize our bodies could fall apart at any second?\
+> I am terrified your body could fall apart at any second
+
+There is a certain type of person you have to be, at a certain stage in your life to appreciate a reckless album like this. Fortunately, I have not grown too old, nor too happy, and I continue to dearly love this. Also very well worth a listen if you're a noise-rock fan.

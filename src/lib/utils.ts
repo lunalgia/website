@@ -40,7 +40,8 @@ export function wordCount(body: string | undefined): number {
   return text.split(/\s+/).filter(Boolean).length
 }
 
-export async function getPosts(): Promise<CollectionEntry<'writing'>[]> {
-  const posts = await getCollection('writing', ({ data }) => import.meta.env.DEV || !data.draft)
+/** published posts, newest first; unlisted ones only when asked for (to build their pages) */
+export async function getPosts({ unlisted = false } = {}): Promise<CollectionEntry<'writing'>[]> {
+  const posts = await getCollection('writing', ({ data }) => (import.meta.env.DEV || !data.draft) && (unlisted || !data.unlisted))
   return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 }

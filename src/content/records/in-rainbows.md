@@ -3,6 +3,7 @@ title: In Rainbows
 by: Radiohead
 year: 2007
 rating: 100
+favourite: true
 genres:
   - art rock
   - alternative rock
@@ -24,3 +25,5 @@ wikidata: Q223295
 order: 1
 link: https://music.apple.com/in/album/in-rainbows/1109714933
 ---
+
+Probably my favourite album from them. Maybe I'll write more about what I love about this, but for now, I would recommend reading [this great thematic analysis](/writing/love-and-disillusionment/) by my friend Hari.

@@ -71,11 +71,15 @@
     all: unset;
   }
 
+  /* links read as links: ultramarine with a visible rule, as in essays (article.css) */
   .prose a {
-    text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+    text-decoration-color: color-mix(in oklab, var(--accent) 70%, transparent);
   }
   .prose a:hover {
-    color: var(--accent);
+    text-decoration-color: var(--accent);
   }
   .prose strong {
     font-weight: 600;

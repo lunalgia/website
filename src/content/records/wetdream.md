@@ -14,7 +14,7 @@ links:
   YouTube Music: https://music.youtube.com/browse/MPREb_awqVow4krKn
   Spotify: https://open.spotify.com/album/7Mz3AROK1ffsZhTMaFCdvv
 wikidata: none
-order: 4
+order: 9
 warning: the lyrics mention sexual abuse and suicide
 link: https://music.apple.com/in/album/wetdream/1723413859
 ---

@@ -129,6 +129,8 @@ export const paragraphs = (body?: string) =>
     .split(/\n\s*\n/)
     .map((p) =>
       p
+        .replace(/\\\n/g, ' / ')
+        .replace(/---/g, '—')
         .replace(/\[\^[^\]]+\]/g, '')
         .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
         .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
@@ -137,6 +139,36 @@ export const paragraphs = (body?: string) =>
         .trim(),
     )
     .filter((p) => p && !p.startsWith('[^'))
+
+/** the same paragraphs as small HTML: links and italics survive, everything else is plain text */
+export const paragraphsHtml = (body?: string) =>
+  (body ?? '')
+    .replace(/^---[\s\S]*?---/, '')
+    .split(/\n\s*\n/)
+    .filter((p) => p.trim() && !p.trim().startsWith('[^'))
+    .map((p) =>
+      p
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\\\n/g, ' / ')
+        .replace(/---/g, '—')
+        // curly quotes, as the full page gets them from Markdown
+        .replace(/(^|[\s(\[{—\/])"/g, '$1“')
+        .replace(/"/g, '”')
+        .replace(/(\p{L})'/gu, '$1’')
+        .replace(/(^|[\s(\[{—\/“])'/g, '$1‘')
+        .replace(/'/g, '’')
+        .replace(/\[\^[^\]]+\]/g, '')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+        .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${u.replace(/"/g, '&quot;')}"${/^https?:/.test(u) ? ' target="_blank" rel="noopener"' : ''}>${t}</a>`)
+        .replace(/(^|[\s(“"])[*_]([^*_\n]+?)[*_](?=[\s.,;:!?)”"]|$)/g, '$1<em>$2</em>')
+        .replace(/^\s*&gt;\s?/gm, '')
+        .replace(/[*`#]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(Boolean)
 
 export const words = (body?: string) => paragraphs(body).join(' ').split(/\s+/).filter(Boolean).length
 

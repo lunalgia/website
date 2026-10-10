@@ -21,6 +21,6 @@ links:
   Spotify: https://open.spotify.com/album/6dVIqQ8qmQ5GBnJ9shOYGE
   YouTube Music: https://music.youtube.com/playlist?list=OLAK5uy_nc6afxSnmK8OFML8dF9q_0D1MBMXsGnL4
 wikidata: Q202996
-order: 3
+order: 8
 link: https://music.apple.com/in/album/ok-computer/1097861387
 ---

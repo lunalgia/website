@@ -9,12 +9,14 @@ export async function GET(context: APIContext) {
     title: SITE.title,
     description: SITE.description,
     site: context.site ?? SITE.url,
+    xmlns: { dc: 'http://purl.org/dc/elements/1.1/' },
     items: posts.map((p) => ({
       title: plain(p.data.title),
       description: p.data.description,
       pubDate: p.data.date,
       link: `/writing/${p.id}/`,
       categories: p.data.tags,
+      ...(p.data.author && { customData: `<dc:creator>${p.data.author}</dc:creator>` }),
     })),
   })
 }
