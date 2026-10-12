@@ -971,6 +971,15 @@
     "h": 906,
     "taken": "2026-10-05"
   },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Originals/Quiz 2 (old typeset).pdf": {
+    "kind": "pdf",
+    "title": "Quiz 2",
+    "pages": 2,
+    "image": "/previews/f848677001de.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-12"
+  },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Practice Quiz 1.pdf": {
     "kind": "pdf",
     "title": "Practice Quiz",
@@ -1033,6 +1042,24 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-05"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 2 - Lilian.pdf": {
+    "kind": "pdf",
+    "title": "Quiz 2 - Lilian",
+    "pages": 10,
+    "image": "/previews/3d2a578c8558.webp",
+    "w": 640,
+    "h": 440,
+    "taken": "2026-10-12"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 2.pdf": {
+    "kind": "pdf",
+    "title": "Algebra 1",
+    "pages": 2,
+    "image": "/previews/04c7507fe5c7.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-12"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Tests/Practice - 2025 Test 1/Test 1 (2025) solutions.pdf": {
     "kind": "pdf",
