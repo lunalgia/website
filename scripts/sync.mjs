@@ -7,7 +7,7 @@
  *   npm run sync -- --no-build    skip the build check at the end
  *
  * Steps, in order:
- *   0. uni        mirror ~/Uni into public/uni via ~/Scripts/sync-uni.sh (skipped if absent)
+ *   0. uni        copy ~/Uni into public/uni (scripts/uni.mjs; skipped if ~/Uni is absent)
  *   1. files      copy the files that live elsewhere (CV, course PDFs…) into the site
  *   2. covers     fetch covers for media entries that have none
  *   3. meta       fetch genres, facts and links for entries not looked up yet
@@ -21,14 +21,13 @@
  * `npm run favicon`, `npm run og`.
  */
 import { spawnSync } from 'node:child_process'
-import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const args = process.argv.slice(2)
 
 const steps = [
+  ['uni', ['scripts/uni.mjs']],
   ['files', ['scripts/files.mjs']],
   ['covers', ['scripts/covers.mjs']],
   ['meta', ['scripts/meta.mjs']],
@@ -44,14 +43,6 @@ const run = (name, cmd, cmdArgs) => {
   console.log(`   ${ok ? 'done' : 'FAILED'} in ${((Date.now() - t) / 1000).toFixed(1)}s`)
   if (!ok) failed.push(name)
 }
-
-const uniScript = path.join(os.homedir(), 'Scripts', 'sync-uni.sh')
-if (fs.existsSync(uniScript)) {
-  // Point the script at this checkout so it keeps working if the repo is moved or renamed.
-  process.env.DEST ??= path.join(ROOT, 'public', 'uni')
-  run('uni', 'bash', [uniScript])
-}
-else console.log(`\n── uni: skipped (no ${uniScript})`)
 
 for (const [name, cmdArgs] of steps) run(name, process.execPath, cmdArgs)
 if (!args.includes('--no-build')) run('build', 'npx', ['astro', 'build'])

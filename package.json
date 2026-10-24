@@ -16,6 +16,7 @@
     "snapshots": "node scripts/snapshots.mjs",
     "astro": "astro",
     "files": "node scripts/files.mjs",
+    "uni": "node scripts/uni.mjs",
     "sync": "node scripts/sync.mjs"
   },
   "dependencies": {
