@@ -25,6 +25,7 @@ export const SOURCES: Record<string, { name: string; people: string; href: strin
  * The 2024 ones are paraphrased from Arjun's page.
  */
 export const NOTES: Record<string, string> = {
+  'Algebra 1/2022 Fall': 'Posted by Prof. Upendra Kulkarni on the 2026 Algebra 1 course page.',
   'Algebra 1/2024 Fall':
     "No prescribed textbook; Treil's *Linear Algebra Done Wrong* was recommended. Hard problems, lenient grade cutoffs. The homeworks were quiz prep and weren't submitted.",
   'Analysis 1/2024 Fall':

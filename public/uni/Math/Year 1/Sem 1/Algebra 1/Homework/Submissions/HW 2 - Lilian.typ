@@ -1,6 +1,6 @@
 #import "@preview/nova-pset:0.1.0": *
 #import "@preview/adaptive-dots:0.1.0": adaptive-dots, ldots, cdots
-#show math.equation: set text(font: "Libertinus Math")
+#show math.equation: set text(font: "Garamond Math")
 #show: adaptive-dots
 #let class = "Algebra 1"
 #let assignment = "Homework 2"
@@ -182,11 +182,7 @@ which cannot be $vb(0)$ unless all the $b_i$ are $0$. Thus $(vb(w_1), dots, vb(w
 
 Similarly, it is surjective iff the row vectors are linearly independent. Again, we use (b). One can see that each row having a pivot will ensure linear independence. For the converse, suppose some row does not have a pivot. It must then be a zero row in the RREF. It remains to show that the row operations preserve linear independence, but that is easy to do.
 
-Less annoyingly, one could show this as follows. Suppose the rows of $A$ are linearly dependent, then there exist non-trivial weights, $y_i$ such that the linear combination of the rows of $A$ using them is $vb(0)$. Let the vector $vb(y) = y_i vb(e)_i$. If $A$ is surjective, then there exists some $vb(x)$ such that $A vb(x) = vb(y)$, but then
-$
-0 = 0 dot vb(x) = (vb(y)^T A) x= vb(y)^"T" (A vb(x)) = vb(y)^"T" vb(y) >= 0
-$
-where the equality is iff $vb(y) = 0 <=> y_i = 0$ for all $i$. The other direction still requires some work.
+
 
 #Q()
 
@@ -233,4 +229,11 @@ For (b): by construction, each $E$ is the result of applying the corresponding r
 ]
 
 #b() 
+
+(a) Suppose the pivot in row $i$ is in the column $rho_i$. Let us work with a specific ordering of the pivot columns, and thus rows, $sigma: [k] -> [k]$. Starting with $sigma(1)$, we clear all the entries in $rho_sigma(1)$ (except in row $sigma(1)$ of course), by the row operation, row $j$ - $a_(j rho_sigma(1))$ row $sigma(1)$ for the $j < sigma (1)$ (because we already had a REF, the entries in $rho_sigma(1)$ are zero below the row $sigma(1)$). 
+
+Now note that doing this procedure on the row $sigma(2)$ does not change $rho_sigma(1)$. The row operations we did involve scaling, and subtracting this row from all the rows above it. But, scaling doesn't change that any entry (except the pivot) in $rho_sigma(1)$ is $0$, and neither will subtracting $0$ from $0$. The pivot is of course unchanged as well, because we only ever subtract $0$ from it. Hence, these procedures do not impact any other pivot columns. So, we can independently do them for $sigma(1), ..., sigma(k)$ and get that the only non-zero entries in $rho_(sigma(i))$ is the pivot, and thus have the matrix in RREF.
+
+(b) We already know that a matrix can be converted to a REF. We also saw that it can be converted to a RREF in (a). It suffices to show that it is unique. We may do this inductively, inducting on the number of rows. It is obvious that this is true 
+
 #Q()
