@@ -10,7 +10,7 @@
  *
  * - A folder named "Past - …" inside a course (e.g. Math/Year 1/Sem 1/Algebra 1/Past - 2022 course)
  *   is old material, so it goes to public/uni/Past Material/Sem N/<course>/ as its own offering
- *   and shows under "Earlier years", instead of also appearing among the course's own materials.
+ *   and shows under "Past years", instead of also appearing among the course's own materials.
  *   "Past - 2022 course" becomes "2022 Fall - Course page archive"; a folder already named in the
  *   Past Material style ("Past - 2022 Fall - Prof. X (source)") keeps that name.
  *   The course name comes from the `past:` field of the course's file in src/content/academics.

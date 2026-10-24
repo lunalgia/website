@@ -46,7 +46,7 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
         <nav class="ch__jump" aria-label="On this page">
           {pdfHref && <a href="#notes">{Label}</a>}
           {fileCount > 0 && <a href="#materials">Materials <span>{fileCount}</span></a>}
-          {past && past.offerings.length > 0 && <a href="#earlier">Earlier years <span>{past.offerings.length}</span></a>}
+          {past && past.offerings.length > 0 && <a href="#earlier">Past years <span>{past.offerings.length}</span></a>}
         </nav>
       )
     }
@@ -102,7 +102,7 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
     past && past.offerings.length > 0 && (
       <section class="cs2" id="earlier" aria-labelledby="earlier-h">
         <header class="cs2__top">
-          <h2 class="cs2__h" id="earlier-h">{roman([pdfHref, fileCount].filter(Boolean).length + 1)} · Earlier years</h2>
+          <h2 class="cs2__h" id="earlier-h">{roman([pdfHref, fileCount].filter(Boolean).length + 1)} · Past years</h2>
           <span class="cs2__tools">
             <a href={`/academics/past#${past.slug}`}>all past material →</a>
           </span>
@@ -260,11 +260,10 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
   .ch__jump a:hover {
     background: color-mix(in oklab, var(--ultramarine) 10%, transparent);
   }
+  /* the count: same face as the label, set off by a hairline */
   .ch__jump span {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    letter-spacing: 0;
-    font-variant-numeric: lining-nums;
+    padding-left: 0.6rem;
+    border-left: 1px solid color-mix(in oklab, var(--ultramarine) 45%, transparent);
   }
 
   .cs2 {
