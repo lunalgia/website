@@ -1,95 +1,423 @@
 ---
+/**
+ * A course's materials, organised for reading rather than mirroring the disk:
+ * related files share a row, folders start closed, dated folders become a calendar.
+ * The grouping rules live in src/lib/materials.ts.
+ * Pass `nodes` (a raw tree) at the top level; the component calls itself with `entries`.
+ */
 import type { TreeNode } from '@/lib/file-tree'
+import { organise, type Entry } from '@/lib/materials'
 import FileTree from './FileTree.astro'
 
 interface Props {
-  nodes: TreeNode[]
+  nodes?: TreeNode[]
+  entries?: Entry[]
+  /** file names to leave out at the top level (e.g. the notes PDF, shown above) */
+  exclude?: string[]
   depth?: number
 }
-const { nodes, depth = 0 } = Astro.props
-const ext = (name: string) => (name.includes('.') ? name.split('.').pop()!.toLowerCase() : '')
+const { nodes = [], exclude, depth = 0 } = Astro.props
+const entries = Astro.props.entries ?? organise(nodes, { exclude })
+const items = entries.filter((e) => e.kind === 'item')
+const folders = entries.filter((e) => e.kind === 'folder')
+
+const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+const wd = new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' })
+// PDFs and pictures open in the browser; source files (.hs, .typ, .docx) download
+const dl = (ext: string) => !['pdf', 'jpg', 'jpeg', 'png', 'webp', 'txt', ''].includes(ext) || undefined
+const showExt = (ext: string) => ext && ext !== 'pdf'
 ---
 
-<ul class="tree" role="list">
+<div class="mt" data-depth={depth}>
   {
-    nodes.map((node) =>
-      node.type === 'dir' ? (
-        <li>
-          <details open={depth === 0}>
-            <summary>
-              <span class="tree__dir">{node.name}</span>
-              <span class="tree__count">{node.children?.length ?? 0}</span>
-            </summary>
-            <FileTree nodes={node.children ?? []} depth={depth + 1} />
-          </details>
-        </li>
-      ) : (
-        <li>
-          <a
-            class="tree__file"
-            href={node.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            download={ext(node.name) !== 'pdf' || undefined}
-          >
-            <span class="tree__ext">{ext(node.name) || '·'}</span>
-            <span class="sweep">{node.name}</span>
-          </a>
-        </li>
-      ),
+    items.length > 0 && (
+      <ul class="mt__items" role="list">
+        {items.map((it) => (
+          <li class="mt__item js-m" data-search={it.search}>
+            <a class="mt__main" href={it.main.href} target="_blank" rel="noopener" download={dl(it.main.ext)}>
+              <span class="mt__title">{it.title}</span>
+              {it.note && <span class="mt__note">{it.note}</span>}
+              {showExt(it.main.ext) && <span class="mt__ext">{it.main.ext}</span>}
+            </a>
+            {(it.main.alts.length > 0 || it.extra.length > 0) && (
+              <span class="mt__also">
+                {it.main.alts.map((a) => (
+                  <a class="mt__fmt" href={a.href} download={dl(a.ext)} aria-label={`${it.title}, ${a.ext} file`}>
+                    {a.ext}
+                  </a>
+                ))}
+                {it.extra.map((x) => (
+                  <span class="mt__x">
+                    <a href={x.href} target="_blank" rel="noopener" download={dl(x.ext)} aria-label={`${it.title}: ${x.label}`}>
+                      {x.label}
+                      {showExt(x.ext) && <span class="mt__ext">{x.ext}</span>}
+                    </a>
+                    {x.alts.map((a) => (
+                      <a class="mt__fmt" href={a.href} download={dl(a.ext)} aria-label={`${it.title}: ${x.label}, ${a.ext} file`}>
+                        {a.ext}
+                      </a>
+                    ))}
+                  </span>
+                ))}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     )
   }
-</ul>
+  {
+    folders.length > 0 && (
+      <ul class="mt__folders" role="list">
+        {folders.map(
+          (f) =>
+            f.kind === 'folder' && (
+              <li class="mt__folder js-f" data-search={f.search}>
+                <details>
+                  <summary class="mt__sum">
+                    <span class="mt__chev" aria-hidden="true" />
+                    <span class="mt__label">{f.label}</span>
+                    {f.note && <span class="mt__fnote">{f.note}</span>}
+                    <span class="mt__count">
+                      {f.files === 1 ? '1 file' : `${f.files} files`}
+                    </span>
+                  </summary>
+                  <div class="mt__body">
+                    {f.months && (
+                      <div class="cal">
+                        {f.months.map((m) => (
+                          <div class="cal__month">
+                            <p class="cal__m">{m.label}</p>
+                            <ul class="cal__days" role="list">
+                              {m.days.map((d) =>
+                                d.links.length === 1 ? (
+                                  <li class="js-m" data-search={`${fmt.format(d.date)} ${d.links[0].label}`.toLowerCase()}>
+                                    <a
+                                      class="cal__d"
+                                      href={d.links[0].href}
+                                      target="_blank"
+                                      rel="noopener"
+                                      aria-label={`${f.label}, ${fmt.format(d.date)}`}
+                                    >
+                                      <span class="cal__wd">{wd.format(d.date)}</span>
+                                      <span class="cal__n">{d.date.getUTCDate()}</span>
+                                    </a>
+                                  </li>
+                                ) : (
+                                  <li
+                                    class="cal__multi js-m"
+                                    data-search={`${fmt.format(d.date)} ${d.links.map((l) => l.note ?? '').join(' ')}`.toLowerCase()}
+                                  >
+                                    <span class="cal__d cal__d--head" aria-hidden="true">
+                                      <span class="cal__wd">{wd.format(d.date)}</span>
+                                      <span class="cal__n">{d.date.getUTCDate()}</span>
+                                    </span>
+                                    <span class="visually-hidden">{fmt.format(d.date)}:</span>
+                                    <span class="cal__links" style={`grid-template-columns: repeat(${Math.ceil(d.links.length / 2)}, auto)`}>
+                                      {d.links.map((l, i) => (
+                                        <a
+                                          href={l.href}
+                                          target="_blank"
+                                          rel="noopener"
+                                          title={l.note}
+                                          aria-label={`${fmt.format(d.date)}, part ${l.label || i + 1}${l.note ? `: ${l.note}` : ''}`}
+                                          class:list={[{ 'has-note': l.note }]}
+                                        >
+                                          {l.label || i + 1}
+                                        </a>
+                                      ))}
+                                    </span>
+                                  </li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {f.entries.length > 0 && <FileTree entries={f.entries} depth={depth + 1} />}
+                  </div>
+                </details>
+              </li>
+            ),
+        )}
+      </ul>
+    )
+  }
+</div>
 
 <style>
-  .tree {
+  .mt {
+    --line: color-mix(in oklab, var(--ultramarine) 30%, transparent);
+    --soft: color-mix(in oklab, var(--ultramarine) 88%, var(--bg));
+    color: var(--ultramarine);
+  }
+
+  /* ---------- rows of files ---------- */
+  .mt__items {
     display: grid;
-    gap: 0.3rem;
-    font-size: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    column-gap: 2.5rem;
   }
-  .tree .tree {
-    margin: 0.4rem 0 0.4rem 0.45rem;
-    padding-left: 1.1rem;
-    border-left: 1px solid var(--rule);
-  }
-  summary {
-    cursor: pointer;
-    list-style: none;
+  .mt__item {
     display: flex;
-    gap: 0.6rem;
+    flex-wrap: wrap;
     align-items: baseline;
-    width: fit-content;
+    gap: 0.15rem 1rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line);
   }
-  summary::-webkit-details-marker {
-    display: none;
-  }
-  summary::before {
-    content: '▸';
-    color: var(--muted);
-    transition: rotate 0.25s var(--ease);
-    display: inline-block;
-  }
-  details[open] > summary::before {
-    rotate: 90deg;
-  }
-  .tree__dir {
-    font-style: italic;
-  }
-  .tree__count {
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-  .tree__file {
+  .mt__main {
     display: inline-flex;
-    gap: 0.75rem;
+    flex-wrap: wrap;
     align-items: baseline;
+    gap: 0 0.55rem;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .mt__title {
+    font: 1.12rem/1.35 var(--font-body);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s;
+  }
+  .mt__main:hover .mt__title {
+    text-decoration-color: currentColor;
+  }
+  .mt__note {
+    font: italic 1rem/1.35 var(--font-body);
+    color: var(--soft);
+  }
+  .mt__also {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.9rem;
+    align-items: baseline;
+    font: italic 0.98rem/1.35 var(--font-body);
+  }
+  .mt__x,
+  .mt__x > a {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: baseline;
+  }
+  .mt__x > a:first-child::before {
+    content: '+ ';
+    font-style: normal;
+    color: var(--soft);
+  }
+  .mt__ext,
+  .mt__fmt {
+    font: 500 0.7rem/1 var(--font-mono);
+    font-style: normal;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     text-decoration: none;
   }
-  .tree__ext {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
+  .mt__ext {
+    color: var(--soft);
+  }
+  .mt__fmt {
+    padding: 0.2rem 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    color: var(--ultramarine);
+  }
+  .mt__fmt:hover {
+    border-color: currentColor;
+  }
+
+  /* ---------- folders ---------- */
+  .mt__items + .mt__folders {
+    margin-top: 1.5rem;
+  }
+  .mt__folder {
+    border-bottom: 1px solid var(--line);
+  }
+  .mt[data-depth='0'] > .mt__folders > .mt__folder {
+    border-bottom: 1px solid color-mix(in oklab, var(--ultramarine) 55%, transparent);
+  }
+  .mt[data-depth='0'] > .mt__folders > .mt__folder:first-child {
+    border-top: 1px solid color-mix(in oklab, var(--ultramarine) 55%, transparent);
+  }
+  .mt__sum {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem 0.8rem;
+    min-height: 3.25rem;
+    padding: 0.9rem 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .mt__sum::-webkit-details-marker {
+    display: none;
+  }
+  .mt__chev {
+    flex: none;
+    align-self: center;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: 0 0.25rem 0 0.1rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    rotate: -45deg;
+    transition: rotate 0.25s var(--ease);
+  }
+  details[open] > .mt__sum .mt__chev {
+    rotate: 45deg;
+  }
+  .mt__label {
+    font: italic 400 1.55rem/1.15 var(--font-display);
+  }
+  .mt[data-depth='0'] > .mt__folders > .mt__folder > details > .mt__sum .mt__label {
+    font-size: clamp(1.6rem, 3vw, 2rem);
+  }
+  .mt:not([data-depth='0']) > .mt__folders > .mt__folder > details > .mt__sum {
+    min-height: 2.75rem;
+    padding: 0.6rem 0;
+  }
+  .mt:not([data-depth='0']) > .mt__folders > .mt__folder > details > .mt__sum .mt__label {
+    font-size: 1.35rem;
+  }
+  .mt__fnote {
+    font: 1rem/1.3 var(--font-body);
+    color: var(--soft);
+  }
+  .mt__count {
+    margin-left: auto;
+    flex: none;
+    font: 0.75rem/1 var(--font-din);
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--muted);
-    min-width: 3.5ch;
+    color: var(--soft);
+    white-space: nowrap;
+  }
+  .mt__sum:hover .mt__label {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .mt__sum:focus-visible,
+  .mt a:focus-visible {
+    outline: 2px solid var(--ultramarine);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .mt__body {
+    padding: 0 0 1.4rem 1.6rem;
+  }
+  .mt__body .mt__item:last-child {
+    border-bottom: 0;
+  }
+  .mt__body > .mt > .mt__folders > .mt__folder:last-child {
+    border-bottom: 0;
+  }
+
+  /* ---------- calendar of dated files ---------- */
+  .cal {
+    display: grid;
+    gap: 1.2rem;
+    padding-top: 0.3rem;
+  }
+  .cal + .mt {
+    margin-top: 1.4rem;
+  }
+  .cal__m {
+    margin: 0 0 0.6rem;
+    font: 0.75rem/1 var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cal__days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cal__d {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    text-decoration: none;
+    color: var(--ultramarine);
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+  }
+  a.cal__d:hover {
+    background: color-mix(in oklab, var(--ultramarine) 10%, transparent);
+    border-color: currentColor;
+  }
+  .cal__wd {
+    font: 0.62rem/1 var(--font-din);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+  .cal__n {
+    font: 1.35rem/1.1 var(--font-body);
+    font-variant-numeric: lining-nums;
+  }
+  .cal__multi {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  .cal__d--head {
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+  }
+  .cal__links {
+    display: grid;
+    grid-auto-rows: 1fr;
+  }
+  .cal__links a {
+    display: grid;
+    place-items: center;
+    min-width: 1.7rem;
+    padding: 0 0.3rem;
+    font: 0.95rem/1 var(--font-body);
+    font-variant-numeric: lining-nums;
+    text-decoration: none;
+  }
+  .cal__links a:hover {
+    background: color-mix(in oklab, var(--ultramarine) 10%, transparent);
+  }
+  .cal__links a.has-note {
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+  }
+
+  /* ---------- filtering (see the course page script) ---------- */
+  [hidden] {
+    display: none !important;
+  }
+
+  @media (max-width: 640px) {
+    .mt__body {
+      padding-left: 0.9rem;
+    }
+    .mt__sum {
+      flex-wrap: wrap;
+    }
+    .mt__fnote {
+      order: 3;
+      flex-basis: 100%;
+      padding-left: 1.35rem;
+    }
+    .cal__d {
+      width: 3.2rem;
+      height: 3.2rem;
+    }
+    .cal__links a {
+      min-width: 2.2rem;
+    }
   }
 </style>

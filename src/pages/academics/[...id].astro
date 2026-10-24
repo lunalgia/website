@@ -7,6 +7,8 @@ import PastOfferings from '@/components/PastOfferings.astro'
 import { readPast } from '@/lib/past-material'
 import { readUniTree, uniHref } from '@/lib/file-tree'
 import { formatDate, roman } from '@/lib/utils'
+import { stat } from 'node:fs/promises'
+import { join } from 'node:path'
 
 export async function getStaticPaths() {
   const lectures = await getCollection('academics')
@@ -18,6 +20,11 @@ const { Content } = await render(lecture)
 const d = lecture.data
 const pdfHref = d.pdf ? (d.folder ? uniHref(d.folder, d.pdf) : `/academics/${d.pdf}`) : null
 const tree = d.folder ? await readUniTree(d.folder) : []
+const countFiles = (ns: typeof tree): number => ns.reduce((n, x) => n + (x.type === 'file' ? 1 : countFiles(x.children ?? [])), 0)
+const exclude = d.pdf ? [d.pdf] : []
+const fileCount = countFiles(tree) - tree.filter((n) => n.type === 'file' && exclude.includes(n.name)).length
+const pdfBytes = d.pdf && d.folder ? await stat(join(process.cwd(), 'public', 'uni', d.folder, d.pdf)).then((s) => s.size).catch(() => 0) : 0
+const pdfSize = pdfBytes ? (pdfBytes > 1e6 ? `${(pdfBytes / 1e6).toFixed(1)} MB` : `${Math.round(pdfBytes / 1e3)} kB`) : ''
 const past = d.past ? (await readPast()).find((c) => c.name === d.past) : undefined
 const sem = d.semester === 1 ? 'first semester' : d.semester === 2 ? 'second semester' : null
 const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filter(Boolean).join(' ')].filter(Boolean)
@@ -26,20 +33,28 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
 <Base title={d.title} description={`Notes and materials for ${d.title}.`}>
   <header class="ch">
     <a class="ch__back" href="/academics">← all courses</a>
-    <p class="ch__k">{kicker.join(' · ').toUpperCase()}</p>
+    <p class="ch__k">{kicker.join(' · ')}</p>
     <h1 class="ch__t">{d.title}</h1>
-    {d.date && <p class="ch__k">UPDATED {formatDate(d.date).toUpperCase()}</p>}
+    {d.date && <p class="ch__k">Updated {formatDate(d.date)}</p>}
+    <article class="prose prose--plain cb">
+      <Content />
+    </article>
+    {
+      (pdfHref || fileCount > 0 || past) && (
+        <nav class="ch__jump" aria-label="On this page">
+          {pdfHref && <a href="#notes">Notes</a>}
+          {fileCount > 0 && <a href="#materials">Materials <span>{fileCount}</span></a>}
+          {past && past.offerings.length > 0 && <a href="#earlier">Earlier years <span>{past.offerings.length}</span></a>}
+        </nav>
+      )
+    }
   </header>
-
-  <article class="prose prose--plain cb">
-    <Content />
-  </article>
 
   {
     pdfHref && (
-      <section class="cs2">
+      <section class="cs2 notes" id="notes" aria-labelledby="notes-h">
         <header class="cs2__top">
-          <span>I · THE NOTES</span>
+          <h2 class="cs2__h" id="notes-h">I · The notes</h2>
           <span class="cs2__tools">
             <button type="button" class="pdf-mode" aria-pressed="true">
               light pages
@@ -49,48 +64,65 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
             </a>
           </span>
         </header>
+        <a class="nc" href={pdfHref} target="_blank" rel="noopener">
+          <span class="nc__t">Read the notes</span>
+          <span class="nc__k">PDF{pdfSize && ` · ${pdfSize}`} · opens in a new tab</span>
+          <span class="nc__arrow" aria-hidden="true">↗</span>
+        </a>
         <div class="pdf is-dark">
-          <iframe class="pdf__frame" src={pdfHref} title={`${d.title} (PDF)`} loading="lazy" />
+          <iframe class="pdf__frame" data-src={pdfHref} title={`${d.title}: lecture notes (PDF)`} />
         </div>
       </section>
     )
   }
 
   {
-    tree.length > 0 && (
-      <section class="cs2">
+    fileCount > 0 && (
+      <section class="cs2" id="materials" aria-labelledby="materials-h">
         <header class="cs2__top">
-          <span>{pdfHref ? 'II' : 'I'} · COURSE MATERIALS</span>
-          <span>{String(tree.length).padStart(2, '0')}</span>
+          <h2 class="cs2__h" id="materials-h">{pdfHref ? 'II' : 'I'} · Course materials</h2>
+          <span class="cs2__n">{fileCount} files</span>
         </header>
-        <div class="cs2__tree">
-          <FileTree nodes={tree} />
+        <div class="mtb" hidden>
+          <label class="mtb__f">
+            <span class="visually-hidden">Filter the course materials</span>
+            <input type="search" placeholder="Filter, e.g. quiz 2" autocomplete="off" spellcheck="false" />
+          </label>
+          <button type="button" class="mtb__all" aria-pressed="false">Open all</button>
         </div>
+        <p class="mtb__none" role="status" aria-live="polite"></p>
+        <FileTree nodes={tree} exclude={exclude} />
       </section>
     )
   }
 
   {
     past && past.offerings.length > 0 && (
-      <section class="cs2">
+      <section class="cs2" id="earlier" aria-labelledby="earlier-h">
         <header class="cs2__top">
-          <span>{roman([pdfHref, tree.length].filter(Boolean).length + 1)} · EARLIER YEARS</span>
+          <h2 class="cs2__h" id="earlier-h">{roman([pdfHref, fileCount].filter(Boolean).length + 1)} · Earlier years</h2>
           <span class="cs2__tools">
             <a href={`/academics/past#${past.slug}`}>all past material →</a>
           </span>
         </header>
-        <div class="cs2__tree">
-          <PastOfferings offerings={past.offerings} />
-        </div>
+        <PastOfferings offerings={past.offerings} />
       </section>
     )
   }
 </Base>
 
 <script>
-  // PDFs open in dark mode (inverted, hues kept); the choice is remembered
+  // PDFs open in dark mode (inverted, hues kept); the choice is remembered.
+  // The embedded viewer only loads on wide screens: phones get a link card instead.
   const KEY = 'pdf-mode'
-  const apply = () => {
+  const wide = () => matchMedia('(min-width: 900px)').matches
+
+  const pdf = () => {
+    document.querySelectorAll<HTMLIFrameElement>('.pdf__frame[data-src]').forEach((f) => {
+      if (!wide() || f.src) return
+      f.src = f.dataset.src!
+      f.closest('.notes')?.classList.add('has-frame')
+    })
     let mode = 'dark'
     try {
       mode = localStorage.getItem(KEY) ?? 'dark'
@@ -103,13 +135,66 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
         try {
           localStorage.setItem(KEY, mode === 'dark' ? 'light' : 'dark')
         } catch {}
-        if (mode === 'dark') mode = 'light'
-        else mode = 'dark'
-        apply()
+        pdf()
       }
     })
   }
-  document.addEventListener('astro:page-load', apply)
+
+  // Filter box and open-all toggle for the materials
+  const materials = () => {
+    const bar = document.querySelector<HTMLElement>('.mtb')
+    const root = document.querySelector<HTMLElement>('#materials > .mt')
+    const none = document.querySelector<HTMLElement>('.mtb__none')
+    if (!bar || !root || !none) return
+    bar.hidden = false
+    const input = bar.querySelector('input')!
+    const all = bar.querySelector<HTMLButtonElement>('.mtb__all')!
+    const details = () => [...root.querySelectorAll('details')]
+
+    // returns whether anything under `scope` matches; hides what does not
+    const walk = (scope: Element, q: string, forceShow: boolean): boolean => {
+      let any = false
+      scope.querySelectorAll<HTMLElement>(':scope > .mt__items > .js-m').forEach((el) => {
+        const ok = forceShow || !q || el.dataset.search!.includes(q)
+        el.hidden = !ok
+        any ||= ok
+      })
+      scope.querySelectorAll<HTMLElement>(':scope > .mt__folders > .js-f').forEach((f) => {
+        const self = !!q && f.dataset.search!.includes(q)
+        const body = f.querySelector(':scope > details > .mt__body')!
+        let ok = self
+        body.querySelectorAll<HTMLElement>(':scope > .cal .js-m').forEach((el) => {
+          const m = forceShow || self || !q || el.dataset.search!.includes(q)
+          el.hidden = !m
+          ok ||= m
+        })
+        const inner = body.querySelector(':scope > .mt')
+        if (inner) ok = walk(inner, q, forceShow || self) || ok
+        f.hidden = !ok
+        if (q) (f.querySelector(':scope > details') as HTMLDetailsElement).open = ok
+        any ||= ok
+      })
+      return any
+    }
+
+    input.oninput = () => {
+      const q = input.value.trim().toLowerCase()
+      const any = walk(root, q, false)
+      if (!q) details().forEach((d) => (d.open = all.getAttribute('aria-pressed') === 'true'))
+      none.textContent = q && !any ? `Nothing in the materials matches “${input.value.trim()}”.` : ''
+    }
+    all.onclick = () => {
+      const open = all.getAttribute('aria-pressed') !== 'true'
+      all.setAttribute('aria-pressed', String(open))
+      all.textContent = open ? 'Close all' : 'Open all'
+      details().forEach((d) => (d.open = open))
+    }
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    pdf()
+    materials()
+  })
 </script>
 
 <style>
@@ -118,15 +203,18 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
     color: var(--ultramarine);
   }
   .ch__back {
-    font: 0.72rem var(--font-din);
-    letter-spacing: 0.18em;
+    display: inline-block;
+    padding: 0.6rem 0;
+    font: 0.78rem var(--font-din);
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     text-decoration: none;
   }
   .ch__k {
-    margin-top: 2.4rem;
-    font: 0.72rem var(--font-din);
-    letter-spacing: 0.18em;
+    margin-top: 2rem;
+    font: 0.78rem/1.5 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
   .ch__t {
     margin: 0.8rem 0 1.2rem;
@@ -136,43 +224,84 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
   .cb {
     display: block !important;
     max-width: 44rem;
-    margin: 2.4rem 0 0 4vw !important;
-    color: #11135a;
+    margin: 2rem 0 0 !important;
+    padding: 0 !important;
+    color: var(--ink);
   }
   .cb :global(> *) {
     margin-inline: 0 !important;
   }
   .cb :global(> p) {
-    font: 1.22rem/1.65 var(--font-body);
+    font: 1.22rem/1.6 var(--font-body);
+  }
+  /* jump links: the page is long on a phone */
+  .ch__jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 2.2rem;
+  }
+  .ch__jump a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid color-mix(in oklab, var(--ultramarine) 45%, transparent);
+    border-radius: 999px;
+    font: 0.78rem var(--font-din);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  .ch__jump a:hover {
+    background: color-mix(in oklab, var(--ultramarine) 10%, transparent);
+  }
+  .ch__jump span {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    letter-spacing: 0;
+    font-variant-numeric: lining-nums;
   }
 
   .cs2 {
-    padding: 5rem 4vw 0;
+    padding: 4.5rem 4vw 0;
     color: var(--ultramarine);
+    scroll-margin-top: 4rem;
   }
   .cs2:last-of-type {
     padding-bottom: 6rem;
   }
   .cs2__top {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: baseline;
-    gap: 1rem;
-    padding-bottom: 1rem;
-    margin-bottom: 2rem;
+    gap: 0.6rem 1.5rem;
+    padding-bottom: 0.9rem;
+    margin-bottom: 1.6rem;
     border-bottom: 1.5px solid var(--ultramarine);
-    font: 0.75rem var(--font-din);
-    letter-spacing: 0.18em;
+  }
+  .cs2__h,
+  .cs2__n {
+    margin: 0;
+    font: 400 0.8rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
   .cs2__tools {
     display: flex;
-    gap: 1.6rem;
-    font: 400 0.72rem/1.4 var(--font-din); letter-spacing: 0.16em; text-transform: uppercase; font-style: normal;
-    letter-spacing: 0;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.6rem;
+    font: 400 0.78rem/1.4 var(--font-din);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .cs2__tools a,
   .cs2__tools button {
     all: unset;
+    padding: 0.35rem 0;
     cursor: pointer;
   }
   .cs2__tools a:hover,
@@ -180,9 +309,60 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
     text-decoration: underline;
     text-decoration-thickness: 1px;
   }
+  .cs2__tools a:focus-visible,
+  .cs2__tools button:focus-visible,
+  .ch__jump a:focus-visible,
+  .nc:focus-visible {
+    outline: 2px solid var(--ultramarine);
+    outline-offset: 3px;
+  }
+
+  /* ---------- the notes ---------- */
+  .nc {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.3rem 1rem;
+    align-items: center;
+    max-width: 34rem;
+    padding: 1.2rem 1.3rem;
+    border: 1.5px solid var(--ultramarine);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  .nc:hover {
+    background: color-mix(in oklab, var(--ultramarine) 8%, transparent);
+  }
+  .nc__t {
+    font: italic 400 1.9rem/1.05 var(--font-display);
+  }
+  .nc__k {
+    grid-row: 2;
+    font: 0.72rem/1.4 var(--font-din);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .nc__arrow {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    font-size: 1.6rem;
+  }
   .pdf {
+    display: none;
     background: #fff;
     box-shadow: 0 30px 60px -36px rgb(17 19 90 / 0.7);
+  }
+  .notes .cs2__tools {
+    display: none;
+  }
+  .notes.has-frame .nc {
+    display: none;
+  }
+  .notes.has-frame .pdf {
+    display: block;
+  }
+  .notes.has-frame .cs2__tools {
+    display: flex;
   }
   .pdf__frame {
     display: block;
@@ -198,7 +378,60 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
   .pdf.is-dark .pdf__frame {
     filter: invert(0.9) hue-rotate(180deg);
   }
-  .cs2__tree {
-    max-width: 44rem;
+
+  /* ---------- materials toolbar ---------- */
+  .mtb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.4rem;
+  }
+  .mtb__f {
+    flex: 1 1 10rem;
+    max-width: 26rem;
+  }
+  .mtb input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--ultramarine) 55%, transparent);
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--mist) 25%, transparent);
+    color: var(--ink);
+    font: 1.05rem var(--font-body);
+  }
+  .mtb input::placeholder {
+    color: color-mix(in oklab, var(--ultramarine) 85%, var(--bg));
+    font-style: italic;
+  }
+  .mtb input:focus-visible {
+    outline: 2px solid var(--ultramarine);
+    outline-offset: 1px;
+  }
+  .mtb__all {
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 1px solid color-mix(in oklab, var(--ultramarine) 55%, transparent);
+    border-radius: 3px;
+    background: none;
+    color: var(--ultramarine);
+    font: 0.78rem var(--font-din);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .mtb__all:hover {
+    background: color-mix(in oklab, var(--ultramarine) 10%, transparent);
+  }
+  .mtb__all:focus-visible {
+    outline: 2px solid var(--ultramarine);
+    outline-offset: 2px;
+  }
+  .mtb__none:empty {
+    display: none;
+  }
+  .mtb__none {
+    margin: 0 0 1rem;
+    font: italic 1.1rem var(--font-body);
   }
 </style>
