@@ -20,12 +20,13 @@ elsewhere:
   - label: 'github'
     href: 'https://github.com/lunalgia'
   - label: 'bluseky'
-    href: 'https://bsky.app/profile/lunalgia.bsky.social'
+    href: 'https://bsky.app/profile/lunalgia.me'
   - label: 'email'
-    href: 'mailto:lunalgia@proton.me'
+    href: 'mailto:lilian@lunalgia.me'
   - label: 'rss'
     href: '/rss.xml'
 ---
 
 white lilies are traditionally used as funeral flowers. Write to me at
-[lunalgia@proton.me](mailto:lunalgia@proton.me), or find me as *@lunalgia* on discord.
+[lilian@lunalgia.me](mailto:lilian@lunalgia.me), find me as *@lunalgia* on discord (where I am not so active), or
+*lunalgia.03* on signal.
