@@ -5,7 +5,8 @@ course: 'Undergraduate'
 year: 2026
 semester: 1              # 1 | 2
 date: 2026-08-20
-pdf: 'notes.pdf'         # optional, relative to folder
+pdf: 'notes.pdf'         # optional, relative to folder; shown first on the page
+pdfLabel: 'notes'        # optional, what to call that PDF ("reader", "slides"…)
 folder: 'Math/Year 1/Sem 1/Course'
 past: 'Course'          # optional, folder name in public/uni/Past Material/Sem N
 tags: [math]

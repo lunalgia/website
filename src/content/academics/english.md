@@ -5,6 +5,8 @@ year: 2026
 semester: 1
 date: 2026-08-20
 order: 2
+pdf: 'Empowerment with English - Reader.pdf'
+pdfLabel: 'reader'
 folder: 'Humanities/Year 1/Sem 1/Empowerment with English'
 past: 'Empowerment with English'
 tags: [humanities, literature]

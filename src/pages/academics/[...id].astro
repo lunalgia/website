@@ -26,6 +26,8 @@ const fileCount = countFiles(tree) - tree.filter((n) => n.type === 'file' && exc
 const pdfBytes = d.pdf && d.folder ? await stat(join(process.cwd(), 'public', 'uni', d.folder, d.pdf)).then((s) => s.size).catch(() => 0) : 0
 const pdfSize = pdfBytes ? (pdfBytes > 1e6 ? `${(pdfBytes / 1e6).toFixed(1)} MB` : `${Math.round(pdfBytes / 1e3)} kB`) : ''
 const past = d.past ? (await readPast()).find((c) => c.name === d.past) : undefined
+const label = d.pdfLabel
+const Label = label.replace(/^\w/, (c) => c.toUpperCase())
 const sem = d.semester === 1 ? 'first semester' : d.semester === 2 ? 'second semester' : null
 const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filter(Boolean).join(' ')].filter(Boolean)
 ---
@@ -42,7 +44,7 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
     {
       (pdfHref || fileCount > 0 || past) && (
         <nav class="ch__jump" aria-label="On this page">
-          {pdfHref && <a href="#notes">Notes</a>}
+          {pdfHref && <a href="#notes">{Label}</a>}
           {fileCount > 0 && <a href="#materials">Materials <span>{fileCount}</span></a>}
           {past && past.offerings.length > 0 && <a href="#earlier">Earlier years <span>{past.offerings.length}</span></a>}
         </nav>
@@ -54,7 +56,7 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
     pdfHref && (
       <section class="cs2 notes" id="notes" aria-labelledby="notes-h">
         <header class="cs2__top">
-          <h2 class="cs2__h" id="notes-h">I · The notes</h2>
+          <h2 class="cs2__h" id="notes-h">I · The {label}</h2>
           <span class="cs2__tools">
             <button type="button" class="pdf-mode" aria-pressed="true">
               light pages
@@ -65,12 +67,12 @@ const kicker = [d.folder?.split('/')[0], ...d.tags.slice(1), [sem, d.year].filte
           </span>
         </header>
         <a class="nc" href={pdfHref} target="_blank" rel="noopener">
-          <span class="nc__t">Read the notes</span>
+          <span class="nc__t">Open the {label}</span>
           <span class="nc__k">PDF{pdfSize && ` · ${pdfSize}`} · opens in a new tab</span>
           <span class="nc__arrow" aria-hidden="true">↗</span>
         </a>
         <div class="pdf is-dark">
-          <iframe class="pdf__frame" data-src={pdfHref} title={`${d.title}: lecture notes (PDF)`} />
+          <iframe class="pdf__frame" data-src={pdfHref} title={`${d.title}: ${label === 'notes' ? 'lecture notes' : label} (PDF)`} />
         </div>
       </section>
     )

@@ -41,6 +41,8 @@ const academics = defineCollection({
     date: z.coerce.date().optional(),
     order: z.number().optional(),
     pdf: z.string().optional(),
+    /** what the PDF is called on the page: "notes" (the default), "reader"… */
+    pdfLabel: z.string().default('notes'),
     folder: z.string().optional(),
     /** the course's folder name in public/uni/Past Material, to list earlier years' papers */
     past: z.string().optional(),

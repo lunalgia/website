@@ -54,7 +54,7 @@ const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
                 <span class="co__sub">{subject(l)}</span>
                 <span class="co__t">{l.data.title}</span>
                 <span class="co__meta">
-                  {l.data.pdf && <span class="co__chip">notes</span>}
+                  {l.data.pdf && <span class="co__chip">{l.data.pdfLabel}</span>}
                   {l.data.folder && <span class="co__chip">materials</span>}
                   {l.data.date && <time datetime={l.data.date.toISOString()}>{formatDate(l.data.date, 'short')}</time>}
                 </span>
