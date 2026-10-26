@@ -18,6 +18,8 @@ const bookNo = new Map(books.map((b, i) => [b.id, i + 1]))
 /** the ones worth showing as covers: favourites, liked, or scored 90 and up */
 const picks = <T extends { favourite: boolean; liked: boolean; rating?: number }>(list: T[], n: number) =>
   list.filter((x) => x.favourite || x.liked || (x.rating ?? 0) >= 90).slice(0, n)
+const bookPicks = picks(books, 5)
+const filmPicks = picks(films, 6)
 const rooms = [
   { id: 'books', label: 'Books', n: books.length },
   { id: 'records', label: 'Records', n: records.length },
@@ -28,7 +30,7 @@ const rooms = [
 <Base title="Media" description="Books, records and films, with reviews.">
   <header class="ah">
     <h1 class="ah__t">Media</h1>
-    <p class="ah__lede">What I read, listen to and watch. Open any cover or row for the start of its review.</p>
+    <p class="ah__lede">What I read, listen to and watch. Open any cover or row for its details, and the full review from there.</p>
   </header>
   <nav class="ax-bar" aria-label="sections">
     {rooms.map((r) => <a href={`#${r.id}`} data-room={r.id}>{r.label} <sup>{pad(r.n)}</sup></a>)}
@@ -39,14 +41,15 @@ const rooms = [
         <span>I · BOOKS</span>
         <span>{pad(books.length)}</span>
       </header>
-      <Posters title="Selected" items={picks(books, 5)} numbers={bookNo} unit="pages" />
+      <Posters title="Selected" items={bookPicks} numbers={bookNo} unit="pages" />
       <div class="ax-gap" />
       <Index
         title="All books"
         items={books}
+        selected={new Set(bookPicks.map((b) => b.id))}
         columns={[
           { label: 'WRITTEN BY', value: (b) => b.by },
-          { label: 'THE SHORT OF IT', value: (b) => b.first, long: true },
+          { label: 'GENRES', value: (b) => b.genres.join('\n'), chips: true },
         ]}
       />
     </section>
@@ -56,14 +59,15 @@ const rooms = [
         <span>III · FILMS</span>
         <span>{pad(films.length)}</span>
       </header>
-      <Posters title="Selected" items={picks(films, 6)} numbers={filmNo} unit="min" />
+      <Posters title="Selected" items={filmPicks} numbers={filmNo} unit="min" />
       <div class="ax-gap" />
       <Index
         title="All films"
         items={films}
+        selected={new Set(filmPicks.map((f) => f.id))}
         columns={[
           { label: 'DIRECTED BY', value: (f) => f.by },
-          { label: 'STARRING', value: (f) => f.meta.starring?.split(/,\s*/).join('\n'), long: true },
+          { label: 'GENRES', value: (f) => f.genres.join('\n'), chips: true },
         ]}
       />
     </section>
@@ -71,17 +75,22 @@ const rooms = [
 </Base>
 
 <script>
-  // the bar marks whichever section holds the middle of the screen
-  const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.ax-bar a')].map((a) => [a.dataset.room!, a]))
-  const io = new IntersectionObserver(
-    (seen) => {
-      for (const e of seen) if (e.isIntersecting) links.forEach((a, id) => a.toggleAttribute('aria-current', id === e.target.id))
-    },
-    { rootMargin: '-50% 0px -50% 0px' },
-  )
-  links.forEach((_, id) => {
-    const el = document.getElementById(id)
-    if (el) io.observe(el)
+  // the bar marks whichever section holds the middle of the screen; set up on every
+  // arrival, since the site swaps pages without reloading
+  document.addEventListener('astro:page-load', () => {
+    const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.ax-bar a')].map((a) => [a.dataset.room!, a]))
+    if (!links.size) return
+    const io = new IntersectionObserver(
+      (seen) => {
+        for (const e of seen) if (e.isIntersecting) links.forEach((a, id) => a.toggleAttribute('aria-current', id === e.target.id))
+      },
+      { rootMargin: '-50% 0px -50% 0px' },
+    )
+    links.forEach((_, id) => {
+      const el = document.getElementById(id)
+      if (el) io.observe(el)
+    })
+    document.addEventListener('astro:before-swap', () => io.disconnect(), { once: true })
   })
 </script>
 
@@ -133,7 +142,8 @@ const rooms = [
   .ax-bar a[aria-current] {
     color: var(--ultramarine);
   }
-  .ax-bar a[aria-current]::after {
+  /* the underline grows in under the section you are in */
+  .ax-bar a::after {
     content: '';
     position: absolute;
     left: 0;
@@ -141,6 +151,12 @@ const rooms = [
     bottom: calc(-0.9rem - 1px);
     height: 2px;
     background: var(--ultramarine);
+    scale: 0 1;
+    transform-origin: left;
+    transition: scale 0.45s var(--ease-out);
+  }
+  .ax-bar a[aria-current]::after {
+    scale: 1 1;
   }
   .ax {
     padding: 0 4vw 7rem;

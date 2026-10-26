@@ -1,55 +1,85 @@
 ---
 /**
- * One item's entry, set like a project on the work page: cover on the left,
- * kicker, italic title, score, the start of the review and its links on the right.
- * The three rooms show one of these at a time.
+ * One item's details, set like a project on the work page: kicker, italic
+ * title, score, a few facts, its genres and where to find it. The review is
+ * never quoted here; the button takes you to the full page, where it is set
+ * properly.
  */
 import Score from '@/components/media/Score.astro'
 import type { AnnexItem } from '@/lib/annex'
 interface Props {
   item: AnnexItem
   kicker: string
-  /** records are square */
-  square?: boolean
   /** leave the cover out, when the room already shows it */
   bare?: boolean
   hidden?: boolean
   i: number
   /** a catalogue number, boxed under the title as Numero does: "LUN 001" */
   cat?: string
+  /** set the title letter by letter, for the crate's flip */
+  flip?: boolean
 }
-const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
+const { item: it, kicker, bare, hidden, i, cat, flip } = Astro.props
+let k = 0
 ---
 
 <article class:list={['en', { 'en--bare': bare }]} data-i={i} hidden={hidden}>
   {
     !bare &&
       (it.img ? (
-        <img class:list={['en__cover', { 'en__cover--sq': square }]} src={it.img} alt="" loading="lazy" />
+        <img class="en__cover" src={it.img} alt="" loading="lazy" />
       ) : (
-        <div class:list={['en__cover', 'en__cover--type', { 'en__cover--sq': square }]} style={`--c:${it.color};--f:${it.ink}`}>
+        <div class="en__cover en__cover--type" style={`--c:${it.color};--f:${it.ink}`}>
           {it.title}
         </div>
       ))
   }
   <div class="en__text">
     <p class="en__k">{kicker}</p>
-    <h3 class="en__t">{it.title}</h3>
+    {
+      flip ? (
+        <h3 class="en__t en__t--flip" aria-label={it.title}>
+          {it.title.split(' ').map((w) => (
+            <span class:list={['en__w', { 'en__w--long': w.length > 16 }]} aria-hidden="true">
+              {[...w].map((c) => (
+                <span class="en__l" style={`--i:${k++}`}>{c}</span>
+              ))}
+            </span>
+          ))}
+        </h3>
+      ) : (
+        <h3 class="en__t">{it.title}</h3>
+      )
+    }
     <p class="en__by">{it.by}{it.year && `, ${it.year}`}</p>
     {cat && <p class="en__cat">{cat}</p>}
-    <Score rating={it.rating} favourite={it.favourite} liked={it.liked} />
-    {it.excerpt.slice(0, bare ? 1 : 2).map((p) => <p class="en__p" set:html={p} />)}
+    <p class="en__score">
+      <Score rating={it.rating} />
+      {it.favourite && <span class="en__tag">ALL-TIME FAVOURITE</span>}
+    </p>
     {
-      it.tags.length > 0 && (
+      it.facts.length > 0 && (
+        <dl class="en__facts">
+          {it.facts.map(([k, v]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+    {
+      it.genres.length > 0 && (
         <p class="en__tags">
-          {it.tags.map((t) => (
+          {it.genres.map((t) => (
             <span>{t}</span>
           ))}
         </p>
       )
     }
     <p class="en__links">
-      {it.href && <a href={it.href}>the review ↗</a>}
+      {it.href ? <a class="en__go" href={it.href}>Read the review <span aria-hidden="true">→</span></a> : <span class="en__none">No review yet</span>}
       {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
     </p>
   </div>
@@ -74,9 +104,6 @@ const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
     aspect-ratio: 2 / 3;
     object-fit: cover;
   }
-  .en__cover--sq {
-    aspect-ratio: 1;
-  }
   .en__cover--type {
     display: flex;
     align-items: flex-end;
@@ -92,8 +119,32 @@ const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
     text-transform: uppercase;
   }
   .en__t {
+    overflow-wrap: anywhere;
     margin: 0.7rem 0 0.4rem;
     font: italic 400 clamp(2.4rem, 3.8vw, 3.8rem) / 0.95 var(--font-display);
+  }
+  /* the crate's title: letters that can turn over (see Flip.astro) */
+  .en__t--flip {
+    perspective: 600px;
+  }
+  .en__w {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 0.22em;
+  }
+  .en__w:last-child {
+    margin-right: 0;
+  }
+  /* a word too long for any line (a title in binary, say) may break between letters */
+  .en__w--long {
+    display: inline-flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .en__l {
+    display: inline-block;
+    backface-visibility: hidden;
+    transform-origin: 50% 50% -0.3em;
   }
   .en__by {
     margin: 0 0 1.2rem;
@@ -108,10 +159,39 @@ const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
     font: 400 0.62rem/1 var(--font-din);
     letter-spacing: 0.18em;
   }
-  .en__p {
+  .en__score {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.9rem;
+    margin: 0;
+  }
+  /* in the terminal blocks' blue, ultramarine eased toward the lavender */
+  .en__tag {
+    padding: 0.4rem 0.6rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    font: 400 0.58rem/1 var(--font-din);
+    letter-spacing: 0.16em;
+  }
+  .en__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.9rem 1.6rem;
     max-width: 34rem;
-    margin: 1rem 0 0;
-    font: 1.1rem/1.55 var(--font-body);
+    margin: 1.6rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .en__facts dt {
+    font: 400 0.56rem/1.6 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .en__facts dd {
+    margin: 0.15rem 0 0;
+    font: 1rem/1.3 var(--font-body);
     color: var(--ink);
   }
   .en__tags {
@@ -130,8 +210,9 @@ const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
   .en__links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 1.4rem;
-    margin: 1.2rem 0 0;
+    align-items: center;
+    gap: 0.6rem 1.4rem;
+    margin: 1.8rem 0 0;
     font: 400 0.72rem/1.4 var(--font-din);
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -143,6 +224,31 @@ const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
+  }
+  /* the one thing to do here: go and read it */
+  .en__links .en__go {
+    display: inline-flex;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    text-decoration: none;
+    transition: background 0.25s;
+  }
+  .en__links .en__go:hover {
+    background: var(--ultramarine);
+  }
+  .en__go span {
+    transition: translate 0.3s var(--ease-out);
+  }
+  .en__links .en__go:hover {
+    text-decoration: none;
+  }
+  .en__go:hover span {
+    translate: 0.3rem 0;
+  }
+  .en__none {
+    color: var(--muted);
   }
   @media (max-width: 640px) {
     .en {

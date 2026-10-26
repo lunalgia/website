@@ -3,14 +3,14 @@
  * The full list, after A24's film index: grouped by year, the year set large
  * on the first row of its group, the title big, a couple of narrow columns,
  * the score at the end. The cover follows the cursor along the rows; clicking
- * a row opens the start of the review underneath it.
+ * a row opens its details underneath, with the way through to the full review.
  */
 import { pad, type AnnexItem } from '@/lib/annex'
 interface Column {
   label: string
   value: (it: AnnexItem) => string | undefined
-  /** long text: clipped to three lines with a fade */
-  long?: boolean
+  /** one value per line, set as small outlined tags */
+  chips?: boolean
 }
 interface Props {
   title: string
@@ -18,8 +18,10 @@ interface Props {
   columns: Column[]
   /** films and books want a portrait cover, records a square one */
   square?: boolean
+  /** the ids shown in the selection above, tagged as such */
+  selected?: Set<string>
 }
-const { title, items, columns, square } = Astro.props
+const { title, items, columns, square, selected } = Astro.props
 const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rating ?? 0) - (a.rating ?? 0))
 ---
 
@@ -43,21 +45,40 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
               <span class="ix__year">{first ? it.year : ''}</span>
               {it.thumb ? <img class="ix__thumb" src={it.thumb} alt="" loading="lazy" /> : <span class="ix__thumb" style={`background:${it.color}`} />}
               <span class="ix__t">{it.title}</span>
-              {columns.map((c) => (
-                <span class:list={['ix__extra', { 'ix__long': c.long }]}>{c.value(it) ?? '—'}</span>
-              ))}
+              {columns.map((c) => {
+                const v = c.value(it)
+                return c.chips ? (
+                  <span class="ix__extra ix__chips">{v ? v.split('\n').map((t) => <i>{t}</i>) : '—'}</span>
+                ) : (
+                  <span class="ix__extra">{v || '—'}</span>
+                )
+              })}
               <span class="ix__right">
                 <b>{it.rating ?? '—'}</b>
-                {it.favourite ? <i class="ix__tag">ALL-TIME</i> : it.liked && <i class="ix__tag">♥ LIKED</i>}
+                {it.favourite ? <i class="ix__tag">ALL-TIME</i> : selected?.has(it.id) && <i class="ix__tag ix__tag--sel">SELECTED</i>}
               </span>
               <span class="ix__pm" aria-hidden="true" />
             </button>
-            <div class="ix__open" hidden>
-              {it.excerpt.length ? it.excerpt.map((p) => <p set:html={p} />) : <p class="ix__none">No review yet.</p>}
-              <p class="ix__links">
-                {it.href && <a href={it.href}>the review ↗</a>}
-                {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
-              </p>
+            <div class="ix__open" inert>
+              <div class="ix__inner">
+                {it.img && <img class="ix__big" src={it.img} alt="" loading="lazy" />}
+                <div>
+                  {it.facts.length > 0 && (
+                    <dl class="ix__facts">
+                      {it.facts.map(([k, v]) => (
+                        <div>
+                          <dt>{k}</dt>
+                          <dd>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  <p class="ix__links">
+                    {it.href ? <a class="ix__go" href={it.href}>Read the review <span aria-hidden="true">→</span></a> : <span class="ix__none">No review yet</span>}
+                    {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
+                  </p>
+                </div>
+              </div>
             </div>
           </li>
         )
@@ -68,19 +89,24 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
 </div>
 
 <script>
-  for (const root of document.querySelectorAll<HTMLElement>('.ix')) {
+  const setup = (root: HTMLElement) => {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const cover = root.querySelector<HTMLImageElement>('.ix__cover')!
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
-    for (const row of root.querySelectorAll<HTMLElement>('.ix__row')) {
+    const rows = [...root.querySelectorAll<HTMLElement>('.ix__row')]
+    for (const row of rows) {
       const btn = row.querySelector<HTMLButtonElement>('.ix__btn')!
       const open = row.querySelector<HTMLElement>('.ix__open')!
       btn.addEventListener('click', () => {
-        const on = btn.getAttribute('aria-expanded') !== 'true'
+        const on = !row.classList.contains('is-open')
+        row.classList.toggle('is-open', on)
         btn.setAttribute('aria-expanded', String(on))
-        open.hidden = !on
+        open.inert = !on
+        if (on) cover.classList.remove('on')
       })
       if (!fine || !row.dataset.cover) continue
       btn.addEventListener('pointerenter', () => {
+        if (row.classList.contains('is-open')) return
         cover.src = row.dataset.cover!
         cover.classList.add('on')
       })
@@ -90,7 +116,27 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
     root.addEventListener('pointermove', (e) => {
       cover.style.translate = `${e.clientX + 24}px ${e.clientY - cover.offsetHeight / 2}px`
     })
+    // rows rise in as they come into view; armed by JS, so nothing is hidden without it
+    if (still) return
+    root.classList.add('is-armed')
+    const io = new IntersectionObserver(
+      (seen) => {
+        let n = 0
+        for (const e of seen) {
+          if (!e.isIntersecting) continue
+          const el = e.target as HTMLElement
+          el.style.setProperty('--n', String(n++))
+          el.classList.add('is-in')
+          io.unobserve(el)
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px' },
+    )
+    root.querySelectorAll('.ix__h, .ix__head, .ix__row').forEach((el) => io.observe(el))
+    document.addEventListener('astro:before-swap', () => io.disconnect(), { once: true })
   }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.ix').forEach(setup))
 </script>
 
 <style>
@@ -187,6 +233,7 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
     font: 400 clamp(1.6rem, 2.4vw, 2.3rem) / 1 var(--font-din);
   }
   .ix__t {
+    overflow-wrap: anywhere;
     font: italic 400 clamp(1.7rem, 2.6vw, 2.6rem) / 1 var(--font-display);
     text-decoration: underline transparent;
     text-decoration-thickness: 1px;
@@ -208,12 +255,20 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
     font: inherit;
     color: inherit;
   }
-  .ix__long {
-    white-space: pre-line;
-    max-height: 3.9em;
-    overflow: hidden;
-    -webkit-mask: linear-gradient(#000 55%, transparent);
-    mask: linear-gradient(#000 55%, transparent);
+  .ix__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.35rem;
+    padding-top: 0.45rem;
+  }
+  .ix__chips i {
+    font: normal 400 0.58rem/1 var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid rgb(2 8 135 / 0.4);
+    color: var(--ultramarine);
   }
   .ix__right {
     display: flex;
@@ -227,36 +282,86 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
     font: italic 400 1.7rem/1 var(--font-display);
   }
   /* the small inverted tag, as A24 marks what is now playing */
+  /* in the terminal blocks' blue, ultramarine eased toward the lavender */
   .ix__tag {
-    padding: 0.25rem 0.4rem;
-    background: var(--ultramarine);
-    color: var(--lavender);
+    padding: 0.3rem 0.45rem;
+    background: #3a3d9c;
+    color: var(--mist);
     font: normal 400 0.5rem/1 var(--font-din);
     letter-spacing: 0.16em;
     white-space: nowrap;
   }
+  /* selected is a step down from all-time: outlined, not filled */
+  .ix__tag--sel {
+    padding: calc(0.3rem - 1px) calc(0.45rem - 1px);
+    background: none;
+    border: 1px solid rgb(2 8 135 / 0.45);
+    color: var(--ultramarine);
+  }
+  /* the details open by easing the row's height from nothing */
   .ix__open {
-    margin-left: calc(6.5rem + 3.2rem + 2.8rem);
-    padding: 0.2rem 0 1.8rem;
-    max-width: 40rem;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.55s var(--ease-out);
   }
-  .ix__open[hidden] {
-    display: none;
+  .ix__row.is-open .ix__open {
+    grid-template-rows: 1fr;
   }
-  .ix__open p {
-    margin: 0 0 0.9rem;
-    font: 1.08rem/1.55 var(--font-body);
+  .ix__inner {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 36rem);
+    gap: 2rem;
+    min-height: 0;
+    overflow: hidden;
+    margin-left: calc(6.5rem + 1.4rem);
+    padding-bottom: 0;
+    opacity: 0;
+    translate: 0 -0.6rem;
+    transition:
+      opacity 0.3s,
+      translate 0.5s var(--ease-out),
+      padding-bottom 0.55s var(--ease-out);
+  }
+  .ix__row.is-open .ix__inner {
+    padding-bottom: 2rem;
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.12s, 0.12s, 0s;
+  }
+  .ix__big {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__big {
+    aspect-ratio: 1;
+  }
+  .ix__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.9rem 1.6rem;
+    margin: 0;
+  }
+  .ix__facts dt {
+    font: 400 0.56rem/1.6 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ix__facts dd {
+    margin: 0.15rem 0 0;
+    font: 1rem/1.3 var(--font-body);
     color: var(--ink);
-  }
-  .ix__none {
-    font-style: italic;
   }
   .ix__links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 1.4rem;
-    font: 400 0.72rem/1.4 var(--font-din) !important;
+    align-items: center;
+    gap: 0.6rem 1.4rem;
+    margin: 1.6rem 0 0;
+    font: 400 0.72rem/1.4 var(--font-din);
     letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
   .ix__links a {
     color: var(--ultramarine);
@@ -265,6 +370,43 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
   .ix__links a:hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .ix__links .ix__go {
+    display: inline-flex;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    transition: background 0.25s;
+  }
+  .ix__links .ix__go:hover {
+    background: var(--ultramarine);
+  }
+  .ix__links .ix__go:hover {
+    text-decoration: none;
+  }
+  .ix__go span {
+    transition: translate 0.3s var(--ease-out);
+  }
+  .ix__go:hover span {
+    translate: 0.3rem 0;
+  }
+  .ix__none {
+    color: var(--muted);
+  }
+  /* rows rise in as they come into view */
+  .ix.is-armed :is(.ix__h, .ix__head, .ix__row) {
+    opacity: 0;
+    translate: 0 1.2rem;
+  }
+  .ix.is-armed :is(.ix__h, .ix__head, .ix__row).is-in {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.6s var(--ease-out),
+      translate 0.8s var(--ease-out);
+    transition-delay: calc(min(var(--n, 0), 8) * 55ms);
   }
   .ix__cover {
     position: fixed;
@@ -284,6 +426,14 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
   .ix__cover.on {
     opacity: 1;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .ix__open,
+    .ix__inner,
+    .ix__pm::before,
+    .ix__pm::after {
+      transition: none;
+    }
+  }
   @media (max-width: 860px) {
     .ix {
       --grid: 2.6rem 2.4rem minmax(0, 1fr) 3rem 0.9rem;
@@ -298,8 +448,10 @@ const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rat
     .ix__row::before {
       left: calc(2.6rem + 0.8rem);
     }
-    .ix__open {
-      margin-left: calc(2.6rem + 2.4rem + 1.6rem);
+    .ix__inner {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 1.2rem;
+      margin-left: calc(2.6rem + 0.8rem);
     }
     .ix__row--first::before {
       left: 0;

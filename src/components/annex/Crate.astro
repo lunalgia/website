@@ -48,13 +48,13 @@ const BEHIND = 9
     <p class="cr__hint">Click a sleeve, use ← →, or swipe sideways</p>
     </div>
     <div class="cr__entries">
-      {items.map((r, i) => <Entry item={r} i={i} bare hidden={i !== 0} cat={`LUN ${pad(i + 1, 3)}`} kicker={r.tags.join(' · ') || 'record'} />)}
+      {items.map((r, i) => <Entry item={r} i={i} bare flip cat={`LUN ${pad(i + 1, 3)}`} kicker={`${pad(i + 1)} / ${pad(items.length)}`} />)}
     </div>
   </div>
 </section>
 
 <script>
-  for (const root of document.querySelectorAll<HTMLElement>('.cr')) {
+  const setup = (root: HTMLElement) => {
     const sleeves = [...root.querySelectorAll<HTMLElement>('.sl')]
     const entries = [...root.querySelectorAll<HTMLElement>('.en')]
     const crate = root.querySelector<HTMLElement>('.cr__crate')!
@@ -72,7 +72,25 @@ const BEHIND = 9
         s.style.zIndex = String(sleeves.length - j)
         s.dataset.state = d < 0 ? 'past' : d === 0 ? 'on' : d <= behind ? 'behind' : 'gone'
       })
-      entries.forEach((e, j) => (e.hidden = j !== a))
+      // the details flip over as on the shelves: the old title tips away over the top,
+      // the new one comes up from below, and the lines under it slide in after
+      entries.forEach((e, j) => {
+        if (j === a) {
+          e.classList.remove('was-on', 'no-t')
+          e.classList.add('is-on')
+          e.inert = false
+        } else if (e.classList.contains('is-on')) {
+          e.classList.replace('is-on', 'was-on')
+          e.inert = true
+          setTimeout(() => {
+            if (e.classList.contains('is-on')) return
+            e.classList.add('no-t')
+            e.classList.remove('was-on')
+            e.offsetWidth
+            e.classList.remove('no-t')
+          }, 900)
+        } else e.inert = true
+      })
     }
     set(0)
     root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => set(a + Number(b.dataset.step))))
@@ -105,6 +123,8 @@ const BEHIND = 9
       { passive: false },
     )
   }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.cr').forEach(setup))
 </script>
 
 <style>
@@ -121,13 +141,65 @@ const BEHIND = 9
   .cr__body {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 3rem 6vw;
-    align-items: end;
+    gap: 3rem 5vw;
+    align-items: start;
     margin-top: 3rem;
   }
-  .cr__crate {
+  /* every record's details in one cell, so the column never jumps; the one
+     you are on shows, sitting level with the top of the sleeve */
+  .cr__entries {
+    display: grid;
+    padding-top: calc(var(--n) * var(--step-out));
+  }
+  .cr__entries > :global(.en) {
+    grid-area: 1 / 1;
+    min-width: 0;
+    pointer-events: none;
+  }
+  .cr__entries > :global(.en.is-on) {
+    pointer-events: auto;
+  }
+  .cr__entries :global(.en__l) {
+    transform: rotateX(-90deg);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      opacity 0.5s var(--ease-out);
+    /* long titles turn over no slower than a 24-letter one */
+    transition-delay: calc(min(var(--i), 24) * 26ms);
+  }
+  .cr__entries :global(.en.is-on .en__l) {
+    transform: none;
+    opacity: 1;
+  }
+  .cr__entries :global(.en.was-on .en__l) {
+    transform: rotateX(90deg);
+    transition-duration: 0.35s;
+    transition-delay: calc(min(var(--i), 24) * 18ms);
+  }
+  .cr__entries :global(.en__text > :not(.en__t)) {
+    opacity: 0;
+    translate: 0 8px;
+    transition:
+      opacity 0.35s,
+      translate 0.5s var(--ease-out);
+  }
+  .cr__entries :global(.en.is-on .en__text > :not(.en__t)) {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.25s;
+  }
+  .cr__entries :global(.en.no-t .en__l),
+  .cr__entries :global(.en.no-t .en__text > *) {
+    transition: none;
+  }
+  .cr {
     --s: clamp(15rem, 28vw, 24rem);
     --step: calc(var(--s) * 0.045);
+    /* the strips above the front sleeve, which the details line up under */
+    --step-out: var(--step);
+  }
+  .cr__crate {
     position: relative;
     isolation: isolate;
     /* the sleeve, the strips behind it, the lip, and room for the record to the right */
@@ -229,8 +301,11 @@ const BEHIND = 9
     .cr__body {
       grid-template-columns: 1fr;
     }
-    .cr__crate {
+    .cr {
       --s: min(20rem, 66vw);
+    }
+    .cr__entries {
+      padding-top: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {

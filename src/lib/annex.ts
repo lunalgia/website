@@ -4,7 +4,7 @@
  * as the shelves.
  */
 import { getImage } from 'astro:assets'
-import { coverOf, factsOf, getMedia, inkFor, linksOf, paragraphs, paragraphsHtml, spineOf, words, type MediaKind } from '@/lib/media'
+import { coverOf, factsOf, getMedia, inkFor, linksOf, paragraphs, spineOf, words, type MediaKind } from '@/lib/media'
 
 export interface AnnexItem {
   id: string
@@ -23,7 +23,6 @@ export interface AnnexItem {
   facts: [string, string][]
   links: [string, string][]
   tags: string[]
-  excerpt: string[]
   words: number
   href?: string
   /** books: page count; films: minutes */
@@ -32,8 +31,8 @@ export interface AnnexItem {
   ratio: number
   /** every fact, by name, for index columns: { starring: '…', runtime: '106 min' } */
   meta: Record<string, string>
-  /** the review's opening sentence, plain text */
-  first?: string
+  /** genres alone, without your own tags */
+  genres: string[]
 }
 
 export async function annexItems(kind: MediaKind): Promise<AnnexItem[]> {
@@ -63,16 +62,15 @@ export async function annexItems(kind: MediaKind): Promise<AnnexItem[]> {
         thumb: thumb?.src,
         color,
         ink: inkFor(color),
-        facts: factsOf(e).slice(0, 4),
+        facts: factsOf(e).filter(([k]) => !/starring|written by|cinematography|music/i.test(k)).slice(0, 4),
         links: linksOf(e).slice(0, 3),
         tags: [...(d.genres ?? []), ...(d.tags ?? [])].slice(0, 3),
-        excerpt: paragraphsHtml(e.body).slice(0, 2),
         words: words(e.body),
         href: paragraphs(e.body).length ? `/media/${kind}/${e.id}` : undefined,
         size: Number.isFinite(size) ? size : undefined,
         ratio: src ? src.width / src.height : 2 / 3,
         meta: Object.fromEntries(Object.entries(d.meta ?? {}).map(([k, v]) => [k, String(v)])),
-        first: paragraphs(e.body)[0]?.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? paragraphs(e.body)[0],
+        genres: (d.genres ?? []).slice(0, 3),
       }
     }),
   )
