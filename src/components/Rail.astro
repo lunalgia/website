@@ -1,36 +1,38 @@
 ---
 /**
  * The scrollbar: a hairline down the right edge with a broken moon as its thumb
- * (lunalgia, moon pain): a crescent cracked across its widest part, the lower
- * piece knocked out of line and a shard drifting off. Hovering the rail or
+ * (lunalgia, moon pain): a photograph of the moon, cracked across, the lower
+ * piece knocked out of line and a shard breaking off, printed in ink as an
+ * ordered dither (scripts/moon.py makes the three layers). Hovering the rail or
  * dragging the moon pushes the pieces a little further apart. On posts the line also carries a tick for each part and each
  * note; hover one for its name, click to go there. Desktop pointers only, and
  * only with JS: touch screens and no-JS visitors keep the native scrollbar.
  * The rail is decoration over native scrolling, so the keyboard, the wheel and
  * assistive tech are unaffected; it is hidden from the accessibility tree.
  */
+import upper1 from '@/assets/rail/moon-upper@1x.png?url'
+import upper2 from '@/assets/rail/moon-upper@2x.png?url'
+import upper3 from '@/assets/rail/moon-upper@3x.png?url'
+import lower1 from '@/assets/rail/moon-lower@1x.png?url'
+import lower2 from '@/assets/rail/moon-lower@2x.png?url'
+import lower3 from '@/assets/rail/moon-lower@3x.png?url'
+import shard1 from '@/assets/rail/moon-shard@1x.png?url'
+import shard2 from '@/assets/rail/moon-shard@2x.png?url'
+import shard3 from '@/assets/rail/moon-shard@3x.png?url'
+
+// each layer is dithered at its own pixels for each density, so the files are used as they are
+const layers = [
+  { name: 'upper', set: [upper1, upper2, upper3] },
+  { name: 'lower', set: [lower1, lower2, lower3] },
+  { name: 'shard', set: [shard1, shard2, shard3] },
+]
 ---
 
 <div class="rail" aria-hidden="true">
   <div class="rail__line"></div>
   <div class="rail__ticks"></div>
   <div class="rail__moon">
-    <svg viewBox="-10 -10 20 20" width="20" height="20">
-      <defs>
-        <path id="rail-cr" d="M-0.33 -7.99A8 8 0 1 1 -7.06 3.77A6.8 6.8 0 0 0 -0.33 -7.99Z"></path>
-        <clipPath id="rail-in"><use href="#rail-cr"></use></clipPath>
-        <clipPath id="rail-up"><polygon points="-10,0 0,0 3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6 10,8.4 10,-10 -10,-10"></polygon></clipPath>
-        <clipPath id="rail-dn"><polygon points="-10,0 0,0 3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6 10,8.4 10,10 -10,10"></polygon></clipPath>
-      </defs>
-      <circle class="rail__ring" r="8"></circle>
-      <g clip-path="url(#rail-up)"><use class="rail__piece" href="#rail-cr"></use></g>
-      <polyline class="rail__crack" clip-path="url(#rail-in)" points="3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6"></polyline>
-      <g class="rail__lower">
-        <g clip-path="url(#rail-dn)"><use class="rail__piece" href="#rail-cr"></use></g>
-        <polyline class="rail__crack" clip-path="url(#rail-in)" points="3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6"></polyline>
-      </g>
-      <path class="rail__piece rail__shard" d="M8.3 6.3 L9.9 6.7 L8.9 7.9Z"></path>
-    </svg>
+    {layers.map((l) => <img class={`rail__layer rail__layer--${l.name}`} src={l.set[0]} srcset={`${l.set[0]} 1x, ${l.set[1]} 2x, ${l.set[2]} 3x`} alt="" draggable="false" />)}
   </div>
   <p class="rail__tip"></p>
 </div>
@@ -168,7 +170,7 @@
     z-index: 60;
     top: 4.25rem;
     bottom: 1.25rem;
-    right: 6px;
+    right: 12px; /* room for the moon, which is wider than the rail */
     width: 17px;
     cursor: pointer;
     touch-action: none;
@@ -192,61 +194,51 @@
     width: 2px;
     background: var(--ultramarine);
   }
+  /* the moon's canvas is 37px, with room around the 28px disc for the pieces to move */
   .rail__moon {
     position: absolute;
-    left: -1.5px;
+    left: -10px;
     top: 0;
-    width: 20px;
-    height: 20px;
+    width: 37px;
+    height: 37px;
     will-change: transform;
     cursor: grab;
   }
   .rail.is-dragging .rail__moon {
     cursor: grabbing;
   }
-  .rail__moon svg {
-    display: block;
-    overflow: visible;
+  /* the dark of the moon: paper behind the dots, so the rail runs behind it */
+  .rail__moon::before {
+    content: '';
+    position: absolute;
+    inset: 4.5px;
+    border-radius: 50%;
+    background: var(--bg);
   }
-  /* the dark of the moon, a faint ring; the lit crescent, in pieces */
-  .rail__ring {
-    fill: var(--bg); /* so the rail's line passes behind the moon, not through it */
-    stroke: color-mix(in oklab, var(--ultramarine) 40%, var(--bg));
-    stroke-width: 0.7;
+  .rail__layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    pointer-events: none;
+    transition: translate 0.6s var(--ease-out), rotate 0.6s var(--ease-out);
   }
-  .rail__piece {
-    fill: #f4f1ff;
-    stroke: var(--ultramarine);
-    stroke-width: 1;
-    stroke-linejoin: round;
+  .rail__layer--lower {
+    transform-origin: 50% 50%;
   }
-  .rail__crack {
-    fill: none;
-    stroke: var(--ultramarine);
-    stroke-width: 0.8;
-    stroke-linejoin: round;
+  .rail__layer--shard {
+    transform-origin: 72% 66%;
   }
-  .rail__lower,
-  .rail__shard {
-    transform-box: view-box;
-    transition: transform 0.5s var(--ease-out);
+  .rail:hover .rail__layer--lower,
+  .rail.is-dragging .rail__layer--lower {
+    translate: -1px 1.5px;
+    rotate: 4deg;
   }
-  /* origins are measured from the box's corner: the moon's centre is at 10 10 */
-  .rail__lower {
-    transform-origin: 10px 10px;
-    transform: translate(-0.5px, 1.1px) rotate(7deg);
-  }
-  .rail__shard {
-    transform-origin: 19px 16.5px;
-    transform: translate(0.9px, 0.7px);
-  }
-  .rail:hover .rail__lower,
-  .rail.is-dragging .rail__lower {
-    transform: translate(-1px, 2.1px) rotate(13deg);
-  }
-  .rail:hover .rail__shard,
-  .rail.is-dragging .rail__shard {
-    transform: translate(2px, 1.6px) rotate(30deg);
+  .rail:hover .rail__layer--shard,
+  .rail.is-dragging .rail__layer--shard {
+    translate: 2px 2.5px;
+    rotate: 14deg;
   }
   /* ticks are made by the script, so they carry no scoping attribute */
   .rail :global(.rail__tick) {
@@ -304,8 +296,7 @@
   @media (prefers-reduced-motion: reduce) {
     .rail__line,
     .rail__tip,
-    .rail__lower,
-    .rail__shard {
+    .rail__layer {
       transition: none;
     }
   }

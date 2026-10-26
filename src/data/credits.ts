@@ -23,6 +23,7 @@ export const credits: CreditGroup[] = [
       { what: 'Water Lilies', by: 'Claude Monet', license: 'public domain', href: 'https://commons.wikimedia.org/wiki/File:Monet_w1687.jpg', note: 'W. 1687, the water in the footer and the picture shown when a link to the site is shared.' },
       { what: 'The Cobweb Dance', by: 'Charles Courtney Curran, 1908', license: 'public domain', note: 'Dithered, behind “Hello, I go by Lilian”.' },
       { what: 'The lily', note: 'Dithered from an old print, found in an online library.' },
+      { what: 'The moon', by: 'NASA/GSFC/Arizona State University', license: 'public domain', href: 'https://commons.wikimedia.org/wiki/File:Moon_nearside_LRO_5000.jpg', note: 'The Lunar Reconnaissance Orbiter’s near side, broken and dithered for the scrollbar.' },
       { what: 'E. coli', by: 'David S. Goodsell', href: 'https://press.asimov.com', note: 'The cell on the bookmarks page, via Asimov Press.' },
     ],
   },
