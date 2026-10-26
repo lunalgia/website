@@ -73,7 +73,7 @@ export default defineEcConfig({
       delDiffIndicatorColor: mauve,
     },
     collapsibleSections: {
-      closedBackgroundColor: 'transparent',
+      closedBackgroundColor: 'rgb(2 8 135 / 0.07)',
       closedBorderColor: 'transparent',
       closedTextColor: blue,
       openBackgroundColorCollapsible: 'transparent',

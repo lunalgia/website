@@ -1106,45 +1106,29 @@
     background: var(--ultramarine);
     color: var(--lavender);
   }
-  /* folded lines: a quiet dashed rule with the count, and, once open, a small
-     "fold" label to put them away again */
+  /* folded lines: a light band with the expand icon and the count, set like
+     the code; once open the band stays as a "fold" row to put them away (no
+     dividing lines either way) */
   .ax__text .expressive-code .ec-section summary {
     box-shadow: none;
-    background: none;
-    font: 0.64rem/1.4 var(--font-din);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    background: rgb(2 8 135 / 0.07);
     color: var(--ultramarine);
+    transition: background 0.2s;
   }
-  .ax__text .expressive-code .ec-section summary .code {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .ax__text .expressive-code .ec-section summary .code::after {
-    content: '';
-    flex: 1;
-    border-top: 1px dashed rgb(2 8 135 / 0.35);
-  }
-  .ax__text .expressive-code .ec-section summary :is(.expand, .collapse) {
-    display: none !important;
+  .ax__text .expressive-code .ec-section summary:hover {
+    background: rgb(2 8 135 / 0.13);
   }
   .ax__text .expressive-code .ec-section summary .text {
-    display: inline !important;
-    margin: 0;
+    margin-left: 0.55rem;
   }
   .ax__text .expressive-code .ec-section details[open] summary .text {
+    display: inline !important;
     font-size: 0;
     letter-spacing: 0;
   }
   .ax__text .expressive-code .ec-section details[open] summary .text::before {
     content: 'fold';
-    font-size: 0.64rem;
-    letter-spacing: 0.16em;
-  }
-  .ax__text .expressive-code .ec-section summary:hover .text {
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
+    font-size: var(--ec-cs-closedFontSize, 0.86rem);
   }
   .ax__text .expressive-code.is-folded .frame pre {
     max-height: 11rem;
