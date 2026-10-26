@@ -574,9 +574,10 @@
 /* hand-drawn marks on a phrase (src/scripts/annotate.ts) */
 @layer components {
   [data-annotate] {
-    /* a red pen in the margin, never mistaken for a link or the text's own ink;
-       set --ann to change it (the home letter uses mist on its dark panel) */
-    --ann: #c2361f;
+    /* a bright cornflower pen: blue like the site, but lighter and livelier than
+       the ultramarine of its links, so it never reads as one; set --ann to
+       change it (the home letter uses mist on its dark panel) */
+    --ann: #3352e0;
     position: relative;
     isolation: isolate;
     white-space: nowrap;
