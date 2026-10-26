@@ -456,7 +456,7 @@ const drawings = [
     const START = roads.length ? 1.5 : 0.6
     const WRITE = 2.7
     const RETRACE = 0.3 // a retraced stretch takes this share of the time of fresh ink
-    const TURN = 10 // a bend of one radian costs the pen as much time as this many units of line
+    const TURN = 9 // a bend of one radian costs the pen as much time as this many units of line
     /**
      * The pen's rhythm, as a hand has it: time along each stroke grows with its
      * length and with how sharply it bends, so the pen slows into the tops of
@@ -466,17 +466,26 @@ const drawings = [
     const rhythm = (s: (typeof pen)[number]) => {
       const n = Math.max(2, Math.ceil(s.len / 1.5))
       const pts = Array.from({ length: n + 1 }, (_, k) => s.el.getPointAtLength((s.len * k) / n))
-      const lens = [0]
-      const costs = [0]
+      // how sharply the line bends at each step
+      const bends = [0]
       let dir = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x)
       for (let k = 1; k <= n; k++) {
-        const dx = pts[k].x - pts[k - 1].x
-        const dy = pts[k].y - pts[k - 1].y
-        const next = Math.atan2(dy, dx)
-        const bend = Math.abs(Math.atan2(Math.sin(next - dir), Math.cos(next - dir)))
+        const next = Math.atan2(pts[k].y - pts[k - 1].y, pts[k].x - pts[k - 1].x)
+        bends.push(Math.abs(Math.atan2(Math.sin(next - dir), Math.cos(next - dir))))
         dir = next
+      }
+      // the slowing is spread over the stretch either side of each bend (a soft
+      // bell, about 10 units wide), so the pen eases into and out of a turn
+      // instead of braking at a point
+      const R = 7
+      const bell = Array.from({ length: 2 * R + 1 }, (_, j) => Math.exp(-(((j - R) / (R / 2)) ** 2)))
+      const sum = bell.reduce((a, b) => a + b, 0)
+      const soft = bends.map((_, k) => bell.reduce((acc, wt, j) => acc + wt * (bends[k + j - R] ?? 0), 0) / sum)
+      const lens = [0]
+      const costs = [0]
+      for (let k = 1; k <= n; k++) {
         lens.push((s.len * k) / n)
-        costs.push(costs[k - 1] + (Math.hypot(dx, dy) + TURN * bend) * (s.retrace ? RETRACE : 1))
+        costs.push(costs[k - 1] + (s.len / n + TURN * soft[k]) * (s.retrace ? RETRACE : 1))
       }
       return { lens, costs }
     }
