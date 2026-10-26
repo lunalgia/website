@@ -4,9 +4,12 @@
 // several, or search). Add a tag by using it; it shows up as a filter by itself.
 // Videos are grouped by topic; their titles and thumbnails come from YouTube at
 // build time, so a bare link is enough.
+// Pictures go in a loose field you drag about: drop the file in src/assets/pinboard and add
+// its name here. A caption and a link are optional; newest at the top is fine.
 export interface Quote { text: string; by?: string }
 export interface Article { title: string; href: string; tags: string[]; note?: string }
 export interface VideoGroup { topic: string; videos: string[] }
+export interface Picture { file: string; alt: string; caption?: string; href?: string }
 
 export const quotes: Quote[] = [
   {
@@ -139,4 +142,12 @@ export const videos: VideoGroup[] = [
       "https://www.youtube.com/watch?v=PJccc3qpPh0", // I built an Ultrawide DS ... a DIY Steam Deck thingy.
     ],
   },
+]
+
+export const pictures: Picture[] = [
+  { file: "goodsell-ecoli.jpg", alt: "David Goodsell's watercolour of the inside of an E. coli cell, crowded with proteins and RNA", caption: "E. coli, David Goodsell" },
+  { file: "larry.webp", alt: "Larry the cat sitting outside 10 Downing Street, marking 15 years as Chief Mouser", caption: "Larry, 15 years in office" },
+  { file: "stained-glass.webp", alt: "Disco Elysium: a cracked stained glass window of the young mother of humanism, with the description beside it" },
+  { file: "queen.png", alt: "A comment reading, in mocking alternating case, “Queen is the most overrated band of all time”" },
+  { file: "clickens.webp", alt: "A Bluesky thread about Clickens, which asks which of two painted chickens is more lustful, and a reply about reading 'hotornot' as 'hoh-tor-not'", caption: "hoh-tor-not" },
 ]

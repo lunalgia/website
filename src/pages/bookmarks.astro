@@ -1,11 +1,14 @@
 ---
 /**
- * Bookmarks: quotes, articles (filterable by subject tags) and videos (grouped
- * by topic). Everything comes from src/data/bookmarks.ts.
+ * Bookmarks: quotes, articles (filterable by subject tags), videos (grouped
+ * by topic) and a field of pictures (src/components/bookmarks/PictureField).
+ * Everything comes from src/data/bookmarks.ts; the pictures themselves live in
+ * src/assets/pinboard.
  */
 import Base from '@/layouts/Base.astro'
-import { articles, quotes, videos } from '@/data/bookmarks'
+import { articles, pictures, quotes, videos } from '@/data/bookmarks'
 import { youtube } from '@/lib/remote'
+import PictureField from '@/components/bookmarks/PictureField.astro'
 
 const groups = await Promise.all(
   videos.map(async (g) => ({ topic: g.topic, items: (await Promise.all(g.videos.map(youtube))).filter((v) => v !== null) })),
@@ -22,18 +25,20 @@ const host = (href: string) => {
 const tagCounts = [...Map.groupBy(articles.flatMap((a) => a.tags), (t) => t)].map(([t, l]) => [t, l.length] as const)
 tagCounts.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 const pad = (n: number) => String(n).padStart(2, '0')
+
 ---
 
-<Base title="Bookmarks" description="Articles, videos and quotes worth keeping.">
+<Base title="Bookmarks" description="Articles, videos, quotes and pictures worth keeping.">
   <header class="bh">
     <h1 class="bh__t">Bookmarks</h1>
     <nav class="bh__nav" aria-label="sections">
       <a href="#quotes">(quotes)</a>
       <a href="#articles">(articles)</a>
       <a href="#videos">(videos)</a>
+      <a href="#pictures">(pictures)</a>
     </nav>
     <p class="bh__lede">
-      This is an amalgamation of articles/videos/quotes that I find interesting. This is pretty incomplete and I'll be
+      This is an amalgamation of articles/videos/quotes/pictures that I find interesting. This is pretty incomplete and I'll be
       expanding this in the future, especially since I've unfortunately not kept track of things.
     </p>
   </header>
@@ -132,6 +137,13 @@ const pad = (n: number) => String(n).padStart(2, '0')
     }
     </div></div>
   </section>
+  <section class="bs" id="pictures" aria-label="pictures">
+    <button type="button" class="bs__top" aria-expanded="true" aria-controls="pictures-body"><span>IV · PICTURES</span><span class="bs__right">{pad(pictures.length)}<i class="bs__toggle" aria-hidden="true"></i></span></button>
+    <div class="bs__body" id="pictures-body"><div class="bs__inner">
+    <PictureField pictures={pictures} />
+    </div></div>
+  </section>
+
 </Base>
 
 <script>
@@ -224,6 +236,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
     })
   }
   document.addEventListener('astro:page-load', collapsible)
+
 </script>
 
 <style>
@@ -241,7 +254,8 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
   .bh__nav {
     display: flex;
-    gap: 1.6rem;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.6rem;
     font: 400 0.72rem/1.4 var(--font-din); letter-spacing: 0.16em; text-transform: uppercase; font-style: normal;
   }
   .bh__nav a {
@@ -586,6 +600,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   }
 
   @media (max-width: 760px) {
+
     .bh {
       grid-template-columns: 1fr;
     }

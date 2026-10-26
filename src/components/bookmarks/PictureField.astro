@@ -1,0 +1,612 @@
+---
+/**
+ * The pictures on /bookmarks: a loose, endless field you drag about, after
+ * xavicf.com/vibes (a scatter of pictures, nothing lined up) and componentry's
+ * "fisheye infinite grid" (one surface that repeats both ways and bulges
+ * towards you in the middle).
+ *
+ * The browser lays the field out: a wall of cells a little bigger than the
+ * window, each holding one picture at a jittered size, place and tilt (seeded,
+ * so it is the same mess every visit), the pictures dealt out in shuffled
+ * rounds. The wall repeats in both directions; every frame each picture is put
+ * at its place relative to the camera, wrapped onto the wall, and then pushed
+ * through a lens that magnifies the middle and squeezes the edges.
+ *
+ * Drag (with a throw), arrow keys, or scroll sideways to move; click a picture
+ * to see it whole. Expanded to the whole window, the scroll wheel moves it too.
+ * Without JS the pictures are a plain wrapped row.
+ */
+import { getImage } from 'astro:assets'
+import type { ImageMetadata } from 'astro'
+import type { Picture } from '@/data/bookmarks'
+
+interface Props {
+  pictures: Picture[]
+}
+const { pictures } = Astro.props
+
+const files = import.meta.glob<{ default: ImageMetadata }>('/src/assets/pinboard/*', { eager: true })
+const pics = await Promise.all(
+  pictures.map(async (p) => {
+    const img = files[`/src/assets/pinboard/${p.file}`]?.default
+    if (!img) throw new Error(`bookmarks: no picture src/assets/pinboard/${p.file}`)
+    const [thumb, full] = await Promise.all([
+      getImage({ src: img, width: Math.min(img.width, 720), format: 'webp' }),
+      getImage({ src: img, width: Math.min(img.width, 2000), format: 'webp' }),
+    ])
+    return { ...p, thumb: thumb.src, full: full.src, w: img.width, h: img.height }
+  }),
+)
+---
+
+<div class="pf" tabindex="0" role="region" aria-roledescription="picture field" aria-label="pictures: drag or use the arrow keys to move, enter or click to open one">
+  <ul class="pf__plain" role="list">
+    {
+      pics.map((p, i) => (
+        <li>
+          <button
+            type="button"
+            class="pf__pic"
+            data-i={i}
+            data-full={p.full}
+            data-caption={p.caption ?? ''}
+            data-href={p.href ?? ''}
+            data-ar={(p.w / p.h).toFixed(4)}
+          >
+            <img src={p.thumb} alt={p.alt} width={p.w} height={p.h} loading="lazy" decoding="async" draggable="false" />
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+  <div class="pf__wall" aria-hidden="true"></div>
+  <p class="pf__hint" aria-hidden="true">drag · arrow keys · click to open</p>
+  <button type="button" class="pf__grow" aria-pressed="false">
+    <span class="pf__grow-on">whole window</span><span class="pf__grow-off">close ×</span>
+  </button>
+</div>
+
+<dialog class="pfx" aria-label="picture">
+  <form method="dialog"><button class="pfx__close" aria-label="close">×</button></form>
+  <img class="pfx__img" alt="" />
+  <p class="pfx__cap"></p>
+</dialog>
+
+<script>
+  const seeded = (seed: number) => {
+    let h = seed >>> 0 || 1
+    return () => {
+      h = Math.imul(h ^ (h >>> 15), 2246822507)
+      h = Math.imul(h ^ (h >>> 13), 3266489909)
+      return ((h ^= h >>> 16) >>> 0) / 4294967296
+    }
+  }
+  const mod = (a: number, n: number) => ((a % n) + n) % n
+
+  const LENS = 0.22 // how much the middle bulges (0 = flat)
+  const FRICTION = 0.93 // speed kept per frame after a throw
+  const DRIFT = 0.12 // px per frame when nobody is touching it
+
+  type Tile = { el: HTMLElement; pic: number; x: number; y: number; w: number; h: number; rot: number }
+
+  const setup = () => {
+    const root = document.querySelector<HTMLElement>('.pf')
+    const box = document.querySelector<HTMLDialogElement>('.pfx')
+    if (!root || !box || root.dataset.ready) return
+    root.dataset.ready = '1'
+    const wall = root.querySelector<HTMLElement>('.pf__wall')!
+    const sources = [...root.querySelectorAll<HTMLButtonElement>('.pf__pic')]
+    const grow = root.querySelector<HTMLButtonElement>('.pf__grow')!
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!sources.length) return
+    root.classList.add('is-live')
+
+    let tiles: Tile[] = []
+    let W = 0
+    let H = 0
+    let PW = 0 // the wall's size: it repeats every PW × PH
+    let PH = 0
+    let camX = 0
+    let camY = 0
+    let vx = 0
+    let vy = 0
+    let raf = 0
+    let visible = false
+    let restAt = 0 // until when the drift waits after someone touched it
+
+    /** lay the wall out for the current window size */
+    const build = () => {
+      W = root.clientWidth
+      H = root.clientHeight
+      const C = W < 600 ? 190 : 290 // a cell
+      const n = sources.length
+      let cols = Math.max(4, Math.ceil(W / C) + 2)
+      let rows = Math.max(3, Math.ceil(H / C) + 2)
+      // a few pictures: a lattice, picture (col + k·row) mod n, with k chosen so
+      // copies sit as far apart as the count allows; the wall then has to be a
+      // whole number of repeats wide and high
+      let k = 0
+      if (n >= 4 && n <= 10) {
+        let bestD = 0
+        for (let c = 2; c < n - 1; c++) {
+          let d = Infinity
+          for (let dr = 0; dr <= n; dr++)
+            for (let dc = -n; dc <= n; dc++)
+              if ((dr || dc) && mod(dc + c * dr, n) === 0) d = Math.min(d, Math.hypot(dc, dr * 1.15))
+          if (d > bestD) [bestD, k] = [d, c]
+        }
+        cols = Math.ceil(cols / n) * n
+        rows = Math.ceil(rows / n) * n
+      }
+      PW = cols * C
+      PH = rows * C
+      const r = seeded(cols * 7919 + rows * 104729 + n)
+      // many pictures: deal them out so each copy is as far as it can be from
+      // the others of the same picture (measured on the wall, which wraps): cell
+      // by cell, take the picture whose nearest copy so far is furthest away,
+      // the least used one on a tie
+      const deck: number[] = []
+      const order = [...Array(n).keys()].sort(() => r() - 0.5)
+      const placed: [number, number][][] = sources.map(() => [])
+      const used = new Array(n).fill(0)
+      const gap = (a: [number, number], c: number, r: number) => {
+        const dx = Math.min(Math.abs(a[0] - c), cols - Math.abs(a[0] - c))
+        const dy = Math.min(Math.abs(a[1] - r), rows - Math.abs(a[1] - r))
+        return Math.hypot(dx, dy * 1.15)
+      }
+      if (k) for (let i = 0; i < cols * rows; i++) deck.push(order[mod((i % cols) + k * Math.floor(i / cols), n)])
+      else for (let row = 0; row < rows; row++)
+        for (let col = 0; col < cols; col++) {
+          let best = 0
+          let bestScore = -Infinity
+          for (let p = 0; p < n; p++) {
+            const near = placed[p].reduce((m, a) => Math.min(m, gap(a, col, row)), Infinity)
+            const score = Math.min(near, 99) * 10 - used[p] + r() * 0.5
+            if (score > bestScore) [best, bestScore] = [p, score]
+          }
+          deck.push(best)
+          placed[best].push([col, row])
+          used[best]++
+        }
+      wall.replaceChildren()
+      tiles = []
+      for (let row = 0; row < rows; row++)
+        for (let col = 0; col < cols; col++) {
+          const pic = deck[row * cols + col]
+          const src = sources[pic]
+          const ar = parseFloat(src.dataset.ar!) || 1
+          // bigger or smaller, wide ones wider, nothing much taller than a cell
+          let w = C * (0.42 + r() * 0.36) * (ar > 1.25 ? 1.3 : 1)
+          if (w / ar > C * 0.95) w = C * 0.95 * ar
+          const el = document.createElement('div')
+          el.className = 'pf__tile'
+          const img = src.querySelector('img')!.cloneNode() as HTMLImageElement
+          img.alt = ''
+          img.loading = 'eager'
+          const caption = src.dataset.caption
+          el.append(img)
+          if (caption && r() < 0.6) {
+            const cap = document.createElement('span')
+            cap.className = 'pf__cap'
+            cap.textContent = caption
+            el.append(cap)
+          }
+          el.dataset.pic = String(pic)
+          el.style.width = `${w.toFixed(0)}px`
+          wall.append(el)
+          tiles.push({
+            el,
+            pic,
+            x: col * C + C / 2 + (r() - 0.5) * C * 0.28,
+            y: row * C + C / 2 + (r() - 0.5) * C * 0.28 + (col % 2 ? C * 0.22 : 0),
+            w,
+            h: w / ar,
+            rot: (r() - 0.5) * 7,
+          })
+        }
+      render()
+    }
+
+    /** where everything is this frame: wrapped onto the wall, then through the lens */
+    const render = () => {
+      const R2 = (W * W + H * H) / 4
+      for (const t of tiles) {
+        const dx = mod(t.x - camX + PW / 2, PW) - PW / 2
+        const dy = mod(t.y - camY + PH / 2, PH) - PH / 2
+        const f = (1 + LENS) / (1 + (LENS * (dx * dx + dy * dy)) / R2)
+        const x = W / 2 + dx * f - t.w / 2
+        const y = H / 2 + dy * f - t.h / 2
+        t.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) scale(${f.toFixed(3)}) rotate(${t.rot.toFixed(1)}deg)`
+        t.el.style.zIndex = String(Math.round(f * 100))
+      }
+    }
+
+    const tick = () => {
+      raf = 0
+      const drifting = !still && visible && !dragging && performance.now() > restAt
+      if (!dragging) {
+        camX += vx
+        camY += vy
+        vx *= FRICTION
+        vy *= FRICTION
+        if (Math.abs(vx) < 0.02) vx = 0
+        if (Math.abs(vy) < 0.02) vy = 0
+      }
+      if (drifting) {
+        camX += DRIFT
+        camY += DRIFT * 0.35
+      }
+      render()
+      if (visible && (vx || vy || dragging || drifting || performance.now() < restAt)) raf = requestAnimationFrame(tick)
+    }
+    const wake = () => {
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    const touched = () => {
+      restAt = performance.now() + 4000
+      wake()
+    }
+
+    // dragging, with a throw at the end
+    let dragging = false
+    let moved = 0
+    let lastX = 0
+    let lastY = 0
+    let lastT = 0
+    root.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || (e.target as HTMLElement).closest('.pf__grow')) return
+      dragging = true
+      moved = 0
+      vx = vy = 0
+      lastX = e.clientX
+      lastY = e.clientY
+      lastT = performance.now()
+      root.classList.add('is-held')
+      root.setPointerCapture(e.pointerId)
+      touched()
+    })
+    root.addEventListener('pointermove', (e) => {
+      if (!dragging) return
+      const dx = e.clientX - lastX
+      const dy = e.clientY - lastY
+      const now = performance.now()
+      const dt = Math.max(1, now - lastT)
+      camX -= dx
+      camY -= dy
+      moved += Math.abs(dx) + Math.abs(dy)
+      // speed in px per frame, smoothed
+      vx = vx * 0.6 + (-dx / dt) * 16.7 * 0.4
+      vy = vy * 0.6 + (-dy / dt) * 16.7 * 0.4
+      lastX = e.clientX
+      lastY = e.clientY
+      lastT = now
+      restAt = now + 4000
+    })
+    const release = (e: PointerEvent) => {
+      if (!dragging) return
+      dragging = false
+      root.classList.remove('is-held')
+      if (performance.now() - lastT > 80) vx = vy = 0 // held still before letting go: no throw
+      if (moved < 6) {
+        vx = vy = 0
+        const tile = (document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null)?.closest<HTMLElement>('.pf__tile')
+        if (tile) open(Number(tile.dataset.pic))
+      }
+      touched()
+    }
+    root.addEventListener('pointerup', release)
+    root.addEventListener('pointercancel', release)
+
+    // sideways scrolling always moves it; up and down only when it has the whole window
+    root.addEventListener(
+      'wheel',
+      (e) => {
+        const full = root.classList.contains('is-full')
+        if (!full && Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return
+        e.preventDefault()
+        camX += e.deltaX * 0.6
+        camY += full ? e.deltaY * 0.6 : 0
+        touched()
+      },
+      { passive: false },
+    )
+
+    root.addEventListener('keydown', (e) => {
+      const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]
+      if (step) {
+        e.preventDefault()
+        vx += step[0] * 14
+        vy += step[1] * 14
+        touched()
+      } else if (e.key === 'Enter' && e.target === root) {
+        // the picture nearest the middle
+        const mid = tiles.reduce((best, t) => {
+          const d = Math.hypot(mod(t.x - camX + PW / 2, PW) - PW / 2, mod(t.y - camY + PH / 2, PH) - PH / 2)
+          return d < best[0] ? [d, t.pic] : best
+        }, [Infinity, 0])
+        open(mid[1])
+      } else if (e.key === 'Escape' && root.classList.contains('is-full')) setFull(false)
+    })
+
+    // the whole window
+    const setFull = (on: boolean) => {
+      root.classList.toggle('is-full', on)
+      document.documentElement.classList.toggle('pf-full', on)
+      grow.setAttribute('aria-pressed', String(on))
+      build()
+      root.focus()
+    }
+    grow.addEventListener('click', () => setFull(!root.classList.contains('is-full')))
+
+    // a picture, whole
+    const img = box.querySelector<HTMLImageElement>('.pfx__img')!
+    const cap = box.querySelector<HTMLElement>('.pfx__cap')!
+    const open = (i: number) => {
+      const src = sources[i]
+      img.src = src.dataset.full!
+      img.alt = src.querySelector('img')!.alt
+      cap.replaceChildren()
+      if (src.dataset.caption || src.dataset.href) {
+        const a = document.createElement(src.dataset.href ? 'a' : 'span')
+        a.textContent = src.dataset.caption || 'source'
+        if (a instanceof HTMLAnchorElement) Object.assign(a, { href: src.dataset.href, target: '_blank', rel: 'noopener' })
+        cap.append(a)
+      }
+      cap.hidden = !cap.childElementCount
+      box.showModal()
+    }
+    box.addEventListener('click', (e) => e.target === box && box.close())
+    // the no-JS buttons stay usable for keyboard users who tab into them
+    sources.forEach((s, i) => s.addEventListener('click', () => open(i)))
+
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting
+      if (visible) wake()
+    })
+    io.observe(root)
+    let lastW = 0
+    let lastH = 0
+    const ro = new ResizeObserver(() => {
+      if (root.clientWidth === lastW && root.clientHeight === lastH) return
+      lastW = root.clientWidth
+      lastH = root.clientHeight
+      build()
+    })
+    ro.observe(root)
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        io.disconnect()
+        ro.disconnect()
+        cancelAnimationFrame(raf)
+        document.documentElement.classList.remove('pf-full')
+      },
+      { once: true },
+    )
+  }
+  document.addEventListener('astro:page-load', setup)
+</script>
+
+<style>
+  .pf {
+    position: relative;
+    height: clamp(30rem, 78vh, 54rem);
+    margin-top: 2rem;
+    overflow: hidden;
+    outline: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pf:focus-visible {
+    outline: 1.5px solid var(--ultramarine);
+    outline-offset: 5px;
+  }
+  .pf.is-live {
+    cursor: grab;
+  }
+  .pf.is-held {
+    cursor: grabbing;
+  }
+  .pf.is-full {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    height: auto;
+    margin: 0;
+    background: var(--bg);
+  }
+  .pf.is-full .pf__wall {
+    mask-image: none;
+  }
+  /* on touch screens an up-and-down swipe still scrolls the page */
+  @media (pointer: coarse) {
+    .pf.is-live:not(.is-full) {
+      touch-action: pan-y;
+    }
+  }
+  :global(html.pf-full) {
+    overflow: hidden;
+  }
+
+  /* without JS: a plain row of pictures */
+  .pf:not(.is-live) {
+    height: auto;
+    touch-action: auto;
+  }
+  .pf__plain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1.5rem;
+  }
+  .pf__plain img {
+    height: 12rem;
+    width: auto;
+  }
+  .pf__pic {
+    all: unset;
+    cursor: zoom-in;
+  }
+  .pf.is-live .pf__plain {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .pf:not(.is-live) .pf__wall,
+  .pf:not(.is-live) .pf__hint,
+  .pf:not(.is-live) .pf__grow {
+    display: none;
+  }
+
+  .pf__wall {
+    position: absolute;
+    inset: 0;
+    /* no frame: the field fades into the page at its edges */
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+      linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+    mask-composite: intersect;
+  }
+  .pf__wall :global(.pf__tile) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+  .pf__wall :global(.pf__tile img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    /* muted, like the video thumbnails, until you point at one */
+    filter: saturate(0.6) contrast(0.94);
+    opacity: 0.9;
+    box-shadow: 0 14px 22px -18px rgb(17 19 90 / 0.55);
+    transition:
+      translate 0.4s var(--ease-out),
+      box-shadow 0.4s var(--ease-out),
+      filter 0.4s,
+      opacity 0.4s;
+  }
+  .pf.is-live:not(.is-held) .pf__wall :global(.pf__tile:hover img) {
+    translate: 0 -5px;
+    filter: none;
+    opacity: 1;
+    box-shadow: 0 26px 30px -22px rgb(17 19 90 / 0.7);
+  }
+  .pf__wall :global(.pf__cap) {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 0.45rem;
+    font: 0.6rem/1.3 var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ultramarine);
+    white-space: nowrap;
+  }
+
+  .pf__hint,
+  .pf__grow {
+    position: absolute;
+    z-index: 1000;
+    margin: 0;
+    color: var(--ultramarine);
+    font: 0.62rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  /* both labels sit in the faded top edge, clear of the pictures */
+  .pf__hint {
+    left: 0;
+    top: 0.2rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .pf__grow {
+    all: unset;
+    position: absolute;
+    z-index: 1000;
+    right: 0;
+    top: 0;
+    padding: 0.2rem 0;
+    color: var(--ultramarine);
+    font: 0.62rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+  }
+  .pf__grow:hover {
+    border-bottom-color: currentColor;
+  }
+  .pf.is-full .pf__grow {
+    right: 1.2rem;
+    top: 1.2rem;
+  }
+  .pf.is-full .pf__hint {
+    left: 1.2rem;
+    top: 1.4rem;
+  }
+  .pf__grow:focus-visible {
+    outline: 1.5px solid var(--ultramarine);
+    outline-offset: 3px;
+  }
+  .pf__grow-off,
+  .pf.is-full .pf__grow-on {
+    display: none;
+  }
+  .pf.is-full .pf__grow-off {
+    display: inline;
+  }
+
+  /* a picture, whole */
+  .pfx {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    max-width: min(92vw, 70rem);
+    max-height: 92vh;
+    padding: 0.6rem;
+    border: 0;
+    background: #f3f1ec;
+    color: var(--ultramarine);
+    box-shadow: 0 40px 80px -30px rgb(17 19 90 / 0.9);
+    overflow: visible;
+  }
+  .pfx::backdrop {
+    background: rgb(17 19 90 / 0.55);
+    backdrop-filter: blur(3px);
+  }
+  .pfx__img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(92vh - 4rem);
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+  }
+  .pfx__cap {
+    margin: 0.6rem 0.2rem 0.1rem;
+    font: italic 400 1.2rem var(--font-display);
+  }
+  .pfx__close {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    right: -0.9rem;
+    top: -0.9rem;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--ultramarine);
+    color: var(--lavender);
+    font: 1.3rem/1 var(--font-body);
+  }
+</style>
