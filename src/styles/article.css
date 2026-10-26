@@ -1067,8 +1067,8 @@
      before each line, the command a shade brighter than its arguments, and a
      cursor waiting after the last line */
   .ax__text .expressive-code:has(.frame.is-terminal) {
-    border-color: #11135a;
-    background: #15177a;
+    border-color: #2a2d8a;
+    background: #3a3d9c; /* ultramarine eased toward the lavender */
   }
   .ax__text .expressive-code .frame.is-terminal pre span {
     color: #d2d3dd !important;
