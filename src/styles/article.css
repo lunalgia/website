@@ -1005,22 +1005,146 @@
 
 /* Expressive Code ships unlayered CSS (with all: revert inside its blocks),
    so these overrides sit outside the layers to win */
-  /* blocks come framed by Expressive Code (ec.config.mjs); here only the
-     site's rules around them, and the fold for long ones */
+  /* a code block is a sheet of slightly lighter paper in a hairline frame, its
+     file name (or "terminal") and the copy button sitting on the top edge as
+     labels, like the frame labels elsewhere on the site; Expressive Code
+     (ec.config.mjs) does the highlighting, markers and folding inside */
   .ax__text .expressive-code {
     position: relative;
-    margin: 1.4rem 0 2rem;
-    border-top: 1.5px solid var(--ultramarine);
-    border-bottom: 1px solid rgb(2 8 135 / 0.35);
+    margin: 2.2rem 0 2.2rem;
+    border: 1px solid rgb(2 8 135 / 0.35);
+    background: rgb(210 211 221 / 0.2);
     hyphens: none;
     text-align: left;
   }
   .ax__text .expressive-code code {
     font-variant-ligatures: none;
   }
-  .ax__text .expressive-code .frame.has-title .header .title {
-    font: 0.78rem var(--font-mono);
+  .ax__text .expressive-code .frame {
+    position: static;
+  }
+  /* the code carries its own padding; the pre adds none */
+  .ax__text .expressive-code .frame pre {
+    padding-block: 0;
+    border: 0;
+  }
+  /* the header band goes; its title becomes a label on the frame */
+  /* (Expressive Code's own frame rules are more specific, hence the !important) */
+  .ax__text .expressive-code .frame .header {
+    position: absolute !important;
+    z-index: 2;
+    top: 0;
+    left: 0.85rem;
+    translate: 0 -50%;
+    display: block !important;
+    min-height: 0;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+  .ax__text .expressive-code .frame .header::before,
+  .ax__text .expressive-code .frame .header::after,
+  .ax__text .expressive-code .frame .header .title::after {
+    display: none;
+  }
+  .ax__text .expressive-code .frame .header .title {
+    display: block;
+    padding: 0.1rem 0.5rem !important;
+    border: 0 !important;
+    background: var(--bg) !important;
+    font: 0.64rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     color: var(--ultramarine);
+  }
+  .ax__text .expressive-code .frame:not(.has-title):not(.is-terminal) .header {
+    display: none;
+  }
+  .ax__text .expressive-code .frame.is-terminal .title:empty::before {
+    content: 'terminal';
+  }
+  /* copy: a label on the top edge, at the right */
+  .ax__text .expressive-code .copy {
+    display: flex;
+    top: 0;
+    right: 0.85rem;
+    inset-block-start: 0 !important;
+    inset-inline-end: 0.85rem !important;
+    translate: 0 -50% !important;
+    z-index: 2;
+  }
+  .ax__text .expressive-code .copy button {
+    width: auto;
+    height: auto;
+    padding: 0.1rem 0.5rem;
+    background: var(--bg) !important;
+    opacity: 1 !important;
+    border-radius: 0;
+  }
+  .ax__text .expressive-code .copy button div,
+  .ax__text .expressive-code .copy button::after {
+    display: none;
+  }
+  .ax__text .expressive-code .copy button::before {
+    content: 'copy';
+    position: static;
+    border: 0;
+    opacity: 1;
+    font: 0.64rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: color-mix(in oklab, var(--ultramarine) 60%, var(--bg));
+    transition: color 0.2s;
+  }
+  .ax__text .expressive-code .copy button:is(:hover, :focus-visible)::before {
+    color: var(--ultramarine);
+  }
+  .ax__text .expressive-code .copy .feedback {
+    font: 0.64rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--ultramarine);
+    color: var(--lavender);
+  }
+  /* folded lines: a quiet dashed rule with the count, and, once open, a small
+     "fold" label to put them away again */
+  .ax__text .expressive-code .ec-section summary {
+    box-shadow: none;
+    background: none;
+    font: 0.64rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ultramarine);
+  }
+  .ax__text .expressive-code .ec-section summary .code {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .ax__text .expressive-code .ec-section summary .code::after {
+    content: '';
+    flex: 1;
+    border-top: 1px dashed rgb(2 8 135 / 0.35);
+  }
+  .ax__text .expressive-code .ec-section summary :is(.expand, .collapse) {
+    display: none !important;
+  }
+  .ax__text .expressive-code .ec-section summary .text {
+    display: inline !important;
+    margin: 0;
+  }
+  .ax__text .expressive-code .ec-section details[open] summary .text {
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  .ax__text .expressive-code .ec-section details[open] summary .text::before {
+    content: 'fold';
+    font-size: 0.64rem;
+    letter-spacing: 0.16em;
+  }
+  .ax__text .expressive-code .ec-section summary:hover .text {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
   }
   .ax__text .expressive-code.is-folded .frame pre {
     max-height: 11rem;
