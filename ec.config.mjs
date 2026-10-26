@@ -25,7 +25,8 @@ export default defineEcConfig({
   useDarkModeMediaQuery: false,
   plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
   minSyntaxHighlightingColorContrast: 0,
-  defaultProps: { showLineNumbers: false, wrap: false },
+  // collapsible-auto keeps a summary line when a section is open, so it can be folded away again
+  defaultProps: { showLineNumbers: false, wrap: false, collapseStyle: 'collapsible-auto' },
   styleOverrides: {
     borderRadius: '0',
     borderWidth: '0',
