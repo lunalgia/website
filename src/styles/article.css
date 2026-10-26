@@ -1063,6 +1063,48 @@
   .ax__text .expressive-code .frame.is-terminal .title:empty::before {
     content: 'terminal';
   }
+  /* a terminal is the dark one: deep ink with pale type, a faint prompt
+     before each line, the command a shade brighter than its arguments, and a
+     cursor waiting after the last line */
+  .ax__text .expressive-code:has(.frame.is-terminal) {
+    border-color: #11135a;
+    background: #15177a;
+  }
+  .ax__text .expressive-code .frame.is-terminal pre span {
+    color: #d2d3dd !important;
+  }
+  .ax__text .expressive-code .frame.is-terminal .ec-line .code > span:first-child {
+    color: #c8c0f2 !important;
+  }
+  .ax__text .expressive-code .frame.is-terminal .ec-line .code::before {
+    content: '$';
+    margin-right: 1ch;
+    color: rgb(162 151 203 / 0.6);
+  }
+  .ax__text .expressive-code .frame.is-terminal .ec-line:last-child .code::after {
+    content: '';
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    margin-left: 0.5ch;
+    vertical-align: text-bottom;
+    background: rgb(210 211 221 / 0.75);
+    animation: term-caret 1.15s steps(1) infinite;
+  }
+  @keyframes term-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ax__text .expressive-code .frame.is-terminal .ec-line:last-child .code::after {
+      animation: none;
+    }
+  }
+  .ax__text .expressive-code .frame.is-terminal ::selection {
+    background: rgb(162 151 203 / 0.45);
+  }
+
   /* copy: a label on the top edge, at the right */
   .ax__text .expressive-code .copy {
     display: flex;
