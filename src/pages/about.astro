@@ -122,6 +122,16 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
     font: 4.6em/0.82 var(--font-display);
     color: var(--ultramarine);
   }
+  /* words set as if blacked out */
+  @font-face {
+    font-family: 'Redacted Script';
+    src: url('/fonts/RedactedScript-Light.ttf') format('truetype');
+    font-display: block;
+  }
+  .ab__text :global(.redacted) {
+    font: 1.5em/1 'Redacted Script', var(--font-body);
+    white-space: nowrap;
+  }
   .ab__text :global(a) {
     color: var(--ultramarine);
     text-decoration-thickness: 1px;
