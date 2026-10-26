@@ -5,11 +5,12 @@
 # Hand-drawn marks: wrap a short phrase in <span data-annotate="circle">…</span>.
 # The kinds are underline, double, wavy, circle, box, highlight, strike and bracket;
 # data-delay="0.4" makes one wait a little.
-# A <span class="redacted">…</span> sets its words in Redacted Script, as if blacked out.
+# A <span class="redacted">…</span> sets its words in Redacted Script, as if blacked out; give it
+# data-reveal="…" and hovering or tapping it wipes the ink off, then flips the words into that.
 lede: 'A little more about me than fits on the front page.'
 ---
 
-Hello, I go by Lilian, if you care my legal name is <span class="redacted">Youlost TheGame</span>. I am a freshman at
+Hello, I go by Lilian, if you care my legal name is <span class="redacted" data-reveal="You Lost The Game">Youlost TheGame</span>. I am a freshman at
 Chennai Mathematical Institute, majoring in Math and Physics.
 
 I tend to engage myself with a lot of things, so most of my interests are eclectic and half-baked, but primarily I

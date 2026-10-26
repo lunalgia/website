@@ -64,6 +64,58 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
   </section>
 </Base>
 
+<script>
+  // a redaction with data-reveal comes off on hover, focus or a tap, and goes back on
+  // when you leave; set up on every arrival, since the site swaps pages without reloading
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+  const letters = (s: string) =>
+    [...s].map((c, i) => `<span class="rd__c" style="--i:${i}">${c === ' ' ? '\u00a0' : esc(c)}</span>`).join('')
+  document.addEventListener('astro:page-load', () => {
+    for (const el of document.querySelectorAll<HTMLElement>('.ab__text .redacted[data-reveal]')) {
+      const from = el.textContent ?? ''
+      const to = el.dataset.reveal!
+      const rd = document.createElement('span')
+      rd.className = 'rd'
+      rd.tabIndex = 0
+      rd.setAttribute('role', 'button')
+      rd.setAttribute('aria-label', `redacted; reveal it`)
+      rd.innerHTML = `<span class="rd__ink" aria-hidden="true">${esc(from)}</span><span class="rd__from" aria-hidden="true">${letters(from)}</span><span class="rd__to" aria-hidden="true">${letters(to)}</span>`
+      el.replaceWith(rd)
+      const [ink, fromW, toW] = [...rd.children] as HTMLElement[]
+      // fit the ink to the words under it, and give the box each set of words' width
+      document.fonts.ready.then(() => {
+        const f = fromW.offsetWidth
+        rd.style.setProperty('--fit', String(f / ink.offsetWidth))
+        rd.style.setProperty('--w-from', `${f}px`)
+        rd.style.setProperty('--w-to', `${toW.offsetWidth}px`)
+      })
+      let t = 0
+      const open = (on: boolean) => {
+        clearTimeout(t)
+        if (on) {
+          rd.classList.add('is-open')
+          rd.setAttribute('aria-label', to)
+          // once the ink is off, the words turn over
+          t = window.setTimeout(() => rd.classList.add('is-flipped'), 650)
+        } else {
+          rd.classList.remove('is-flipped')
+          rd.setAttribute('aria-label', 'redacted; reveal it')
+          t = window.setTimeout(() => rd.classList.remove('is-open'), rd.classList.contains('is-open') ? 450 : 0)
+        }
+      }
+      // a mouse reveals while it is over; a finger toggles
+      rd.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && open(true))
+      rd.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && open(false))
+      rd.addEventListener('focus', () => open(true))
+      rd.addEventListener('blur', () => open(false))
+      rd.addEventListener('click', (e) => {
+        if ((e as PointerEvent).pointerType === 'mouse') return
+        open(!rd.classList.contains('is-flipped'))
+      })
+    }
+  })
+</script>
+
 <style>
   .abh {
     display: grid;
@@ -103,9 +155,11 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
     padding: 3.5rem 4vw 7rem;
     border-top: 0;
   }
+  /* the whole width, in two columns once there is room for two good measures */
   .ab__text {
-    max-width: 36rem;
-    margin-left: clamp(0rem, 18vw, 22rem);
+    columns: 2 26rem;
+    column-gap: 4vw;
+    column-rule: 1px solid var(--rule);
     padding-top: 3rem;
     border-top: 1.5px solid var(--ultramarine);
     font: 1.3rem/1.6 var(--font-body);
@@ -115,6 +169,7 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
   .ab__text :global(p) {
     margin: 0 0 1em;
     text-wrap: pretty;
+    break-inside: avoid-column;
   }
   .ab__text :global(p:first-child::first-letter) {
     float: left;
@@ -131,6 +186,78 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
   .ab__text :global(.redacted) {
     font: 1.5em/1 'Redacted Script', var(--font-body);
     white-space: nowrap;
+  }
+  /* a redaction that comes off: the ink wipes away left to right, the words under it
+     show in the body face, then flip letter by letter into the reveal (as Flip.astro) */
+  .ab__text :global(.rd) {
+    position: relative;
+    display: inline-grid;
+    vertical-align: baseline;
+    /* as wide as the words showing: it widens as the reveal gains its spaces */
+    width: var(--w-from, auto);
+    transition: width 0.4s var(--ease-out);
+    perspective: 600px;
+    cursor: pointer;
+    outline-offset: 3px;
+  }
+  .ab__text :global(.rd.is-flipped) {
+    width: var(--w-to, auto);
+  }
+  .ab__text :global(.rd > *) {
+    grid-area: 1 / 1;
+    justify-self: start;
+    white-space: pre;
+  }
+  /* the ink lies over the words, squeezed or stretched to cover just them */
+  .ab__text :global(.rd__ink) {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    translate: 0 -50%;
+    transform-origin: left center;
+    scale: var(--fit, 1) 1;
+    font: 1.5em/1 'Redacted Script', var(--font-body);
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 0.5s var(--ease-out) 0.35s;
+  }
+  .ab__text :global(.rd.is-open .rd__ink) {
+    clip-path: inset(0 0 0 100%);
+    transition-delay: 0s;
+  }
+  .ab__text :global(.rd__c) {
+    display: inline-block;
+    backface-visibility: hidden;
+    transform-origin: 50% 50% -0.35em;
+    transition:
+      transform 0.4s var(--ease-out),
+      opacity 0.4s var(--ease-out);
+    transition-delay: calc(var(--i) * 44ms);
+  }
+  /* the words under the ink: there while it wipes off, gone once they flip */
+  .ab__text :global(.rd__from .rd__c) {
+    opacity: 0;
+  }
+  .ab__text :global(.rd.is-open .rd__from .rd__c) {
+    opacity: 1;
+    transition-delay: 0s;
+  }
+  .ab__text :global(.rd.is-flipped .rd__from .rd__c) {
+    transform: rotateX(90deg);
+    opacity: 0;
+    transition-delay: calc(var(--i) * 44ms);
+  }
+  .ab__text :global(.rd__to .rd__c) {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+  .ab__text :global(.rd.is-flipped .rd__to .rd__c) {
+    transform: none;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ab__text :global(.rd *) {
+      transition: none !important;
+    }
   }
   .ab__text :global(a) {
     color: var(--ultramarine);
@@ -222,9 +349,6 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
     }
     .abh {
       grid-template-columns: 1fr;
-    }
-    .ab__text {
-      margin-left: 0;
     }
   }
 </style>
