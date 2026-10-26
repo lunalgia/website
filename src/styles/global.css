@@ -570,3 +570,43 @@
     }
   }
 }
+
+/* hand-drawn marks on a phrase (src/scripts/annotate.ts) */
+@layer components {
+  [data-annotate] {
+    /* umber, from the palette: a pen in the margin, never mistaken for a link;
+       set --ann to change it (the home letter uses mist on its dark panel) */
+    --ann: #645244;
+    position: relative;
+    isolation: isolate;
+    white-space: nowrap;
+  }
+  .ann {
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: visible;
+    pointer-events: none;
+    fill: none;
+    stroke: var(--ann);
+    stroke-width: 1.9px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ann path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.65s var(--ease-out);
+    transition-delay: calc(var(--delay, 0s) + var(--n) * 0.3s);
+  }
+  .is-drawn > .ann path {
+    stroke-dashoffset: 0;
+  }
+  .ann--highlight {
+    z-index: -1;
+  }
+  .ann--highlight path {
+    stroke: color-mix(in oklab, var(--mist) 70%, transparent);
+    stroke-linecap: butt;
+  }
+}

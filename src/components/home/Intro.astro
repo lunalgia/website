@@ -22,10 +22,10 @@ const label = "A FEW WORDS, BEFORE YOU WANDER";
             <span class="ln">
                 I love literature, music, art, humanities, math and physics.
             </span>
-            <span class="ln">In life I subscribe to rationalism,</span>
+            <span class="ln">In life I subscribe to <span data-annotate="underline" data-delay="1.2">rationalism</span>,</span>
             <span class="ln">
                 but also to people and nature{" "}
-                <em>and the wonders of the soul.</em>
+                <em data-annotate="wavy" data-delay="1.6">and the wonders of the soul.</em>
             </span>
         </p>
         <p>
@@ -33,7 +33,7 @@ const label = "A FEW WORDS, BEFORE YOU WANDER";
             <span class="ln">
                 by the mess of contradictions that are my beliefs,
             </span>
-            <span class="ln">but when I do, I try to write about them.</span>
+            <span class="ln">but when I do, I try to <span data-annotate="circle" data-delay="2">write</span> about them.</span>
         </p>
         <p>
             <span class="ln">
@@ -110,6 +110,10 @@ const label = "A FEW WORDS, BEFORE YOU WANDER";
 </script>
 
 <style>
+    /* the hand-drawn marks (src/scripts/annotate.ts), pale against the dark panel */
+    .letter__body [data-annotate] {
+        --ann: var(--mist);
+    }
     .letter {
         /* the hero's drawing units: 1920 wide on wide screens, 760 on tall ones */
         --hu: calc(100vw / 760);
