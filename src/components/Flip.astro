@@ -1,0 +1,66 @@
+---
+/**
+ * A word that flips, letter by letter, into another one when it (or the link or
+ * button around it) is hovered, focused or tapped, after componentry's
+ * "flipping word swap". Each letter turns over on its top edge, 44 ms after the
+ * one before; the second word turns up from below. Pure CSS: the two words sit
+ * in the same grid cell, so the box is as wide as the longer one.
+ * Screen readers get the first word only.
+ */
+interface Props {
+  word: string
+  to: string
+  class?: string
+}
+const { word, to, class: cls } = Astro.props
+const chars = (s: string) => [...s].map((c) => (c === ' ' ? ' ' : c))
+---
+
+<span class:list={['flip', cls]} data-flip>
+  <span class="flip__w flip__w--from">{chars(word).map((c, i) => <span class="flip__c" style={`--i:${i}`}>{c}</span>)}</span>
+  <span class="flip__w flip__w--to" aria-hidden="true">{chars(to).map((c, i) => <span class="flip__c" style={`--i:${i}`}>{c}</span>)}</span>
+</span>
+
+<style>
+  .flip {
+    display: inline-grid;
+    perspective: 600px;
+    vertical-align: baseline;
+  }
+  .flip__w {
+    grid-area: 1 / 1;
+    white-space: pre;
+  }
+  .flip__c {
+    display: inline-block;
+    backface-visibility: hidden;
+    transform-origin: 50% 50% -0.35em;
+    transition:
+      transform 0.4s var(--ease-out),
+      opacity 0.4s var(--ease-out);
+    transition-delay: calc(var(--i) * 44ms);
+  }
+  .flip__w--to .flip__c {
+    transform: rotateX(-90deg);
+    opacity: 0;
+  }
+  /* turned: the first word tips away over the top, the second comes up */
+  .flip:hover .flip__w--from .flip__c,
+  .flip:focus-visible .flip__w--from .flip__c,
+  :global(:is(a, button, [data-flip-host]):is(:hover, :focus-visible)) .flip__w--from .flip__c {
+    transform: rotateX(90deg);
+    opacity: 0;
+  }
+  .flip:hover .flip__w--to .flip__c,
+  .flip:focus-visible .flip__w--to .flip__c,
+  :global(:is(a, button, [data-flip-host]):is(:hover, :focus-visible)) .flip__w--to .flip__c {
+    transform: none;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .flip__c {
+      transition-duration: 0.01s;
+      transition-delay: 0s;
+    }
+  }
+</style>

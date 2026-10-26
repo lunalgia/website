@@ -6,6 +6,7 @@
  * screen on phones, like the home menu.
  */
 import { NAV } from '@/consts'
+import Flip from '@/components/Flip.astro'
 
 interface Props {
   home?: boolean
@@ -21,12 +22,12 @@ const section = '/' + (Astro.url.pathname.split('/').filter(Boolean)[0] ?? '')
         <svg viewBox="0 0 22 14" width="18" height="11" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
           <path d="M21 7H1M7 1 1 7l6 6" />
         </svg>
-        <em>lunalgia</em>
+        <em><Flip word="lunalgia" to="go home" /></em>
       </a>
       <ul class="chrome__links" role="list">
         {NAV.map((l) => (
           <li>
-            <a href={l.href} aria-current={l.href === section ? 'page' : undefined}>{l.label}</a>
+            <a href={l.href} aria-current={l.href === section ? 'page' : undefined}><Flip word={l.label} to={l.label} /></a>
           </li>
         ))}
       </ul>
@@ -44,7 +45,7 @@ const section = '/' + (Astro.url.pathname.split('/').filter(Boolean)[0] ?? '')
             <li style={`--i:${i}`}>
               <a href={l.href} aria-current={l.href === section ? 'page' : undefined}>
                 <span class="cmenu__n">{String(i + 1).padStart(2, '0')}</span>
-                <em>{l.label}</em>
+                <em><Flip word={l.label} to={l.label} /></em>
               </a>
             </li>
           ))}
@@ -162,9 +163,10 @@ const section = '/' + (Astro.url.pathname.split('/').filter(Boolean)[0] ?? '')
     text-underline-offset: 0.5em;
     text-decoration-thickness: 1px;
   }
-  .chrome__links a:hover,
+  /* hovering rolls the letters over (Flip); the current page keeps a rule under it */
   .chrome__links a[aria-current='page'] {
-    text-decoration-line: underline;
+    padding-bottom: 0.35em;
+    border-bottom: 1px solid currentColor;
   }
   @media (min-width: 900px) {
     .chrome__links {
@@ -197,11 +199,6 @@ const section = '/' + (Astro.url.pathname.split('/').filter(Boolean)[0] ?? '')
   }
   .chrome__home em {
     font-style: normal;
-  }
-  .chrome__home:hover em {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
   }
 
   /* the home menu's three bars; open, they cross */

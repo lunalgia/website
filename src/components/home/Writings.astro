@@ -1,4 +1,5 @@
 ---
+import Flip from '@/components/Flip.astro'
 /**
  * Board 2: Writings. A "garden" in the henry.codes sense: the three kinds of
  * writing, each with a faint description; hovering a kind opens its latest
@@ -94,7 +95,7 @@ const letters = [
     </ul>
   </div>
 
-  <a class="writings__all" href="/writing">every piece, by date<span aria-hidden="true"></span></a>
+  <a class="writings__all" href="/writing"><Flip word="every piece, by date" to="every piece, by date" /><span aria-hidden="true"></span></a>
   <p class="meta writings__count">{kinds.length} kinds · {posts.length} {posts.length === 1 ? 'piece' : 'pieces'} so far</p>
 </section>
 

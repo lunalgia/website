@@ -12,6 +12,7 @@
  * floods in behind the pen; the labels settle last.
  */
 import { NAV } from '@/consts'
+import Flip from '@/components/Flip.astro'
 import name from './lunalgia.json' // glyph outlines, positioned as in board1
 
 type Road = {
@@ -188,7 +189,7 @@ const drawings = [
         <li style={`--i:${i}`}>
           <a href={l.href}>
             <span class="hmenu__n">{String(i + 1).padStart(2, '0')}</span>
-            <em>{l.label}</em>
+            <em><Flip word={l.label} to={l.label} /></em>
           </a>
         </li>
       ))
