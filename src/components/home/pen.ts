@@ -24,7 +24,7 @@ export interface PenStroke {
   w: number
   pts: Pt[]
   retrace?: boolean
-  /** a separate touch after the word (the dot of the i) */
+  /** a separate touch after the word (the dot of the i): it grows from a point instead of being drawn along */
   lift?: boolean
 }
 
@@ -81,8 +81,9 @@ export const PEN: PenStroke[] = [
     pts: i === A.length - 1 ? [...shift(pts, 173.82), [1207, 550.5] as Pt] : shift(pts, 173.82),
     retrace: A_RETRACE[i],
   })),
-  // the dot of the i, once the word is done
-  { letter: 6, w: 14, pts: [[1148, 514.5], [1152.5, 510.5]], lift: true },
+  // the dot of the i, once the word is done: a touch of the pen at its centre,
+  // the ink spreading out from there (the hero grows the nib, see Hero.astro)
+  { letter: 6, w: 12, pts: [[1150.2, 512.4], [1150.25, 512.35]], lift: true },
 ]
 
 /** a smooth path through the points (Catmull-Rom, as cubic Béziers) */

@@ -394,9 +394,12 @@ const drawings = [
     const pen = [...svg.querySelectorAll<SVGPathElement>('.hero__pen')]
       .sort((a, b) => +a.dataset.order! - +b.dataset.order!)
       .map((el) => ({ el, len: el.getTotalLength(), lift: el.dataset.lift !== undefined, retrace: el.dataset.retrace !== undefined }))
-    pen.forEach(({ el, len }) => {
-      el.style.strokeDasharray = `${len} ${len + 1}`
-      el.style.strokeDashoffset = String(len)
+    pen.forEach(({ el, len, lift }) => {
+      if (lift) el.style.strokeWidth = '0'
+      else {
+        el.style.strokeDasharray = `${len} ${len + 1}`
+        el.style.strokeDashoffset = String(len)
+      }
     })
     letters.forEach((l) => l.setAttribute('mask', l.dataset.mask!))
     gsap.set(labels, { opacity: 0, y: 6 })
@@ -475,7 +478,10 @@ const drawings = [
       )
     }
     draw(pen.filter((s) => !s.lift), START, WRITE, 'sine.inOut')
-    draw(pen.filter((s) => s.lift), START + WRITE + 0.12, 0.14, 'power2.out')
+    // the dot: after a beat, the pen touches down and the ink spreads from that point
+    pen
+      .filter((s) => s.lift)
+      .forEach((s) => tl.to(s.el, { strokeWidth: +s.el.getAttribute('stroke-width')!, duration: 0.5, ease: 'power2.out' }, START + WRITE + 0.18))
     const done = START + WRITE + 0.35
 
     // 4. labels and the tag settle
