@@ -1,0 +1,155 @@
+---
+/**
+ * One item's entry, set like a project on the work page: cover on the left,
+ * kicker, italic title, score, the start of the review and its links on the right.
+ * The three rooms show one of these at a time.
+ */
+import Score from '@/components/media/Score.astro'
+import type { AnnexItem } from '@/lib/annex'
+interface Props {
+  item: AnnexItem
+  kicker: string
+  /** records are square */
+  square?: boolean
+  /** leave the cover out, when the room already shows it */
+  bare?: boolean
+  hidden?: boolean
+  i: number
+  /** a catalogue number, boxed under the title as Numero does: "LUN 001" */
+  cat?: string
+}
+const { item: it, kicker, square, bare, hidden, i, cat } = Astro.props
+---
+
+<article class:list={['en', { 'en--bare': bare }]} data-i={i} hidden={hidden}>
+  {
+    !bare &&
+      (it.img ? (
+        <img class:list={['en__cover', { 'en__cover--sq': square }]} src={it.img} alt="" loading="lazy" />
+      ) : (
+        <div class:list={['en__cover', 'en__cover--type', { 'en__cover--sq': square }]} style={`--c:${it.color};--f:${it.ink}`}>
+          {it.title}
+        </div>
+      ))
+  }
+  <div class="en__text">
+    <p class="en__k">{kicker}</p>
+    <h3 class="en__t">{it.title}</h3>
+    <p class="en__by">{it.by}{it.year && `, ${it.year}`}</p>
+    {cat && <p class="en__cat">{cat}</p>}
+    <Score rating={it.rating} favourite={it.favourite} liked={it.liked} />
+    {it.excerpt.slice(0, bare ? 1 : 2).map((p) => <p class="en__p" set:html={p} />)}
+    {
+      it.tags.length > 0 && (
+        <p class="en__tags">
+          {it.tags.map((t) => (
+            <span>{t}</span>
+          ))}
+        </p>
+      )
+    }
+    <p class="en__links">
+      {it.href && <a href={it.href}>the review ↗</a>}
+      {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
+    </p>
+  </div>
+</article>
+
+<style>
+  .en {
+    display: grid;
+    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+    gap: 2.4rem;
+    align-items: start;
+    color: var(--ultramarine);
+  }
+  .en--bare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .en[hidden] {
+    display: none;
+  }
+  .en__cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .en__cover--sq {
+    aspect-ratio: 1;
+  }
+  .en__cover--type {
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    background: var(--c);
+    color: var(--f);
+    font: italic 1.8rem/1 var(--font-display);
+  }
+  .en__k {
+    margin: 0;
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .en__t {
+    margin: 0.7rem 0 0.4rem;
+    font: italic 400 clamp(2.4rem, 3.8vw, 3.8rem) / 0.95 var(--font-display);
+  }
+  .en__by {
+    margin: 0 0 1.2rem;
+    font: italic 1.2rem var(--font-body);
+  }
+  .en__cat {
+    display: block;
+    width: fit-content;
+    margin: -0.4rem 0 1.4rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--ultramarine);
+    font: 400 0.62rem/1 var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .en__p {
+    max-width: 34rem;
+    margin: 1rem 0 0;
+    font: 1.1rem/1.55 var(--font-body);
+    color: var(--ink);
+  }
+  .en__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.4rem 0 0;
+  }
+  .en__tags span {
+    font: 0.62rem var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid rgb(2 8 135 / 0.4);
+  }
+  .en__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    margin: 1.2rem 0 0;
+    font: 400 0.72rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .en__links a {
+    text-decoration: none;
+  }
+  .en__links a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  @media (max-width: 640px) {
+    .en {
+      grid-template-columns: 1fr;
+    }
+    .en__cover {
+      max-width: 11rem;
+    }
+  }
+</style>

@@ -1,0 +1,177 @@
+---
+/**
+ * The media annex: a fork of /media, after real catalogues rather than shelves.
+ * Books and films as A24-style indexes grouped by year, a few films as posters
+ * numbered like a collection, records in a crate with Numero-style catalogue
+ * numbers. Same entries and reviews as the shelves.
+ */
+import Base from '@/layouts/Base.astro'
+import Index from '@/components/annex/Index.astro'
+import Crate from '@/components/annex/Crate.astro'
+import Posters from '@/components/annex/Posters.astro'
+import { annexItems, pad } from '@/lib/annex'
+
+const [books, records, films] = await Promise.all([annexItems('books'), annexItems('records'), annexItems('films')])
+/** films keep their place in the collection as a number, wherever they are shown */
+const filmNo = new Map(films.map((f, i) => [f.id, i + 1]))
+const bookNo = new Map(books.map((b, i) => [b.id, i + 1]))
+/** the ones worth showing as covers: favourites, liked, or scored 90 and up */
+const picks = <T extends { favourite: boolean; liked: boolean; rating?: number }>(list: T[], n: number) =>
+  list.filter((x) => x.favourite || x.liked || (x.rating ?? 0) >= 90).slice(0, n)
+const rooms = [
+  { id: 'books', label: 'Books', n: books.length },
+  { id: 'records', label: 'Records', n: records.length },
+  { id: 'films', label: 'Films', n: films.length },
+]
+---
+
+<Base title="Media" description="Books, records and films, with reviews.">
+  <header class="ah">
+    <h1 class="ah__t">Media</h1>
+    <p class="ah__lede">What I read, listen to and watch. Open any cover or row for the start of its review.</p>
+  </header>
+  <nav class="ax-bar" aria-label="sections">
+    {rooms.map((r) => <a href={`#${r.id}`} data-room={r.id}>{r.label} <sup>{pad(r.n)}</sup></a>)}
+  </nav>
+  <div class="ax">
+    <section id="books" aria-label="books">
+      <header class="ax-top">
+        <span>I · BOOKS</span>
+        <span>{pad(books.length)}</span>
+      </header>
+      <Posters title="Selected" items={picks(books, 5)} numbers={bookNo} unit="pages" />
+      <div class="ax-gap" />
+      <Index
+        title="All books"
+        items={books}
+        columns={[
+          { label: 'WRITTEN BY', value: (b) => b.by },
+          { label: 'THE SHORT OF IT', value: (b) => b.first, long: true },
+        ]}
+      />
+    </section>
+    <Crate items={records} />
+    <section id="films" aria-label="films">
+      <header class="ax-top">
+        <span>III · FILMS</span>
+        <span>{pad(films.length)}</span>
+      </header>
+      <Posters title="Selected" items={picks(films, 6)} numbers={filmNo} unit="min" />
+      <div class="ax-gap" />
+      <Index
+        title="All films"
+        items={films}
+        columns={[
+          { label: 'DIRECTED BY', value: (f) => f.by },
+          { label: 'STARRING', value: (f) => f.meta.starring?.split(/,\s*/).join('\n'), long: true },
+        ]}
+      />
+    </section>
+  </div>
+</Base>
+
+<script>
+  // the bar marks whichever section holds the middle of the screen
+  const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.ax-bar a')].map((a) => [a.dataset.room!, a]))
+  const io = new IntersectionObserver(
+    (seen) => {
+      for (const e of seen) if (e.isIntersecting) links.forEach((a, id) => a.toggleAttribute('aria-current', id === e.target.id))
+    },
+    { rootMargin: '-50% 0px -50% 0px' },
+  )
+  links.forEach((_, id) => {
+    const el = document.getElementById(id)
+    if (el) io.observe(el)
+  })
+</script>
+
+<style>
+  .ah {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem 3rem;
+    align-items: end;
+    padding: 7rem 4vw 0;
+    color: var(--ultramarine);
+  }
+  .ah__t {
+    margin: 0;
+    font: 400 clamp(5rem, 12vw, 11rem) / 0.9 var(--font-din);
+  }
+  .ah__lede {
+    grid-column: 1 / -1;
+    max-width: 34rem;
+    font: 1.2rem/1.5 var(--font-body);
+    color: #11135a;
+  }
+  /* the sections, held under the site header while you scroll */
+  .ax-bar {
+    position: sticky;
+    top: 3rem;
+    z-index: 40;
+    display: flex;
+    gap: 2.4rem;
+    margin-top: 3rem;
+    padding: 0.9rem 4vw;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+    font: 400 0.72rem/1 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ax-bar a {
+    position: relative;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .ax-bar sup {
+    font-size: 0.75em;
+    margin-left: 0.2em;
+  }
+  .ax-bar a:hover,
+  .ax-bar a[aria-current] {
+    color: var(--ultramarine);
+  }
+  .ax-bar a[aria-current]::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(-0.9rem - 1px);
+    height: 2px;
+    background: var(--ultramarine);
+  }
+  .ax {
+    padding: 0 4vw 7rem;
+    color: var(--ultramarine);
+  }
+  .ax > :global(section) {
+    margin-top: clamp(4rem, 8vw, 7rem);
+  }
+  /* land section links below the header and the bar */
+  .ax > :global(section) {
+    scroll-margin-top: 6.5rem;
+  }
+  .ax > section > :global(.ax-top) {
+    margin-bottom: 2.6rem;
+  }
+  .ax-gap {
+    height: clamp(4rem, 7vw, 6rem);
+  }
+  /* the section bar, as on the work page */
+  .ax :global(.ax-top) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid var(--ultramarine);
+    font: 0.75rem var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  @media (max-width: 760px) {
+    .ah {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

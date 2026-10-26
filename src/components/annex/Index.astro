@@ -1,0 +1,346 @@
+---
+/**
+ * The full list, after A24's film index: grouped by year, the year set large
+ * on the first row of its group, the title big, a couple of narrow columns,
+ * the score at the end. The cover follows the cursor along the rows; clicking
+ * a row opens the start of the review underneath it.
+ */
+import { pad, type AnnexItem } from '@/lib/annex'
+interface Column {
+  label: string
+  value: (it: AnnexItem) => string | undefined
+  /** long text: clipped to three lines with a fade */
+  long?: boolean
+}
+interface Props {
+  title: string
+  items: AnnexItem[]
+  columns: Column[]
+  /** films and books want a portrait cover, records a square one */
+  square?: boolean
+}
+const { title, items, columns, square } = Astro.props
+const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rating ?? 0) - (a.rating ?? 0))
+---
+
+<div class:list={['ix', { 'ix--square': square }]} style={`--cols:${columns.length}`}>
+  <h3 class="ix__h">{title}</h3>
+  <div class="ix__head" aria-hidden="true">
+    <span>YEAR ↓</span>
+    <span />
+    <span>TITLE</span>
+    {columns.map((c) => <span class="ix__extra">{c.label}</span>)}
+    <span class="ix__right">SCORE</span>
+    <span />
+  </div>
+  <ol class="ix__list">
+    {
+      sorted.map((it, i) => {
+        const first = i === 0 || sorted[i - 1].year !== it.year
+        return (
+          <li class:list={['ix__row', { 'ix__row--first': first }]} data-cover={it.thumb}>
+            <button class="ix__btn" type="button" aria-expanded="false">
+              <span class="ix__year">{first ? it.year : ''}</span>
+              {it.thumb ? <img class="ix__thumb" src={it.thumb} alt="" loading="lazy" /> : <span class="ix__thumb" style={`background:${it.color}`} />}
+              <span class="ix__t">{it.title}</span>
+              {columns.map((c) => (
+                <span class:list={['ix__extra', { 'ix__long': c.long }]}>{c.value(it) ?? '—'}</span>
+              ))}
+              <span class="ix__right">
+                <b>{it.rating ?? '—'}</b>
+                {it.favourite ? <i class="ix__tag">ALL-TIME</i> : it.liked && <i class="ix__tag">♥ LIKED</i>}
+              </span>
+              <span class="ix__pm" aria-hidden="true" />
+            </button>
+            <div class="ix__open" hidden>
+              {it.excerpt.length ? it.excerpt.map((p) => <p set:html={p} />) : <p class="ix__none">No review yet.</p>}
+              <p class="ix__links">
+                {it.href && <a href={it.href}>the review ↗</a>}
+                {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
+              </p>
+            </div>
+          </li>
+        )
+      })
+    }
+  </ol>
+  <img class:list={['ix__cover', { 'ix__cover--sq': square }]} alt="" aria-hidden="true" />
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('.ix')) {
+    const cover = root.querySelector<HTMLImageElement>('.ix__cover')!
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
+    for (const row of root.querySelectorAll<HTMLElement>('.ix__row')) {
+      const btn = row.querySelector<HTMLButtonElement>('.ix__btn')!
+      const open = row.querySelector<HTMLElement>('.ix__open')!
+      btn.addEventListener('click', () => {
+        const on = btn.getAttribute('aria-expanded') !== 'true'
+        btn.setAttribute('aria-expanded', String(on))
+        open.hidden = !on
+      })
+      if (!fine || !row.dataset.cover) continue
+      btn.addEventListener('pointerenter', () => {
+        cover.src = row.dataset.cover!
+        cover.classList.add('on')
+      })
+      btn.addEventListener('pointerleave', () => cover.classList.remove('on'))
+    }
+    // the cover sits just right of the cursor
+    root.addEventListener('pointermove', (e) => {
+      cover.style.translate = `${e.clientX + 24}px ${e.clientY - cover.offsetHeight / 2}px`
+    })
+  }
+</script>
+
+<style>
+  .ix {
+    --grid: 6.5rem 3.2rem minmax(0, 1.6fr) repeat(var(--cols), minmax(0, 1fr)) 6rem 1.4rem;
+    color: var(--ultramarine);
+  }
+  .ix__h {
+    margin: 0 0 2.2rem;
+    font: 400 clamp(2.8rem, 6vw, 5.4rem) / 0.95 var(--font-din);
+  }
+  .ix__head,
+  .ix__btn {
+    display: grid;
+    grid-template-columns: var(--grid);
+    gap: 0 1.4rem;
+  }
+  .ix__head {
+    padding-bottom: 0.8rem;
+    border-bottom: 1.5px solid var(--ultramarine);
+    font: 400 0.6rem/1 var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .ix__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ix__row {
+    position: relative;
+  }
+  /* rows in a year are ruled from the title on; a new year rules the full width */
+  .ix__row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: calc(6.5rem + 1.4rem);
+    border-top: 1px solid var(--rule);
+  }
+  .ix__row--first::before {
+    left: 0;
+    border-top-color: var(--ultramarine);
+  }
+  .ix__row:first-child::before {
+    display: none;
+  }
+  .ix__btn {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: var(--grid);
+    gap: 0 1.4rem;
+    align-items: start;
+    width: 100%;
+    padding: 1rem 0 1.1rem;
+    cursor: pointer;
+  }
+  .ix__thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__thumb {
+    aspect-ratio: 1;
+  }
+  /* a plus that turns into a minus while the row is open */
+  .ix__pm {
+    position: relative;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.6rem;
+    justify-self: end;
+  }
+  .ix__pm::before,
+  .ix__pm::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    background: currentColor;
+    transition: rotate 0.3s var(--ease-out);
+  }
+  .ix__pm::after {
+    rotate: 90deg;
+  }
+  .ix__btn[aria-expanded='true'] .ix__pm::after {
+    rotate: 0deg;
+  }
+  .ix__year {
+    font: 400 clamp(1.6rem, 2.4vw, 2.3rem) / 1 var(--font-din);
+  }
+  .ix__t {
+    font: italic 400 clamp(1.7rem, 2.6vw, 2.6rem) / 1 var(--font-display);
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.14em;
+    transition: text-decoration-color 0.2s;
+  }
+  .ix__btn:hover .ix__t,
+  .ix__btn:focus-visible .ix__t,
+  .ix__btn[aria-expanded='true'] .ix__t {
+    text-decoration-color: currentColor;
+  }
+  .ix__extra {
+    padding-top: 0.35rem;
+    font: 0.98rem/1.3 var(--font-body);
+    color: var(--ink);
+  }
+  .ix__head .ix__extra {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+  }
+  .ix__long {
+    white-space: pre-line;
+    max-height: 3.9em;
+    overflow: hidden;
+    -webkit-mask: linear-gradient(#000 55%, transparent);
+    mask: linear-gradient(#000 55%, transparent);
+  }
+  .ix__right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    padding-top: 0.1rem;
+    text-align: right;
+  }
+  .ix__right b {
+    font: italic 400 1.7rem/1 var(--font-display);
+  }
+  /* the small inverted tag, as A24 marks what is now playing */
+  .ix__tag {
+    padding: 0.25rem 0.4rem;
+    background: var(--ultramarine);
+    color: var(--lavender);
+    font: normal 400 0.5rem/1 var(--font-din);
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+  }
+  .ix__open {
+    margin-left: calc(6.5rem + 3.2rem + 2.8rem);
+    padding: 0.2rem 0 1.8rem;
+    max-width: 40rem;
+  }
+  .ix__open[hidden] {
+    display: none;
+  }
+  .ix__open p {
+    margin: 0 0 0.9rem;
+    font: 1.08rem/1.55 var(--font-body);
+    color: var(--ink);
+  }
+  .ix__none {
+    font-style: italic;
+  }
+  .ix__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font: 400 0.72rem/1.4 var(--font-din) !important;
+    letter-spacing: 0.16em;
+  }
+  .ix__links a {
+    color: var(--ultramarine);
+    text-decoration: none;
+  }
+  .ix__links a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  .ix__cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: 11rem;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .ix__cover--sq {
+    aspect-ratio: 1;
+  }
+  .ix__cover.on {
+    opacity: 1;
+  }
+  @media (max-width: 860px) {
+    .ix {
+      --grid: 2.6rem 2.4rem minmax(0, 1fr) 3rem 0.9rem;
+    }
+    .ix__head,
+    .ix__btn {
+      gap: 0 0.8rem;
+    }
+    .ix__extra {
+      display: none;
+    }
+    .ix__row::before {
+      left: calc(2.6rem + 0.8rem);
+    }
+    .ix__open {
+      margin-left: calc(2.6rem + 2.4rem + 1.6rem);
+    }
+    .ix__row--first::before {
+      left: 0;
+    }
+    .ix__thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__thumb {
+    aspect-ratio: 1;
+  }
+  /* a plus that turns into a minus while the row is open */
+  .ix__pm {
+    position: relative;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.6rem;
+    justify-self: end;
+  }
+  .ix__pm::before,
+  .ix__pm::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    background: currentColor;
+    transition: rotate 0.3s var(--ease-out);
+  }
+  .ix__pm::after {
+    rotate: 90deg;
+  }
+  .ix__btn[aria-expanded='true'] .ix__pm::after {
+    rotate: 0deg;
+  }
+  .ix__year {
+      font-size: 1.1rem;
+      padding-top: 0.35rem;
+    }
+  }
+</style>
