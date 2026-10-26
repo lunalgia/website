@@ -170,96 +170,6 @@
     "h": 360,
     "taken": "2026-10-26"
   },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Moodle/21 Assignment 1/Assignment 1. Due- October 2, 2026/Assignment1.pdf": {
-    "kind": "pdf",
-    "title": "Assignment 1",
-    "pages": 2,
-    "image": "/previews/df4938ee7ad7.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-05"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 1 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming Section 1 Section 2",
-    "pages": 3,
-    "image": "/previews/77fd98bebc6e.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 1.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming Section 1 Section 2",
-    "pages": 2,
-    "image": "/previews/e4fa31cb1530.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 2 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming",
-    "pages": 3,
-    "image": "/previews/45016b3e09f7.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 2.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming",
-    "pages": 3,
-    "image": "/previews/18d8d3ae1d4b.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 3 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming",
-    "pages": 2,
-    "image": "/previews/b924d93d712d.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 3.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming",
-    "pages": 2,
-    "image": "/previews/cbb7734a2ad7.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 4 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming Problem 1: 2x2 integer matrices as a Num instance",
-    "pages": 2,
-    "image": "/previews/22d5d2c3e816.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Problem Sheets/Sheet 4.pdf": {
-    "kind": "pdf",
-    "title": "Introduction to Programming Problem 1: 2x2 integer matrices as a Num instance",
-    "pages": 2,
-    "image": "/previews/106b185c313b.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Haskell-Quiz1.pdf": {
-    "kind": "pdf",
-    "title": "NAME=TEJAS SAH Roll NO=BMC_202517",
-    "pages": 2,
-    "image": "/previews/0c6015cfbe5c.webp",
-    "w": 640,
-    "h": 886,
-    "taken": "2026-10-05"
-  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 solutions.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming: Quiz 1 Solutions",
@@ -271,12 +181,12 @@
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
-    "title": "Introduction to Programming",
+    "title": "Introduction to Programming: Quiz 1",
     "pages": 1,
     "image": "/previews/0eb9eb51dbf6.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 2 solutions.pdf": {
     "kind": "pdf",
@@ -289,7 +199,7 @@
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 2.pdf": {
     "kind": "pdf",
-    "title": "Introduction to Programming",
+    "title": "Introduction to Programming: Quiz 2",
     "pages": 3,
     "image": "/previews/caa861a088a5.webp",
     "w": 640,
@@ -307,12 +217,12 @@
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Tests/Midsem.pdf": {
     "kind": "pdf",
-    "title": "Introduction to Programming",
+    "title": "Introduction to Programming: Mid-semester Examination",
     "pages": 2,
     "image": "/previews/e1e38625bd1f.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Empowerment with English - Reader.pdf": {
     "kind": "pdf",
@@ -433,39 +343,21 @@
   },
   "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
-    "title": "Empowerment with English",
+    "title": "Empowerment with English: Quiz 1",
     "pages": 1,
     "image": "/previews/d3d78ae3c362.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Tests/Midsem.pdf": {
     "kind": "pdf",
-    "title": "Empowerment with English",
+    "title": "Empowerment with English: Mid-semester Examination",
     "pages": 2,
     "image": "/previews/698b9bde0ea5.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Assignments/Assignment 1 Solutions.pdf": {
-    "kind": "pdf",
-    "title": "Algebra 1Homework 1",
-    "pages": 5,
-    "image": "/previews/5615e69233a7.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-04"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Assignments/Assignment 2.pdf": {
-    "kind": "pdf",
-    "title": "Tutorial 2",
-    "pages": 2,
-    "image": "/previews/f8adf49b2a15.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-04"
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-08-05.pdf": {
     "kind": "pdf",
@@ -746,15 +638,6 @@
     "h": 828,
     "taken": "2026-10-08"
   },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Handouts/functional math handout.pdf": {
-    "kind": "pdf",
-    "title": "Foundational mathematical language: some exercises",
-    "pages": 2,
-    "image": "/previews/ec03acafb3a2.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-04"
-  },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Handouts/linear algebra musings.pdf": {
     "kind": "pdf",
     "title": "Musings about linear algebra",
@@ -836,348 +719,6 @@
     "h": 792,
     "taken": "2026-10-04"
   },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/00 Course information and resources/About test 1 on Tue Sep 15 at at 3.30 - test 1 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Test 1 solutions and grading schemes Please let me know about any typos/errors.",
-    "pages": 4,
-    "image": "/previews/bf22710cade5.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/00 Course information and resources/About test 1 on Tue Sep 15 at at 3.30 - test 1.pdf": {
-    "kind": "pdf",
-    "title": "Test 1",
-    "pages": 2,
-    "image": "/previews/9104ce1897df.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Quiz 1/Quiz 1 solutions.pdf": {
-    "kind": "pdf",
-    "title": "Quiz 1",
-    "pages": 4,
-    "image": "/previews/1b745ed1da08.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Test 1 - 09_15_2026_8_12_09_PM (3).pdf": {
-    "kind": "pdf",
-    "title": "Test 1 - 09_15_2026_8_12_09_PM (3)",
-    "pages": 22,
-    "image": "/previews/148fe12572dc.webp",
-    "w": 640,
-    "h": 482,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Tutorial sheet 1 and HW 1/Tutorial 1.pdf": {
-    "kind": "pdf",
-    "title": "Tutorial sheet 1",
-    "pages": 1,
-    "image": "/previews/90102ae30182.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Tutorial sheet 2 and HW 2 - Tutorial 2.pdf": {
-    "kind": "pdf",
-    "title": "Tutorial sheet 2",
-    "pages": 2,
-    "image": "/previews/07d7aa24fd9f.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Tutorial sheet 3 and HW 3 - Tutorial 3.pdf": {
-    "kind": "pdf",
-    "title": "Tutorial sheet 3",
-    "pages": 2,
-    "image": "/previews/0ca50e53843a.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Tutorial sheet 4 and HW 4/Simple exercise to understand change of basis.pdf": {
-    "kind": "pdf",
-    "title": "Two simple exercises to understand change of basis formulas",
-    "pages": 1,
-    "image": "/previews/a4990cb9c665.webp",
-    "w": 640,
-    "h": 906,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Moodle/01 Your assigned work- tutorials, HW, quizzes, exams/Tutorial sheet 4 and HW 4/Tutorial 4.pdf": {
-    "kind": "pdf",
-    "title": "Tutorial sheet 4",
-    "pages": 4,
-    "image": "/previews/1282f6fc4de5.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Notes/linalg.pdf": {
-    "kind": "pdf",
-    "title": "linalg",
-    "pages": 10,
-    "image": "/previews/be6b3e1d21d3.webp",
-    "w": 640,
-    "h": 792,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/HW and solutions/2022 quiz 1 and HW 2,3,4 answers draft.pdf": {
-    "kind": "pdf",
-    "title": "2022 quiz 1 and HW 2,3,4 answers draft",
-    "pages": 8,
-    "image": "/previews/8b7a099ed584.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/HW and solutions/cumulative HW.pdf": {
-    "kind": "pdf",
-    "title": "Old HW",
-    "pages": 7,
-    "image": "/previews/d44b3e3f0518.webp",
-    "w": 640,
-    "h": 906,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 01.pdf": {
-    "kind": "pdf",
-    "title": "This course can change your life (if you let it)",
-    "pages": 5,
-    "image": "/previews/cf6940e953ae.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 02.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 02",
-    "pages": 3,
-    "image": "/previews/04423cd5d66f.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 03.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 03",
-    "pages": 4,
-    "image": "/previews/dedc34bbea67.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 04.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 04",
-    "pages": 5,
-    "image": "/previews/9bc3c5bb50bf.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 05.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 05",
-    "pages": 4,
-    "image": "/previews/ac3609593d15.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 06.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 06",
-    "pages": 3,
-    "image": "/previews/d1d578ef6e7f.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 07.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 07",
-    "pages": 4,
-    "image": "/previews/b1d8bec200f0.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 08.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 08",
-    "pages": 5,
-    "image": "/previews/132d3eb6298f.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 09.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 09",
-    "pages": 4,
-    "image": "/previews/14fc3bcf323f.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 10.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 10",
-    "pages": 5,
-    "image": "/previews/728dc3ec4662.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 11.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 11",
-    "pages": 4,
-    "image": "/previews/e86e3225e1a3.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 12.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 12",
-    "pages": 4,
-    "image": "/previews/500695e865c4.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 13.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 13",
-    "pages": 5,
-    "image": "/previews/f98771988ff7.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 14.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 14",
-    "pages": 4,
-    "image": "/previews/1f33a5617fb8.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 15.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 15",
-    "pages": 3,
-    "image": "/previews/6c3406ea4230.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 16.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 16",
-    "pages": 5,
-    "image": "/previews/8157e805f178.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 17.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 17",
-    "pages": 4,
-    "image": "/previews/dba7594a5eaf.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 18.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 18",
-    "pages": 4,
-    "image": "/previews/2030607e3acf.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 19.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 19",
-    "pages": 4,
-    "image": "/previews/54276c990c06.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 20.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 20",
-    "pages": 4,
-    "image": "/previews/e63424134014.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Lecture notes/Lecture 21-22.pdf": {
-    "kind": "pdf",
-    "title": "Lecture 21-22",
-    "pages": 7,
-    "image": "/previews/00f701d8ec5e.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Quiz/Quiz 1 board.pdf": {
-    "kind": "pdf",
-    "title": "quiz 1 board.jpeg",
-    "pages": 1,
-    "image": "/previews/0621529f6265.webp",
-    "w": 640,
-    "h": 452,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Past - 2022 course/Quiz/Quiz 1.pdf": {
-    "kind": "pdf",
-    "title": "Algebra 1 Quiz 1 Your roll number: . . . . . . . . . . . .",
-    "pages": 2,
-    "image": "/previews/9c534c6732ab.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Grading Scheme 4.pdf": {
-    "kind": "pdf",
-    "title": "Grading Scheme 4",
-    "pages": 1,
-    "image": "/previews/6bf209aa7986.webp",
-    "w": 640,
-    "h": 906,
-    "taken": "2026-10-05"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Originals/Quiz 2 (old typeset).pdf": {
-    "kind": "pdf",
-    "title": "Quiz 2",
-    "pages": 2,
-    "image": "/previews/f848677001de.webp",
-    "w": 640,
-    "h": 905,
-    "taken": "2026-10-12"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Practice Quiz 1.pdf": {
-    "kind": "pdf",
-    "title": "Practice Quiz",
-    "pages": 1,
-    "image": "/previews/35a4d3a3e5b4.webp",
-    "w": 640,
-    "h": 828,
-    "taken": "2026-10-04"
-  },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 0 (practice).pdf": {
     "kind": "pdf",
     "title": "Practice Quiz",
@@ -1194,15 +735,6 @@
     "image": "/previews/f0384a2c9aa7.webp",
     "w": 640,
     "h": 851,
-    "taken": "2026-10-08"
-  },
-  "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 1 grading Q4.pdf": {
-    "kind": "pdf",
-    "title": "Quiz 1 grading Q4",
-    "pages": 1,
-    "image": "/previews/44e5a6b5437b.webp",
-    "w": 640,
-    "h": 906,
     "taken": "2026-10-08"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 1 grading.pdf": {
@@ -1243,12 +775,12 @@
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Quizzes/Quiz 2.pdf": {
     "kind": "pdf",
-    "title": "Algebra 1",
-    "pages": 2,
+    "title": "Quiz 2",
+    "pages": 1,
     "image": "/previews/04c7507fe5c7.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-12"
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Tests/Practice - 2025 Test 1/Test 1 (2025) solutions.pdf": {
     "kind": "pdf",
@@ -1279,12 +811,12 @@
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Tests/Test 1.pdf": {
     "kind": "pdf",
-    "title": "Algebra 1",
+    "title": "Test 1",
     "pages": 2,
     "image": "/previews/2061a0d717f9.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Tutorials/Tutorial 1.pdf": {
     "kind": "pdf",
@@ -1412,50 +944,32 @@
     "h": 836,
     "taken": "2026-10-05"
   },
-  "/uni/Math/Year 1/Sem 1/Analysis 1/Books/Analysis, Tao Vol 1.pdf": {
-    "kind": "pdf",
-    "title": "Analysis I",
-    "pages": 311,
-    "image": "/previews/e4cdced29412.webp",
-    "w": 640,
-    "h": 964,
-    "taken": "2026-10-04"
-  },
-  "/uni/Math/Year 1/Sem 1/Analysis 1/Books/Principles of Mathematical Analysis (Baby), Rudin.pdf": {
-    "kind": "pdf",
-    "title": "PRINICPLES OF MATHEMATICAL ANALYSIS",
-    "pages": 330,
-    "image": "/previews/2bfb450cfc7c.webp",
-    "w": 640,
-    "h": 960,
-    "taken": "2026-10-04"
-  },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Tests/Midsem (corrected).pdf": {
     "kind": "pdf",
-    "title": "Analysis 1",
+    "title": "Analysis 1: Mid-semester Examination (corrected)",
     "pages": 2,
     "image": "/previews/d9ee8cda450d.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Tests/Midsem.pdf": {
     "kind": "pdf",
-    "title": "Analysis 1",
+    "title": "Analysis 1: Mid-semester Examination",
     "pages": 2,
     "image": "/previews/e136eb0210a6.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Tests/Mock Midsem.pdf": {
     "kind": "pdf",
-    "title": "Analysis 1",
+    "title": "Analysis 1: Mock Mid-semester Examination",
     "pages": 1,
     "image": "/previews/ad8aa46a8012.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/HW and solutions/2022 quiz 1 and HW 2,3,4 answers draft.pdf": {
     "kind": "pdf",
@@ -2791,21 +2305,21 @@
   },
   "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
-    "title": "Classical Mechanics 1",
+    "title": "Classical Mechanics 1: Quiz 1",
     "pages": 1,
     "image": "/previews/04d20e8666a9.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Tests/Midsem.pdf": {
     "kind": "pdf",
-    "title": "Classical Mechanics 1",
+    "title": "Classical Mechanics 1: Mid-semester Examination",
     "pages": 2,
     "image": "/previews/a7ce9f4386f8.webp",
     "w": 640,
     "h": 905,
-    "taken": "2026-10-10"
+    "taken": "2026-10-26"
   },
   "https://en.wikipedia.org/w/index.php?title=Gustave_Flaubert&oldid=1377904952": {
     "kind": "page",
