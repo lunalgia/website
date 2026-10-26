@@ -574,12 +574,16 @@
 /* hand-drawn marks on a phrase (src/scripts/annotate.ts) */
 @layer components {
   [data-annotate] {
-    /* umber, from the palette: a pen in the margin, never mistaken for a link;
+    /* a red pen in the margin, never mistaken for a link or the text's own ink;
        set --ann to change it (the home letter uses mist on its dark panel) */
-    --ann: #645244;
+    --ann: #c2361f;
     position: relative;
     isolation: isolate;
     white-space: nowrap;
+  }
+  /* marks drawn around a phrase get a little room, so they don't run into its neighbours */
+  :is([data-annotate='circle'], [data-annotate='box'], [data-annotate='bracket']) {
+    margin-inline: 0.2em;
   }
   .ann {
     position: absolute;

@@ -48,7 +48,7 @@ const MARKS: Record<string, (w: number, h: number, r: () => number) => string[]>
     // an ellipse that does not quite close and overshoots its start
     const cx = w / 2
     const cy = h / 2
-    const rx = w / 2 + 6
+    const rx = w / 2 + 5
     const ry = h / 2 + 5
     const start = -Math.PI * (0.55 + r() * 0.2)
     const pts: Pt[] = []
