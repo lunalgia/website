@@ -1,19 +1,17 @@
 """
 Make the scrollbar's moon (src/components/Rail.astro): a photograph of the
-moon, broken, shaded into a waning gibbous, and printed in ultramarine ink as
-an ordered dither, like the lily on the home page.
+moon, its left part broken off along a jagged line near the middle, the rest
+lit from the right and printed in ultramarine ink, its tone kept soft with
+only a light grain.
 
-    python3 scripts/moon.py   ->  src/assets/rail/moon-{upper,lower,shard}@{1,2,3}x.png
+    python3 scripts/moon.py   ->  src/assets/rail/moon@{1,2,3}x.png
 
 The source is NASA's LRO mosaic of the near side (public domain,
 NASA/GSFC/Arizona State University), kept at src/assets/rail/moon-lro.jpg.
-The moon comes out as three layers on one canvas (the upper piece, the lower
-piece knocked out of line, a shard), so the rail can push them apart on hover.
-Each size is dithered at its own pixels, so the dots stay crisp on any screen.
+Each size is made at its own pixels, so the grain stays crisp on any screen.
 
 Needs: numpy, pillow
 """
-import math
 from pathlib import Path
 
 import numpy as np
@@ -23,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src/assets/rail/moon-lro.jpg"
 OUT = ROOT / "src/assets/rail"
 
-CSS = 28  # the moon's size in CSS pixels
+CSS = 20  # the whole moon's diameter in CSS pixels (about half of it is left)
 INK = (2, 8, 135)  # --ultramarine
 WORK = 520  # working resolution for the geometry
 
@@ -34,7 +32,7 @@ w, h = src.size
 disc = src.crop((int(w * 0.004), int(h * 0.004), int(w * 0.996), int(h * 0.996))).resize((WORK, WORK), Image.LANCZOS)
 lum = np.asarray(disc, dtype=np.float64) / 255
 
-pad = int(WORK * 0.16)  # room around the disc for the pieces to move into
+pad = 0
 N = WORK + 2 * pad
 yy, xx = np.mgrid[0:N, 0:N]
 cx = cy = N / 2
@@ -53,67 +51,41 @@ shade = np.clip((lambert - 0.02) / 0.75, 0, 1) ** 0.8
 value = canvas * (0.25 + 0.95 * shade) * 1.55
 value = np.where(inside, np.clip(value, 0, 1), 0)
 
-# ---- the break ----
-# a jagged crack from the upper left to the lower right, wandering a little
-rng = np.random.default_rng(7)
-crack = [(-1.15, -0.32)]
-for t in np.linspace(-0.85, 1.15, 13):
-    crack.append((t, -0.32 + 0.55 * (t + 1.15) / 2.3 + rng.uniform(-0.07, 0.07)))
-crack_px = [(cx + x * R, cy + y * R) for x, y in crack]
+# ---- the break: the left part is gone, along a jagged line near the middle ----
+rng = np.random.default_rng(11)
+ys = np.linspace(-1.05, 1.05, 15)
+edge = [(-0.04 + 0.1 * y + rng.uniform(-0.09, 0.09), y) for y in ys]  # leans a little, splinters
+edge_px = [(cx + x * R, cy + y * R) for x, y in edge]
+keep = Image.new("L", (N, N), 0)
+ImageDraw.Draw(keep).polygon(edge_px + [(N, cy + 1.05 * R), (N, cy - 1.05 * R)], fill=255)
+keep = (np.asarray(keep) > 0) & inside
+moon = value * keep
 
+# crop to what is left
+cols = np.nonzero(keep.any(axis=0))[0]
+rows = np.nonzero(keep.any(axis=1))[0]
+x0, x1, y0, y1 = cols[0], cols[-1] + 1, rows[0], rows[-1] + 1
+moon = moon[y0:y1, x0:x1]
+mask = keep[y0:y1, x0:x1]
 
-def region(points):
-    m = Image.new("L", (N, N), 0)
-    ImageDraw.Draw(m).polygon(points, fill=255)
-    return np.asarray(m) > 0
-
-
-lower_mask = region(crack_px + [(N, N), (0, N)])
-upper_mask = inside & ~lower_mask
-lower_mask = inside & lower_mask
-# a hairline gap along the crack, eaten out of both pieces
-gap = Image.new("L", (N, N), 0)
-ImageDraw.Draw(gap).line(crack_px, fill=255, width=max(3, WORK // 55), joint="curve")
-gap = np.asarray(gap) > 0
-upper_mask &= ~gap
-lower_mask &= ~gap
-# a shard breaks off the lower piece's right end, where the crack meets the edge
-shard_pts = [(cx + 0.55 * R, cy + 0.40 * R), (cx + 1.0 * R, cy + 0.30 * R), (cx + 0.80 * R, cy + 0.66 * R)]
-shard_mask = region(shard_pts) & lower_mask
-lower_mask &= ~shard_mask
-
-
-def moved(a, dx, dy, deg, ox, oy):
-    """move a layer: rotate about (ox, oy), then shift (in canvas pixels)"""
-    img = Image.fromarray((a * 255).astype(np.uint8))
-    img = img.rotate(-deg, resample=Image.BICUBIC, center=(ox, oy), translate=(dx, dy))
-    return np.asarray(img, dtype=np.float64) / 255
-
-
-layers = {
-    "upper": value * upper_mask,
-    # the lower piece slips down and to the left, turning a little
-    "lower": moved(value * lower_mask, -0.05 * R, 0.11 * R, 7, cx, cy),
-    # the shard drifts off to the lower right
-    "shard": moved(value * shard_mask, 0.13 * R, 0.16 * R, 24, cx + 0.78 * R, cy + 0.45 * R),
-}
-
-# ---- print: an ordered dither at each size, in ink ----
-B = np.array([[0, 32, 8, 40, 2, 34, 10, 42], [48, 16, 56, 24, 50, 18, 58, 26], [12, 44, 4, 36, 14, 46, 6, 38],
-              [60, 28, 52, 20, 62, 30, 54, 22], [3, 35, 11, 43, 1, 33, 9, 41], [51, 19, 59, 27, 49, 17, 57, 25],
-              [15, 47, 7, 39, 13, 45, 5, 37], [63, 31, 55, 23, 61, 29, 53, 21]]) / 64 + 1 / 128
-
-size_css = CSS * N / WORK  # the canvas is a little bigger than the moon
+# ---- ink: the tone as the ink's strength, with a light ordered grain ----
+B = np.array([[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]) / 16
+LEVELS = 6  # a few steps of ink, so the grain is gentle rather than a dither of dots
+scale_css = CSS / WORK
 for scale in (1, 2, 3):
-    px = round(size_css * scale)
-    for name, a in layers.items():
-        small = np.asarray(Image.fromarray((a * 255).astype(np.uint8)).resize((px, px), Image.LANCZOS), dtype=np.float64) / 255
-        # lift the midtones so the maria still print as a scatter of dots
-        small = np.clip(small * 1.1, 0, 1) ** 0.85
-        th = np.tile(B, (px // 8 + 1, px // 8 + 1))[:px, :px]
-        on = small > th
-        rgba = np.zeros((px, px, 4), dtype=np.uint8)
-        rgba[on] = (*INK, 255)
-        Image.fromarray(rgba).save(OUT / f"moon-{name}@{scale}x.png", optimize=True)
+    pw = round(moon.shape[1] * scale_css * scale)
+    ph = round(moon.shape[0] * scale_css * scale)
+    small = np.asarray(Image.fromarray((moon * 255).astype(np.uint8)).resize((pw, ph), Image.LANCZOS), dtype=np.float64) / 255
+    inside_small = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((pw, ph), Image.LANCZOS), dtype=np.float64) / 255
+    tone = np.clip(0.18 + 0.82 * small, 0, 1) ** 0.9  # even the darkest maria keep a little ink
+    th = np.tile(B, (ph // 4 + 1, pw // 4 + 1))[:ph, :pw]
+    q = np.floor(tone * (LEVELS - 1) + th) / (LEVELS - 1)
+    alpha = np.clip(q, 0, 1) * inside_small
+    rgba = np.zeros((ph, pw, 4), dtype=np.uint8)
+    rgba[..., :3] = INK
+    rgba[..., 3] = (alpha * 255).round().astype(np.uint8)
+    Image.fromarray(rgba).save(OUT / f"moon@{scale}x.png", optimize=True)
 
-print(f"moon: canvas {size_css:.1f} css px, layers {', '.join(layers)} at 1x/2x/3x -> {OUT.relative_to(ROOT)}")
+w1 = moon.shape[1] * scale_css
+h1 = moon.shape[0] * scale_css
+print(f"moon: {w1:.1f} x {h1:.1f} css px at 1x/2x/3x -> {OUT.relative_to(ROOT)}")

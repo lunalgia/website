@@ -1,38 +1,25 @@
 ---
 /**
  * The scrollbar: a hairline down the right edge with a broken moon as its thumb
- * (lunalgia, moon pain): a photograph of the moon, cracked across, the lower
- * piece knocked out of line and a shard breaking off, printed in ink as an
- * ordered dither (scripts/moon.py makes the three layers). Hovering the rail or
- * dragging the moon pushes the pieces a little further apart. On posts the line also carries a tick for each part and each
+ * (lunalgia, moon pain): a photograph of the moon with its left part broken off,
+ * printed in ink (scripts/moon.py). The line stops short of it above and below,
+ * and hovering the rail or dragging tips the piece a little. On posts the line also carries a tick for each part and each
  * note; hover one for its name, click to go there. Desktop pointers only, and
  * only with JS: touch screens and no-JS visitors keep the native scrollbar.
  * The rail is decoration over native scrolling, so the keyboard, the wheel and
  * assistive tech are unaffected; it is hidden from the accessibility tree.
  */
-import upper1 from '@/assets/rail/moon-upper@1x.png?url'
-import upper2 from '@/assets/rail/moon-upper@2x.png?url'
-import upper3 from '@/assets/rail/moon-upper@3x.png?url'
-import lower1 from '@/assets/rail/moon-lower@1x.png?url'
-import lower2 from '@/assets/rail/moon-lower@2x.png?url'
-import lower3 from '@/assets/rail/moon-lower@3x.png?url'
-import shard1 from '@/assets/rail/moon-shard@1x.png?url'
-import shard2 from '@/assets/rail/moon-shard@2x.png?url'
-import shard3 from '@/assets/rail/moon-shard@3x.png?url'
-
-// each layer is dithered at its own pixels for each density, so the files are used as they are
-const layers = [
-  { name: 'upper', set: [upper1, upper2, upper3] },
-  { name: 'lower', set: [lower1, lower2, lower3] },
-  { name: 'shard', set: [shard1, shard2, shard3] },
-]
+import moon1 from '@/assets/rail/moon@1x.png?url'
+import moon2 from '@/assets/rail/moon@2x.png?url'
+import moon3 from '@/assets/rail/moon@3x.png?url'
+// made at each density's own pixels, so the files are used as they are
 ---
 
 <div class="rail" aria-hidden="true">
   <div class="rail__line"></div>
   <div class="rail__ticks"></div>
   <div class="rail__moon">
-    {layers.map((l) => <img class={`rail__layer rail__layer--${l.name}`} src={l.set[0]} srcset={`${l.set[0]} 1x, ${l.set[1]} 2x, ${l.set[2]} 3x`} alt="" draggable="false" />)}
+    <img src={moon1} srcset={`${moon1} 1x, ${moon2} 2x, ${moon3} 3x`} width="12" height="20" alt="" draggable="false" />
   </div>
   <p class="rail__tip"></p>
 </div>
@@ -65,7 +52,9 @@ const layers = [
       const scrollable = document.documentElement.scrollHeight > innerHeight + 4
       rail.classList.toggle('is-idle', !scrollable)
       const track = rail.clientHeight - moon.offsetHeight
-      moon.style.transform = `translateY(${(scrollY / max()) * track}px)`
+      const y = (scrollY / max()) * track
+      moon.style.transform = `translateY(${y}px)`
+      rail.style.setProperty('--moon-y', `${y}px`)
     }
     const queue = () => (frame ||= requestAnimationFrame(draw))
     addEventListener('scroll', queue, { passive: true })
@@ -170,7 +159,7 @@ const layers = [
     z-index: 60;
     top: 4.25rem;
     bottom: 1.25rem;
-    right: 12px; /* room for the moon, which is wider than the rail */
+    right: 6px;
     width: 17px;
     cursor: pointer;
     touch-action: none;
@@ -185,6 +174,10 @@ const layers = [
     top: 0;
     bottom: 0;
     width: 1px;
+    /* a gap where the moon is, so the line never shows through its ink */
+    --gap-a: calc(var(--moon-y, 0px) - 4px);
+    --gap-b: calc(var(--moon-y, 0px) + 24px);
+    mask-image: linear-gradient(#000 var(--gap-a), transparent var(--gap-a), transparent var(--gap-b), #000 var(--gap-b));
     background: color-mix(in oklab, var(--ultramarine) 45%, transparent);
     transition: width 0.25s var(--ease-out), background 0.25s;
     translate: -50% 0;
@@ -194,51 +187,32 @@ const layers = [
     width: 2px;
     background: var(--ultramarine);
   }
-  /* the moon's canvas is 37px, with room around the 28px disc for the pieces to move */
+  /* the moon is 12 by 20, centred on the line */
   .rail__moon {
     position: absolute;
-    left: -10px;
+    left: 2.5px;
     top: 0;
-    width: 37px;
-    height: 37px;
+    width: 12px;
+    height: 20px;
     will-change: transform;
     cursor: grab;
   }
   .rail.is-dragging .rail__moon {
     cursor: grabbing;
   }
-  /* the dark of the moon: paper behind the dots, so the rail runs behind it */
-  .rail__moon::before {
-    content: '';
-    position: absolute;
-    inset: 4.5px;
-    border-radius: 50%;
-    background: var(--bg);
-  }
-  .rail__layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+  .rail__moon img {
+    display: block;
+    width: 12px;
+    height: 20px;
     image-rendering: pixelated;
     pointer-events: none;
-    transition: translate 0.6s var(--ease-out), rotate 0.6s var(--ease-out);
+    transform-origin: 30% 50%;
+    transition: rotate 0.6s var(--ease-out), translate 0.6s var(--ease-out);
   }
-  .rail__layer--lower {
-    transform-origin: 50% 50%;
-  }
-  .rail__layer--shard {
-    transform-origin: 72% 66%;
-  }
-  .rail:hover .rail__layer--lower,
-  .rail.is-dragging .rail__layer--lower {
-    translate: -1px 1.5px;
-    rotate: 4deg;
-  }
-  .rail:hover .rail__layer--shard,
-  .rail.is-dragging .rail__layer--shard {
-    translate: 2px 2.5px;
-    rotate: 14deg;
+  .rail:hover .rail__moon img,
+  .rail.is-dragging .rail__moon img {
+    translate: 1px 0;
+    rotate: 6deg;
   }
   /* ticks are made by the script, so they carry no scoping attribute */
   .rail :global(.rail__tick) {
@@ -296,7 +270,7 @@ const layers = [
   @media (prefers-reduced-motion: reduce) {
     .rail__line,
     .rail__tip,
-    .rail__layer {
+    .rail__moon img {
       transition: none;
     }
   }
