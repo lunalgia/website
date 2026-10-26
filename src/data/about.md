@@ -29,5 +29,5 @@ feel free to recommend!) and love Radiohead, Godspeed You! Black Emperor, Car Se
 disbanded, rip, but drug bug, who was one half of the band, is an artist I really like these days). I spend at times
 too many hours on RPGs and Visual Novels, my favourite being Disco Elysium.
 
-If you find that any of these are also things that interest you, or want to just talk, feel free to contact me
-@lunalgia on discord or mail me at lunalgia(at)pm.me!
+If you find that any of these are also things that interest you, or want to just talk, feel free to write to me at
+[lilian@lunalgia.me](mailto:lilian@lunalgia.me), find me as *@lunalgia* on discord, or *lunalgia.03* on signal!

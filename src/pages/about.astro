@@ -65,42 +65,70 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
 </Base>
 
 <script>
-  // a redaction with data-reveal comes off on hover, focus or a tap, and goes back on
-  // when you leave; set up on every arrival, since the site swaps pages without reloading
-  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
-  const letters = (s: string) =>
-    [...s].map((c, i) => `<span class="rd__c" style="--i:${i}">${c === ' ' ? '\u00a0' : esc(c)}</span>`).join('')
+  // A redaction with data-reveal comes off on hover, focus or a tap and goes back on when
+  // you leave. The two texts are one set of letters: each scribble turns into its own
+  // letter in place, sweeping left to right; then the reveal's new spaces open up and any
+  // letter that changes case turns over. Set up on every arrival: the site swaps pages
+  // without reloading.
+  const esc = (c: string) => (c === ' ' ? '\u00a0' : c.replace(/[&<>"]/g, (x) => `&#${x.charCodeAt(0)};`))
+  const build = (from: string, to: string) => {
+    let html = ''
+    let i = 0
+    let k = 0
+    for (const c of to) {
+      const f = from[i]
+      if (f !== undefined && f.toLowerCase() === c.toLowerCase()) {
+        const swap = f !== c
+        html += `<span class="rd__l${swap ? ' rd__l--swap' : ''}" style="--i:${k}"><span class="rd__ink" aria-hidden="true">${esc(f)}</span><span class="rd__a">${esc(f)}</span>${swap ? `<span class="rd__b">${esc(c)}</span>` : ''}</span>`
+        i++
+        k++
+      } else if (c === ' ') html += '<span class="rd__gap"></span>'
+      else return null
+    }
+    return i === from.length ? { html, n: k } : null
+  }
   document.addEventListener('astro:page-load', () => {
     for (const el of document.querySelectorAll<HTMLElement>('.ab__text .redacted[data-reveal]')) {
       const from = el.textContent ?? ''
       const to = el.dataset.reveal!
+      const built = build(from, to)
+      // only a reveal made of the same letters (new spaces, other cases) can be animated
+      if (!built) continue
       const rd = document.createElement('span')
       rd.className = 'rd'
       rd.tabIndex = 0
       rd.setAttribute('role', 'button')
-      rd.setAttribute('aria-label', `redacted; reveal it`)
-      rd.innerHTML = `<span class="rd__ink" aria-hidden="true">${esc(from)}</span><span class="rd__from" aria-hidden="true">${letters(from)}</span><span class="rd__to" aria-hidden="true">${letters(to)}</span>`
+      rd.setAttribute('aria-label', 'redacted; reveal it')
+      rd.style.setProperty('--n', String(built.n))
+      rd.innerHTML = built.html
       el.replaceWith(rd)
-      const [ink, fromW, toW] = [...rd.children] as HTMLElement[]
-      // fit the ink to the words under it, and give the box each set of words' width
+      // each scribble is squeezed to its letter's width, so nothing moves as they swap;
+      // a letter that changes case eases between the two widths
       document.fonts.ready.then(() => {
-        const f = fromW.offsetWidth
-        rd.style.setProperty('--fit', String(f / ink.offsetWidth))
-        rd.style.setProperty('--w-from', `${f}px`)
-        rd.style.setProperty('--w-to', `${toW.offsetWidth}px`)
+        for (const l of rd.querySelectorAll<HTMLElement>('.rd__l')) {
+          const ink = l.querySelector<HTMLElement>('.rd__ink')!
+          const a = l.querySelector<HTMLElement>('.rd__a')!
+          const b = l.querySelector<HTMLElement>('.rd__b')
+          l.style.setProperty('--fit', String(a.offsetWidth / Math.max(1, ink.offsetWidth)))
+          if (b) {
+            l.style.setProperty('--wa', `${a.offsetWidth}px`)
+            l.style.setProperty('--wb', `${b.offsetWidth}px`)
+          }
+        }
       })
+      const sweep = (built.n - 1) * 32 + 380
       let t = 0
       const open = (on: boolean) => {
         clearTimeout(t)
         if (on) {
           rd.classList.add('is-open')
           rd.setAttribute('aria-label', to)
-          // once the ink is off, the words turn over
-          t = window.setTimeout(() => rd.classList.add('is-flipped'), 650)
+          t = window.setTimeout(() => rd.classList.add('is-turned'), rd.classList.contains('is-turned') ? 0 : sweep)
         } else {
-          rd.classList.remove('is-flipped')
+          const turned = rd.classList.contains('is-turned')
+          rd.classList.remove('is-turned')
           rd.setAttribute('aria-label', 'redacted; reveal it')
-          t = window.setTimeout(() => rd.classList.remove('is-open'), rd.classList.contains('is-open') ? 450 : 0)
+          t = window.setTimeout(() => rd.classList.remove('is-open'), turned ? 420 : 0)
         }
       }
       // a mouse reveals while it is over; a finger toggles
@@ -110,7 +138,7 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
       rd.addEventListener('blur', () => open(false))
       rd.addEventListener('click', (e) => {
         if ((e as PointerEvent).pointerType === 'mouse') return
-        open(!rd.classList.contains('is-flipped'))
+        open(!rd.classList.contains('is-open'))
       })
     }
   })
@@ -187,28 +215,18 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
     font: 1.5em/1 'Redacted Script', var(--font-body);
     white-space: nowrap;
   }
-  /* a redaction that comes off: the ink wipes away left to right, the words under it
-     show in the body face, then flip letter by letter into the reveal (as Flip.astro) */
+  /* a redaction that comes off: each scribble lifts away as its own letter rises into
+     place, left to right; then new spaces open and a letter that changes case turns over */
   .ab__text :global(.rd) {
-    position: relative;
-    display: inline-grid;
-    vertical-align: baseline;
-    /* as wide as the words showing: it widens as the reveal gains its spaces */
-    width: var(--w-from, auto);
-    transition: width 0.4s var(--ease-out);
+    white-space: nowrap;
     perspective: 600px;
     cursor: pointer;
     outline-offset: 3px;
   }
-  .ab__text :global(.rd.is-flipped) {
-    width: var(--w-to, auto);
+  .ab__text :global(.rd__l) {
+    position: relative;
+    display: inline-block;
   }
-  .ab__text :global(.rd > *) {
-    grid-area: 1 / 1;
-    justify-self: start;
-    white-space: pre;
-  }
-  /* the ink lies over the words, squeezed or stretched to cover just them */
   .ab__text :global(.rd__ink) {
     position: absolute;
     left: 0;
@@ -217,47 +235,83 @@ const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.t
     transform-origin: left center;
     scale: var(--fit, 1) 1;
     font: 1.5em/1 'Redacted Script', var(--font-body);
-    clip-path: inset(0 0 0 0);
-    transition: clip-path 0.5s var(--ease-out) 0.35s;
+    pointer-events: none;
   }
-  .ab__text :global(.rd.is-open .rd__ink) {
-    clip-path: inset(0 0 0 100%);
-    transition-delay: 0s;
-  }
-  .ab__text :global(.rd__c) {
+  .ab__text :global(.rd__a),
+  .ab__text :global(.rd__b) {
     display: inline-block;
     backface-visibility: hidden;
     transform-origin: 50% 50% -0.35em;
+  }
+  .ab__text :global(.rd__a) {
+    opacity: 0;
+    translate: 0 0.3em;
+  }
+  /* the sweep: on the way in left to right, on the way out right to left */
+  .ab__text :global(.rd__ink),
+  .ab__text :global(.rd__a) {
+    transition:
+      opacity 0.3s var(--ease-out),
+      translate 0.38s var(--ease-out),
+      transform 0.4s var(--ease-out);
+    transition-delay: calc((var(--n) - 1 - var(--i)) * 22ms);
+  }
+  .ab__text :global(.rd.is-open .rd__ink) {
+    opacity: 0;
+    translate: 0 calc(-50% - 0.3em);
+    transition-delay: calc(var(--i) * 32ms);
+  }
+  .ab__text :global(.rd.is-open .rd__a) {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: calc(var(--i) * 32ms);
+  }
+  /* a letter that changes case: both forms in one place, the box easing between widths */
+  .ab__text :global(.rd__l--swap) {
+    display: inline-grid;
+    width: var(--wa, auto);
+    transition: width 0.4s var(--ease-out);
+  }
+  .ab__text :global(.rd__l--swap > :not(.rd__ink)) {
+    grid-area: 1 / 1;
+    justify-self: start;
+  }
+  .ab__text :global(.rd__b) {
+    transform: rotateX(-90deg);
+    opacity: 0;
     transition:
       transform 0.4s var(--ease-out),
       opacity 0.4s var(--ease-out);
-    transition-delay: calc(var(--i) * 44ms);
   }
-  /* the words under the ink: there while it wipes off, gone once they flip */
-  .ab__text :global(.rd__from .rd__c) {
-    opacity: 0;
+  .ab__text :global(.rd.is-turned .rd__l--swap) {
+    width: var(--wb, auto);
   }
-  .ab__text :global(.rd.is-open .rd__from .rd__c) {
-    opacity: 1;
-    transition-delay: 0s;
-  }
-  .ab__text :global(.rd.is-flipped .rd__from .rd__c) {
+  .ab__text :global(.rd.is-turned .rd__l--swap .rd__a) {
     transform: rotateX(90deg);
     opacity: 0;
-    transition-delay: calc(var(--i) * 44ms);
+    transition-delay: 0s;
   }
-  .ab__text :global(.rd__to .rd__c) {
-    transform: rotateX(-90deg);
-    opacity: 0;
-  }
-  .ab__text :global(.rd.is-flipped .rd__to .rd__c) {
+  .ab__text :global(.rd.is-turned .rd__b) {
     transform: none;
     opacity: 1;
+  }
+  /* the spaces the reveal adds, opening from nothing */
+  .ab__text :global(.rd__gap) {
+    display: inline-block;
+    width: 0;
+    transition: width 0.4s var(--ease-out);
+  }
+  .ab__text :global(.rd.is-turned .rd__gap) {
+    width: 0.26em;
   }
   @media (prefers-reduced-motion: reduce) {
     .ab__text :global(.rd *) {
       transition: none !important;
     }
+  }
+  /* parentheticals a step quieter than the sentence, as in .prose (src/styles/prose.css) */
+  .ab__text :global([data-parenthetical]) {
+    color: color-mix(in oklab, var(--ink) 60%, var(--bg));
   }
   .ab__text :global(a) {
     color: var(--ultramarine);
