@@ -19,7 +19,7 @@ import moon3 from '@/assets/rail/moon@3x.png?url'
   <div class="rail__line"></div>
   <div class="rail__ticks"></div>
   <div class="rail__moon">
-    <img src={moon1} srcset={`${moon1} 1x, ${moon2} 2x, ${moon3} 3x`} width="12" height="20" alt="" draggable="false" />
+    <img src={moon1} srcset={`${moon1} 1x, ${moon2} 2x, ${moon3} 3x`} width="16" height="20" alt="" draggable="false" />
   </div>
   <p class="rail__tip"></p>
 </div>
@@ -176,7 +176,7 @@ import moon3 from '@/assets/rail/moon@3x.png?url'
     width: 1px;
     /* a gap where the moon is, so the line never shows through its ink */
     --gap-a: calc(var(--moon-y, 0px) - 4px);
-    --gap-b: calc(var(--moon-y, 0px) + 24px);
+    --gap-b: calc(var(--moon-y, 0px) + 24px); /* the moon is 20 tall */
     mask-image: linear-gradient(#000 var(--gap-a), transparent var(--gap-a), transparent var(--gap-b), #000 var(--gap-b));
     background: color-mix(in oklab, var(--ultramarine) 45%, transparent);
     transition: width 0.25s var(--ease-out), background 0.25s;
@@ -187,12 +187,12 @@ import moon3 from '@/assets/rail/moon@3x.png?url'
     width: 2px;
     background: var(--ultramarine);
   }
-  /* the moon is 12 by 20, centred on the line */
+  /* the moon is 16 by 20, centred on the line */
   .rail__moon {
     position: absolute;
-    left: 2.5px;
+    left: 0.5px;
     top: 0;
-    width: 12px;
+    width: 16px;
     height: 20px;
     will-change: transform;
     cursor: grab;
@@ -202,7 +202,7 @@ import moon3 from '@/assets/rail/moon@3x.png?url'
   }
   .rail__moon img {
     display: block;
-    width: 12px;
+    width: 16px;
     height: 20px;
     image-rendering: pixelated;
     pointer-events: none;
