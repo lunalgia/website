@@ -7,13 +7,15 @@
  * frame, the tag and the name, and the four roads move into a menu that opens
  * from the button on the frame.
  *
- * Intro: the four roads draw in together from the edges of the page; then each
- * letter of the name is traced along its outline, left to right, and the ink
- * floods in behind the pen; the labels settle last.
+ * Intro: the four roads draw in together from the edges of the page; then the
+ * name is written the way a hand would write it (./pen.ts): one movement from
+ * the L's hook to the last a's tail, going back up and down its strokes, with
+ * the i dotted at the end; the labels settle last.
  */
 import { NAV } from '@/consts'
 import Flip from '@/components/Flip.astro'
 import name from './lunalgia.json' // glyph outlines, positioned as in board1
+import { PEN, penPath } from './pen'
 
 type Road = {
   href: string
@@ -161,9 +163,19 @@ const drawings = [
 
         <a class="hero__name" href="#hello" aria-label="Lunalgia: about me">
           <g transform={g.nameAt || undefined} data-tall-name={g.id === 'tall' ? `${TALL_NAME_SCALE} ${NAME.cx} ${NAME.cy}` : undefined}>
+            {/* the pen: each letter shows only where its strokes have been drawn (masks set by the script) */}
+            <defs>
+              {name.letters.map((_, i) => (
+                <mask id={`pen-${g.id}-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width="2000" height="1200">
+                  {PEN.map((p, order) =>
+                    p.letter === i ? <path class="hero__pen" d={penPath(p.pts)} stroke-width={p.w} data-order={order} data-lift={p.lift ? '' : undefined} /> : null,
+                  )}
+                </mask>
+              ))}
+            </defs>
             <g class="hero__ink">
-              {name.letters.map((l) => (
-                <path class="hero__letter" d={l.d} />
+              {name.letters.map((l, i) => (
+                <path class="hero__letter" d={l.d} data-mask={`url(#pen-${g.id}-${i})`} />
               ))}
             </g>
           </g>
@@ -365,13 +377,15 @@ const drawings = [
       return { road, line, len, cut, fromEnd: road.dataset.edge === 'end' }
     })
     roads.forEach(({ line, len }) => range(line, len, 0, 0))
-    letters.forEach((l) => {
-      const n = l.getTotalLength()
-      l.style.strokeDasharray = `${n} ${n}`
-      l.style.strokeDashoffset = String(n)
-      l.style.fillOpacity = '0'
-      l.style.strokeOpacity = '1'
+    // the pen's strokes in writing order, each hidden until the pen gets to it
+    const pen = [...svg.querySelectorAll<SVGPathElement>('.hero__pen')]
+      .sort((a, b) => +a.dataset.order! - +b.dataset.order!)
+      .map((el) => ({ el, len: el.getTotalLength(), lift: el.dataset.lift !== undefined }))
+    pen.forEach(({ el, len }) => {
+      el.style.strokeDasharray = `${len} ${len + 1}`
+      el.style.strokeDashoffset = String(len)
     })
+    letters.forEach((l) => l.setAttribute('mask', l.dataset.mask!))
     gsap.set(labels, { opacity: 0, y: 6 })
     frame.style.strokeDasharray = `0 ${frameLen}`
     frame.style.opacity = '0' // a zero-length dash still leaves a speck at the corner
@@ -419,22 +433,43 @@ const drawings = [
       0.1,
     )
 
-    // 3. the name: each letter's outline is traced, the ink follows the pen
-    // with no roads to draw first (phones), the pen starts sooner
+    // 3. the name, written: the pen runs along its strokes at a steady pace,
+    // easing off only as it sets down and lifts; then it comes back to dot the i
+    // (with no roads to draw first, on phones, the pen starts sooner)
     const START = roads.length ? 1.75 : 0.7
-    const STAGGER = 0.16
-    letters.forEach((l, i) => {
-      const at = START + i * STAGGER
-      tl.to(l, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' }, at)
-      tl.to(l, { fillOpacity: 1, duration: 0.9, ease: 'power1.inOut' }, at + 0.55)
-      tl.to(l, { strokeOpacity: 0, duration: 0.6, ease: 'power1.out' }, at + 1.1)
-    })
-    const done = START + letters.length * STAGGER + 1.1
+    const WRITE = 3.1
+    const draw = (strokes: typeof pen, at: number, duration: number, ease: string) => {
+      const total = strokes.reduce((n, s) => n + s.len, 0)
+      const w = { t: 0 }
+      tl.to(
+        w,
+        {
+          t: total,
+          duration,
+          ease,
+          onUpdate: () => {
+            let from = 0
+            for (const s of strokes) {
+              s.el.style.strokeDashoffset = String(s.len - Math.min(Math.max(w.t - from, 0), s.len))
+              from += s.len
+            }
+          },
+        },
+        at,
+      )
+    }
+    draw(pen.filter((s) => !s.lift), START, WRITE, 'power1.inOut')
+    draw(pen.filter((s) => s.lift), START + WRITE + 0.25, 0.16, 'power1.out')
+    const done = START + WRITE + 0.5
 
     // 4. labels and the tag settle
     tl.to(labels, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.1 }, done - 1.2)
     tl.to(tag, { opacity: 1, duration: 1.2, ease: 'power2.out' }, done - 1)
-    tl.call(() => letters.forEach((l) => l.removeAttribute('style')))
+    // the word stands on its own again, so not a pixel can stay under the masks
+    tl.call(() => {
+      letters.forEach((l) => l.removeAttribute('mask'))
+      pen.forEach(({ el }) => el.removeAttribute('style'))
+    })
 
     // any input hurries the drawing to its end (a jump straight to the end reads as a stutter)
     const finish = () => {
@@ -554,10 +589,11 @@ const drawings = [
   .hero__ink {
     fill: var(--ultramarine);
   }
-  .hero__letter {
-    stroke: var(--ultramarine);
-    stroke-width: 1.4px;
-    stroke-opacity: 0;
+  /* the nib: white in a mask shows the letter beneath it */
+  .hero__pen {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
     stroke-linejoin: round;
   }
   /* while a road is drawing, square ends: a round cap on an empty dash is a dot */
