@@ -1,13 +1,17 @@
 ---
 /**
- * Work: a poster carousel, then projects. Posters live in src/content/posters,
- * projects in src/content/work (copy _template.md). The CV and the BL4S
- * proposal are served from public/files, symlinked to their LaTeX builds.
+ * Work: the posters on a perspective track (PosterSurfer; PosterCarousel is
+ * the older coverflow), then projects. Posters live in src/content/posters,
+ * projects in src/content/work (copy _template.md), then the CV, set from
+ * src/data/cv.ts beside its PDF. The CV and the BL4S proposal are served from
+ * public/files, symlinked to their LaTeX builds.
  */
 import { getCollection, render } from 'astro:content'
 import { Image } from 'astro:assets'
 import Base from '@/layouts/Base.astro'
-import PosterCarousel from '@/components/work/PosterCarousel.astro'
+import PosterSurfer from '@/components/work/PosterSurfer.astro'
+import { cv } from '@/data/cv'
+import previews from '@/data/previews.json'
 
 const posters = (await getCollection('posters', ({ data }) => import.meta.env.DEV || !data.draft)).sort(
   (a, b) => a.data.order - b.data.order,
@@ -17,6 +21,7 @@ const work = await Promise.all(
     .sort((a, b) => a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf())
     .map(async (w) => ({ w, Content: (await render(w)).Content, hasBody: Boolean(w.body?.trim()) })),
 )
+const cvPage = (previews as Record<string, { image: string; w: number; h: number }>)['/files/cv.pdf']
 const when = (d: Date) => d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 ---
 
@@ -26,13 +31,13 @@ const when = (d: Date) => d.toLocaleDateString('en-GB', { month: 'long', year: '
     <nav class="wh__nav" aria-label="work">
       <a href="#posters">(posters)</a>
       <a href="#projects">(projects)</a>
-      <a href="/files/cv.pdf" target="_blank" rel="noopener">(cv ↗)</a>
+      <a href="#cv">(cv)</a>
     </nav>
-    <p class="wh__lede">Things I have designed and made. Drag through the posters, or click one to see it whole.</p>
+    <p class="wh__lede">Things I have designed and made. Click the poster in front to open it, then use the arrow keys to go through them.</p>
   </header>
 
   <div id="posters">
-    <PosterCarousel posters={posters} heading="I · POSTERS" />
+    <PosterSurfer posters={posters} heading="I · POSTERS" />
   </div>
 
   <section class="wp" id="projects" aria-label="projects">
@@ -85,6 +90,50 @@ const when = (d: Date) => d.toLocaleDateString('en-GB', { month: 'long', year: '
         </article>
       ))
     }
+  </section>
+  <section class="cv" id="cv" aria-label="curriculum vitae">
+    <header class="wp__top">
+      <span>III · CV</span>
+      <span class="cv__files">
+        <a href="/files/cv.pdf" target="_blank" rel="noopener">pdf ↗</a>
+        <a href="/files/cv.pdf" download="lilian-cv.pdf">download ↓</a>
+      </span>
+    </header>
+    <div class="cv__grid">
+      <a class="cv__page" href="/files/cv.pdf" target="_blank" rel="noopener" data-no-preview aria-label="the CV as a PDF">
+        {cvPage && <img src={cvPage.image} alt="" width={cvPage.w} height={cvPage.h} loading="lazy" />}
+        <span class="cv__open" aria-hidden="true">open the pdf ↗</span>
+      </a>
+      <div class="cv__groups">
+        {
+          cv.map((g) => (
+            <section class="cv__group">
+              <h3 class="cv__h">{g.heading}</h3>
+              <ol class="cv__entries" role="list">
+                {g.entries.map((e) => (
+                  <li class="cv__entry">
+                    <span class="cv__when">{e.when}</span>
+                    <span class="cv__body">
+                      <span class="cv__what">
+                        {e.href ? (
+                          <a href={e.href} target={e.href.startsWith('http') || e.href.startsWith('/files/') ? '_blank' : undefined} rel="noopener">
+                            {e.what}
+                          </a>
+                        ) : (
+                          e.what
+                        )}
+                        {e.where && <span class="cv__where">{e.where}</span>}
+                      </span>
+                      {e.note && <span class="cv__note">{e.note}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))
+        }
+      </div>
+    </div>
   </section>
 </Base>
 
@@ -211,6 +260,128 @@ const when = (d: Date) => d.toLocaleDateString('en-GB', { month: 'long', year: '
       grid-template-columns: 1fr;
     }
     .pj {
+      grid-template-columns: 1fr;
+    }
+  }
+  /* the CV: the first page on the left, the same things set as a page of the site */
+  .cv {
+    padding: 0 4vw 7rem;
+    color: var(--ultramarine);
+  }
+  .cv__files {
+    display: flex;
+    gap: 1.4rem;
+  }
+  .cv__files a {
+    text-decoration: none;
+  }
+  .cv__files a:hover,
+  .cv__what a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .cv__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+    gap: 4vw;
+    padding-top: 3rem;
+  }
+  .cv__page {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    display: block;
+    background: #fff;
+    box-shadow: 0 30px 40px -26px rgb(17 19 90 / 0.75);
+    rotate: -1.5deg;
+    transition: rotate 0.6s var(--ease-out);
+  }
+  .cv__page img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .cv__page:hover {
+    rotate: 0deg;
+  }
+  .cv__open {
+    position: absolute;
+    left: 50%;
+    bottom: -2.4rem;
+    translate: -50% 0;
+    white-space: nowrap;
+    font: 0.66rem var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ultramarine);
+  }
+  .cv__group {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem 2rem;
+    padding: 1.4rem 0 1.6rem;
+    border-top: 1px solid rgb(2 8 135 / 0.3);
+  }
+  .cv__group:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .cv__h {
+    margin: 0.55rem 0 0;
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cv__entries {
+    display: grid;
+    gap: 1.1rem;
+  }
+  .cv__entry {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: 0 1.5rem;
+    align-items: baseline;
+  }
+  .cv__when {
+    font: 0.68rem var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cv__body {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .cv__what {
+    font: italic 400 clamp(1.4rem, 2vw, 1.85rem) / 1.15 var(--font-display);
+  }
+  .cv__what a {
+    text-decoration: none;
+  }
+  .cv__where {
+    margin-left: 0.6rem;
+    font: 0.64rem var(--font-din);
+    font-style: normal;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cv__note {
+    max-width: 38rem;
+    font: 1.05rem/1.45 var(--font-body);
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .cv__grid {
+      grid-template-columns: 1fr;
+    }
+    .cv__page {
+      position: relative;
+      top: 0;
+      width: min(60%, 16rem);
+      margin: 0 auto 3rem;
+    }
+    .cv__group,
+    .cv__entry {
       grid-template-columns: 1fr;
     }
   }

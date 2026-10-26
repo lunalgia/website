@@ -1,0 +1,653 @@
+---
+/**
+ * Posters on a perspective track, after componentry's "collection surfer": they
+ * stand one behind the other on a diagonal running back into the page, turned
+ * a little, and the whole line slides forward as you move through it.
+ *
+ * Unlike the original, nothing is ever re-mounted or duplicated: every poster
+ * has a place on one continuous loop, from the bottom left corner (where the
+ * ones you have passed fade out) to the far end of the track (where the next
+ * ones fade in).
+ * A poster only wraps from one end to the other while it is invisible, so going
+ * past the last one back to the first is as smooth as any other step.
+ *
+ * The posters are evenly spaced along one straight line in depth; the current
+ * one is turned more towards you and the others are dimmed, so it reads as the
+ * one in focus. Click another to bring it there; click the current one to open
+ * it whole, centred over the page, where the arrow keys keep going through
+ * them. Drag or scroll sideways too. Each poster is a Markdown file in
+ * src/content/posters.
+ */
+import { getImage } from 'astro:assets'
+import type { CollectionEntry } from 'astro:content'
+
+interface Props {
+  posters: CollectionEntry<'posters'>[]
+  heading?: string
+}
+const { posters, heading = 'POSTERS' } = Astro.props
+
+const slides = await Promise.all(
+  posters.map(async (p) => {
+    const img = p.data.image
+    const sized = (w: number, format: 'webp' | 'avif', quality: number) =>
+      getImage({ src: img, width: Math.min(w, img.width), format, quality })
+    const [small, mid, big, full] = await Promise.all([600, 1000, 1500, 2200].map((w) => sized(w, 'webp', 84)))
+    // AVIF first for browsers that take it: the posters' grain is costly in WebP
+    const avif = await Promise.all([600, 1000, 1500].map((w) => sized(w, 'avif', 58)))
+    return {
+      title: p.data.title,
+      year: p.data.year,
+      note: p.data.note,
+      ar: img.width / img.height,
+      src: mid.src,
+      srcset: `${small.src} 600w, ${mid.src} 1000w, ${big.src} 1500w`,
+      avifset: `${avif[0].src} 600w, ${avif[1].src} 1000w, ${avif[2].src} 1500w`,
+      full: full.src,
+    }
+  }),
+)
+const pad = (n: number) => String(n).padStart(2, '0')
+---
+
+<section class="ps" aria-roledescription="carousel" aria-label="Posters" tabindex="-1">
+  <header class="ps__top">
+    <span>{heading}</span>
+    <span class="ps__nav">
+      <button type="button" data-step="-1" aria-label="previous poster"><svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M33 7H1M7 1 1 7l6 6" /></svg></button>
+      <span class="ps__count"><b>01</b> / {pad(slides.length)}</span>
+      <button type="button" data-step="1" aria-label="next poster"><svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M1 7h32M27 1l6 6-6 6" /></svg></button>
+    </span>
+  </header>
+
+  <div class="ps__body">
+    <div class="ps__stage">
+      {
+        slides.map((s, i) => (
+          <figure class="ps__slide" data-i={i} style={`--ar:${s.ar}`} aria-label={`${i + 1} of ${slides.length}: ${s.title}`}>
+            <picture>
+              <source type="image/avif" srcset={s.avifset} sizes="(min-width: 760px) 50vh, 70vw" />
+              <img src={s.src} srcset={s.srcset} sizes="(min-width: 760px) 50vh, 70vw" alt={s.title} draggable="false" decoding="async" fetchpriority={i < 2 ? 'high' : 'low'} data-full={s.full} />
+            </picture>
+          </figure>
+        ))
+      }
+    </div>
+
+    {/* the front poster's name, set large in the empty half; its letters flip over when it changes */}
+    <div class="ps__caps" aria-live="polite">
+      {
+        slides.map((s, i) => (
+          <div class="ps__cap" data-i={i} style={`--longest:${Math.max(...s.title.split(' ').map((w) => w.length))}`}>
+            <p class="ps__n">({pad(i + 1)} / {pad(slides.length)})</p>
+            <h3 aria-label={s.title}>
+              {(() => {
+                let k = 0
+                return s.title.split(' ').map((w) => (
+                  <span class="ps__word" aria-hidden="true">
+                    {[...w].map((c) => <span class="ps__l" style={`--i:${k++}`}>{c}</span>)}
+                  </span>
+                ))
+              })()}
+            </h3>
+            <p class="ps__meta">
+              {s.year}
+              {s.year && s.note && ' · '}
+              {s.note}
+              {(s.year || s.note) && ' · '}
+              <a href={s.full} target="_blank" rel="noopener">full size ↗</a>
+            </p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="ps__hint" aria-hidden="true">drag · click to open · arrow keys</p>
+  </div>
+
+  <dialog class="ps__box" aria-label="poster">
+    <img alt="" />
+    <button type="button" class="ps__close" aria-label="close">close ×</button>
+    <p class="ps__boxcap" aria-live="polite"></p>
+  </dialog>
+</section>
+
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const mod = (a: number, n: number) => ((a % n) + n) % n
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+  const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v))
+
+  const setup = (root: HTMLElement) => {
+    if (root.dataset.ready) return
+    root.dataset.ready = '1'
+    const stage = root.querySelector<HTMLElement>('.ps__stage')!
+    const slides = [...root.querySelectorAll<HTMLElement>('.ps__slide')]
+    const caps = [...root.querySelectorAll<HTMLElement>('.ps__cap')]
+    const count = root.querySelector('.ps__count b')!
+    const n = slides.length
+    if (!n) return
+    let pos = 0 // where the track is (fractional while moving)
+    let target = 0
+    let raf = 0
+    let shown = -1 // the caption showing
+
+    /**
+     * Each poster's distance along the loop from the current one: negative for
+     * the ones already passed (down and left), positive for the ones to come (up
+     * and right), both further away the further they are from it. The loop wraps one step beyond each visible
+     * end, where a poster has faded out completely.
+     */
+    // how far the passed side reaches, the wrap step included: two passed posters
+    // stay in view (down and left, under the name) once there are enough of them
+    const lead = n >= 5 ? 3 : n >= 4 ? 2 : 1
+    const along = (i: number) => mod(i - pos + lead, n) - lead
+
+    const render = () => {
+      const W = stage.clientWidth
+      const H = stage.clientHeight
+      const narrow = W < 760
+      // one straight line on the page, the same step between every pair: from
+      // the bottom left, through the current poster right of centre, to the top
+      // right. In depth the current one is the closest and both ends recede, so
+      // it is the largest and sits on top of its neighbours.
+      const x0 = narrow ? W * 0.02 : W * 0.09
+      const y0 = narrow ? H * 0.04 : H * 0.03
+      const sx = narrow ? W * 0.16 : W * 0.2
+      const sy = -H * (narrow ? 0.08 : 0.16)
+      const sz = narrow ? -200 : -180
+      const far = Math.min(n - lead, 6) // the end of the visible track
+      slides.forEach((el, i) => {
+        const d = along(i)
+        const x = x0 + d * sx
+        const y = y0 + d * sy
+        const z = Math.abs(d) * sz
+        // in focus: turned further towards you and at full strength; the rest
+        // dim, the passed ones (closer, so bigger) more than the ones to come
+        const f = clamp(1 - Math.abs(d))
+        const rot = lerp(-32, -12, f)
+        // the others sit under a lavender veil; the posters stay opaque, so where
+        // they overlap one simply hides the other instead of showing through
+        const veil = lerp(0.45, 0, f)
+        // fading at the ends; on a phone there is no room for the passed ones
+        // (quickly, so a fading poster is never seen through for long)
+        const op = d < 0 ? (narrow ? clamp(1 + d * 2.5) : clamp((d + lead) * 2.5)) : clamp((far - d) * 2.5)
+        el.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${rot.toFixed(2)}deg)`
+        el.style.opacity = op.toFixed(3)
+        el.style.setProperty('--veil', veil.toFixed(3))
+        el.style.zIndex = String(Math.round(1000 - Math.abs(d) * 100))
+        el.style.visibility = op < 0.005 ? 'hidden' : ''
+        el.classList.toggle('is-front', Math.abs(d) < 0.5)
+      })
+      const front = mod(Math.round(pos), n)
+      if (front !== shown) {
+        // the old name tips away over the top, the new one comes up from below;
+        // a name that has left drops back underneath, unseen, for next time
+        const old = caps[shown]
+        old?.classList.replace('is-on', 'was-on')
+        setTimeout(() => {
+          if (!old || old.classList.contains('is-on')) return
+          old.classList.add('no-t')
+          old.classList.remove('was-on')
+          old.offsetWidth
+          old.classList.remove('no-t')
+        }, 900)
+        caps[front].classList.remove('was-on', 'no-t')
+        caps[front].classList.add('is-on')
+        shown = front
+      }
+      count.textContent = String(front + 1).padStart(2, '0')
+    }
+
+    const tick = () => {
+      const e = reduce ? 1 : 0.11
+      pos += (target - pos) * e
+      if (Math.abs(target - pos) < 0.0005) pos = target
+      render()
+      raf = pos === target ? 0 : requestAnimationFrame(tick)
+    }
+    const go = (t: number) => {
+      target = t
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+    const step = (k: number) => {
+      go(Math.round(target) + k)
+      if (box.open) show(k)
+    }
+
+    // the current poster, whole, centred over the page
+    const box = root.querySelector<HTMLDialogElement>('.ps__box')!
+    const boxImg = box.querySelector('img')!
+    const boxCap = box.querySelector('.ps__boxcap')!
+    const show = (dir = 0) => {
+      const i = mod(Math.round(target), n)
+      const img = slides[i].querySelector('img')!
+      boxImg.src = img.dataset.full!
+      boxImg.alt = img.alt
+      boxCap.textContent = `(${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}) ${img.alt}`
+      if (dir && !reduce)
+        boxImg.animate(
+          [
+            { opacity: 0, transform: `translateX(${dir * 40}px)` },
+            { opacity: 1, transform: 'none' },
+          ],
+          { duration: 380, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+        )
+    }
+    const open = () => {
+      show()
+      box.showModal()
+      // the page stays where it is underneath
+      ;(window as any).__lenis?.stop()
+    }
+    box.addEventListener('close', () => (window as any).__lenis?.start())
+    box.addEventListener('click', (e) => {
+      if (e.target === box || (e.target as HTMLElement).closest('.ps__close')) box.close()
+    })
+
+    // dragging and swiping
+    let dragging = false
+    let moved = 0
+    let startX = 0
+    let startPos = 0
+    let lastX = 0
+    let lastT = 0
+    let v = 0
+    // the slide under the pointer when it went down: pointer capture retargets the
+    // click that follows to the stage itself
+    let pressed: HTMLElement | null = null
+    const unit = () => Math.min(stage.clientWidth, 1400) * 0.16
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return
+      pressed = (e.target as HTMLElement).closest<HTMLElement>('.ps__slide')
+      dragging = true
+      moved = 0
+      startX = lastX = e.clientX
+      lastT = performance.now()
+      startPos = target = pos
+      v = 0
+      stage.setPointerCapture(e.pointerId)
+      root.focus({ preventScroll: true })
+    })
+    stage.addEventListener('pointermove', (e) => {
+      if (!dragging) return
+      const now = performance.now()
+      v = (e.clientX - lastX) / Math.max(1, now - lastT)
+      lastX = e.clientX
+      lastT = now
+      moved = Math.max(moved, Math.abs(e.clientX - startX))
+      if (moved < 6) return
+      // dragging left pulls the line towards you
+      pos = target = startPos - (e.clientX - startX) / unit()
+      render()
+    })
+    const release = () => {
+      if (!dragging) return
+      dragging = false
+      if (moved >= 6) go(Math.round(target - (v * 160) / unit()))
+    }
+    stage.addEventListener('pointerup', release)
+    stage.addEventListener('pointercancel', release)
+
+    // clicks: bring a poster into focus, or open the one in focus
+    stage.addEventListener('click', () => {
+      const el = pressed
+      pressed = null
+      if (moved >= 6 || !el) return
+      const d = along(+el.dataset.i!)
+      if (Math.abs(d) > 0.5) return go(Math.round(target + d))
+      open()
+    })
+
+    // sideways scrolling on trackpads
+    let wheelT = 0
+    stage.addEventListener(
+      'wheel',
+      (e) => {
+        if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return
+        e.preventDefault()
+        target += e.deltaX / unit()
+        go(target)
+        clearTimeout(wheelT)
+        wheelT = window.setTimeout(() => go(Math.round(target)), 140)
+      },
+      { passive: false },
+    )
+
+    root.querySelectorAll<HTMLElement>('[data-step]').forEach((b) => b.addEventListener('click', () => step(+b.dataset.step!)))
+    // the keys work while the posters have focus, or while they fill the middle of the screen
+    const onKey = (e: KeyboardEvent) => {
+      const mine = root.contains(document.activeElement)
+      const r = root.getBoundingClientRect()
+      if (!mine && (r.top > innerHeight * 0.5 || r.bottom < innerHeight * 0.5)) return
+      if (e.key === 'ArrowRight') step(1)
+      else if (e.key === 'ArrowLeft') step(-1)
+      else if (e.key === 'Enter' && document.activeElement === root) open()
+      else return
+      e.preventDefault()
+    }
+    addEventListener('keydown', onKey)
+    addEventListener('resize', render)
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        removeEventListener('keydown', onKey)
+        removeEventListener('resize', render)
+        cancelAnimationFrame(raf)
+      },
+      { once: true },
+    )
+    render()
+    root.classList.add('is-live')
+  }
+
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.ps').forEach(setup))
+</script>
+
+<style>
+  .ps {
+    --H: min(82vh, 880px);
+    position: relative;
+    padding: 2rem 0 5rem;
+    color: var(--ultramarine);
+    /* clipped sideways only: the posters and their shadows may run past the bottom */
+    overflow-x: clip;
+    overflow-y: visible;
+    outline: none;
+  }
+  .ps__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 4vw;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid var(--ultramarine);
+    font: 0.75rem var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .ps__count b {
+    font-weight: 400;
+  }
+  /* previous · count · next, as one object */
+  .ps__nav { display: inline-flex; align-items: center; gap: 1.3rem; }
+  .ps__nav button { all: unset; cursor: pointer; display: inline-flex; padding: 0.4rem 0; transition: translate 0.3s var(--ease-out), opacity 0.3s; }
+  .ps__nav button:first-child:hover { translate: -4px 0; }
+  .ps__nav button:last-child:hover { translate: 4px 0; }
+  .ps__nav button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
+
+  .ps__body {
+    position: relative;
+  }
+  .ps__stage {
+    position: relative;
+    height: var(--H);
+    perspective: 1300px;
+    perspective-origin: 50% 50%;
+    /* no preserve-3d: each poster is drawn flat in its own place and z-index
+       decides which is on top, so two turned posters never cut through each
+       other while the line moves */
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+  .ps__stage:active {
+    cursor: grabbing;
+  }
+  .ps__slide {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: 0;
+    height: min(68%, calc(42vw / var(--ar)));
+    width: auto;
+    aspect-ratio: var(--ar);
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+    box-shadow: 0 40px 60px -34px rgb(17 19 90 / 0.7);
+    transition: box-shadow 0.4s;
+    cursor: pointer;
+  }
+  /* before the script places them: the first one, flat, where it will be */
+  .ps:not(.is-live) .ps__slide {
+    transform: translate(-50%, -50%);
+  }
+  .ps:not(.is-live) .ps__slide:not(:first-child) {
+    opacity: 0;
+  }
+  .ps__slide picture {
+    display: contents;
+  }
+  .ps__slide::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--lavender);
+    opacity: var(--veil, 0);
+    pointer-events: none;
+  }
+  .ps__slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  .ps__slide.is-front {
+    cursor: zoom-in;
+  }
+  .ps__slide.is-front {
+    box-shadow: 0 60px 80px -40px rgb(17 19 90 / 0.85);
+  }
+
+  /* the name, large, in the empty half on the left */
+  .ps__caps {
+    position: absolute;
+    z-index: 2000;
+    left: 4vw;
+    top: 2.6rem;
+    width: min(48vw, 46rem);
+    pointer-events: none;
+  }
+  .ps__cap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .ps__n {
+    margin: 0 0 1.2rem;
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .ps__cap h3 {
+    margin: 0;
+    font: italic 400 clamp(2.6rem, min(8.4vw, calc(38vw / (var(--longest) * 0.46))), 9.5rem) / 0.86 var(--font-display);
+    /* sized by its longest word, so a long name never runs into the posters */
+    letter-spacing: -0.02em;
+    perspective: 700px;
+  }
+  .ps__word {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 0.22em;
+  }
+  .ps__l {
+    display: inline-block;
+    backface-visibility: hidden;
+    transform-origin: 50% 50% -0.3em;
+    transform: rotateX(-90deg);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      opacity 0.5s var(--ease-out);
+    transition-delay: calc(var(--i) * 26ms);
+  }
+  .ps__cap.is-on .ps__l {
+    transform: none;
+    opacity: 1;
+  }
+  .ps__cap.was-on .ps__l {
+    transform: rotateX(90deg);
+    opacity: 0;
+    transition-duration: 0.35s;
+    transition-delay: calc(var(--i) * 18ms);
+  }
+  .ps__cap.no-t .ps__l {
+    transition: none;
+  }
+  .ps__n,
+  .ps__meta {
+    opacity: 0;
+    translate: 0 6px;
+    transition:
+      opacity 0.4s,
+      translate 0.4s var(--ease-out);
+  }
+  .ps__cap.is-on :is(.ps__n, .ps__meta) {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.2s;
+  }
+  .ps__meta {
+    margin-top: 1.4rem;
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .ps__cap.is-on .ps__meta {
+    pointer-events: auto;
+  }
+  .ps__meta a {
+    text-decoration: none;
+  }
+  .ps__meta a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .ps__hint {
+    position: absolute;
+    z-index: 2000;
+    right: 4vw;
+    bottom: 0.4rem;
+    margin: 0;
+    font: 0.66rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* the poster, whole: a framed card over a tint, its close label on the top edge */
+  .ps__box {
+    max-width: none;
+    max-height: none;
+    /* centred (the reset zeroes a dialog's own auto margins) */
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    border: 1px solid var(--ultramarine);
+    background: var(--bg);
+    box-shadow: 0 40px 80px -30px rgb(17 19 90 / 0.7);
+  }
+  .ps__box::backdrop {
+    background: rgb(17 19 90 / 0.4);
+  }
+  .ps__box[open],
+  .ps__box[open]::backdrop {
+    animation: ps-in 0.4s var(--ease-out);
+  }
+  @keyframes ps-in {
+    from {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+  .ps__box img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 86vw;
+    max-height: 84vh;
+  }
+  .ps__close,
+  .ps__boxcap {
+    position: absolute;
+    padding: 0.3rem 0.6rem;
+    background: var(--bg);
+    font: 0.68rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ultramarine);
+  }
+  .ps__close {
+    all: unset;
+    position: absolute;
+    top: 0;
+    right: 1.25rem;
+    translate: 0 -50%;
+    padding: 0.3rem 0.6rem;
+    background: var(--bg);
+    font: 0.68rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ultramarine);
+    cursor: pointer;
+  }
+  .ps__close:focus-visible {
+    outline: 1px dashed currentColor;
+    outline-offset: 2px;
+  }
+  .ps__boxcap {
+    left: 1.25rem;
+    bottom: 0;
+    margin: 0;
+    translate: 0 50%;
+    white-space: nowrap;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ps__l {
+      transition: none;
+    }
+    .ps__box[open],
+    .ps__box[open]::backdrop {
+      animation: none;
+    }
+  }
+
+  /* phones: the name above, the line below it */
+  @media (max-width: 760px) {
+    .ps {
+      --H: min(54vh, 470px);
+    }
+    .ps__caps {
+      position: relative;
+      top: 0;
+      width: auto;
+      height: 9.5rem;
+      margin: 1.6rem 4vw 0;
+    }
+    .ps__cap h3 {
+      font-size: clamp(2.4rem, 11vw, 3.4rem);
+    }
+    .ps__n {
+      margin-bottom: 0.6rem;
+    }
+    .ps__meta {
+      margin-top: 0.8rem;
+    }
+    .ps__body {
+      display: flex;
+      flex-direction: column;
+    }
+    .ps__stage {
+      order: 1;
+    }
+    .ps__slide {
+      height: min(80%, calc(74vw / var(--ar)));
+    }
+    .ps__hint {
+      position: static;
+      order: 2;
+      margin: 0 4vw;
+      text-align: right;
+    }
+  }
+</style>
