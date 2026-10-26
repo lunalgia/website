@@ -5,17 +5,17 @@
  * number. Clicking one opens its entry as a row under its line.
  */
 import Entry from './Entry.astro'
-import { pad, type AnnexItem } from '@/lib/annex'
+import { pad, type CatalogueItem } from '@/lib/catalogue'
 interface Props {
   title: string
-  items: AnnexItem[]
+  items: CatalogueItem[]
   /** the collection number of each item, by id */
   numbers: Map<string, number>
   /** what `size` counts: 'min' for films, 'pages' for books */
   unit: string
 }
 const { title, items, numbers, unit } = Astro.props
-const no = (f: AnnexItem) => `NO. ${pad(numbers.get(f.id) ?? 0, 3)}`
+const no = (f: CatalogueItem) => `NO. ${pad(numbers.get(f.id) ?? 0, 3)}`
 ---
 
 <div class="fg" style={`--count:${items.length}`}>

@@ -12,7 +12,9 @@ export const credits: CreditGroup[] = [
     entries: [
       { what: 'henry.codes', by: 'Henry Desroches', href: 'https://henry.codes', note: 'The framed title cards, the letter on the home page, labels sitting on hairline frames, and the writing kept as a garden.' },
       { what: 'gwern.net', by: 'Gwern Branwen', href: 'https://gwern.net', note: 'Link previews that open on hover, and sidenotes.' },
-      { what: 'Complete Shelf', href: 'https://play.mint.gg/complete-shelf', note: 'The shelves of books, records and films on the media page.' },
+      { what: 'A24', href: 'https://a24films.com/films', note: 'The media page’s indexes: years set large once per group, hairline rows, the small filled tags.' },
+      { what: 'The Criterion Collection', href: 'https://www.criterion.com/shop/browse/list', note: 'Numbering the books and films like spines in a collection.' },
+      { what: 'Numero Group', href: 'https://numerogroup.com', note: 'The records’ boxed catalogue numbers, and a sleeve shown with its record half out.' },
       { what: 'componentry.dev', href: 'https://componentry.dev', note: 'The flipping words, the hand-drawn marks, the line of posters and the picture field’s lens.' },
       { what: 'Vibe pages', note: 'xavicf.com/vibes, guzey.com/vibes and girl.surgery/website_vibes, for the pictures on the bookmarks page.' },
     ],

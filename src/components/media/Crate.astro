@@ -5,8 +5,8 @@
  * sleeve. Click a strip to jump to it; arrows, buttons or a sideways scroll flip through.
  */
 import Entry from './Entry.astro'
-import { pad, type AnnexItem } from '@/lib/annex'
-interface Props { items: AnnexItem[] }
+import { pad, type CatalogueItem } from '@/lib/catalogue'
+interface Props { items: CatalogueItem[] }
 const { items } = Astro.props
 /** how many sleeves show behind the front one */
 const BEHIND = 9

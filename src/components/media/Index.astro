@@ -5,16 +5,16 @@
  * the score at the end. The cover follows the cursor along the rows; clicking
  * a row opens its details underneath, with the way through to the full review.
  */
-import { pad, type AnnexItem } from '@/lib/annex'
+import { pad, type CatalogueItem } from '@/lib/catalogue'
 interface Column {
   label: string
-  value: (it: AnnexItem) => string | undefined
+  value: (it: CatalogueItem) => string | undefined
   /** one value per line, set as small outlined tags */
   chips?: boolean
 }
 interface Props {
   title: string
-  items: AnnexItem[]
+  items: CatalogueItem[]
   columns: Column[]
   /** films and books want a portrait cover, records a square one */
   square?: boolean

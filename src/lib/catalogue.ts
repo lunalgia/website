@@ -1,12 +1,11 @@
 /**
- * The annex: the media page's fork. One flat item shape for the stack (books),
- * the crate (records) and the programme (films), built from the same entries
- * as the shelves.
+ * The media page's catalogue: one flat item shape for the indexes, the
+ * selections and the crate, built from the entries in src/content.
  */
 import { getImage } from 'astro:assets'
 import { coverOf, factsOf, getMedia, inkFor, linksOf, paragraphs, spineOf, words, type MediaKind } from '@/lib/media'
 
-export interface AnnexItem {
+export interface CatalogueItem {
   id: string
   title: string
   short?: string
@@ -35,7 +34,7 @@ export interface AnnexItem {
   genres: string[]
 }
 
-export async function annexItems(kind: MediaKind): Promise<AnnexItem[]> {
+export async function catalogueItems(kind: MediaKind): Promise<CatalogueItem[]> {
   const entries = await getMedia(kind)
   return Promise.all(
     entries.map(async (e) => {
