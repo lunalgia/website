@@ -1,7 +1,9 @@
 ---
 /**
- * The scrollbar: a hairline down the right edge with the moon as its thumb, in
- * tonight's phase. On posts the line also carries a tick for each part and each
+ * The scrollbar: a hairline down the right edge with a broken moon as its thumb
+ * (lunalgia, moon pain): a crescent cracked across its widest part, the lower
+ * piece knocked out of line and a shard drifting off. Hovering the rail or
+ * dragging the moon pushes the pieces a little further apart. On posts the line also carries a tick for each part and each
  * note; hover one for its name, click to go there. Desktop pointers only, and
  * only with JS: touch screens and no-JS visitors keep the native scrollbar.
  * The rail is decoration over native scrolling, so the keyboard, the wheel and
@@ -13,32 +15,27 @@
   <div class="rail__line"></div>
   <div class="rail__ticks"></div>
   <div class="rail__moon">
-    <svg viewBox="-8 -8 16 16" width="15" height="15">
-      <circle class="rail__disc" r="6.6"></circle>
-      <path class="rail__lit"></path>
+    <svg viewBox="-10 -10 20 20" width="20" height="20">
+      <defs>
+        <path id="rail-cr" d="M-0.33 -7.99A8 8 0 1 1 -7.06 3.77A6.8 6.8 0 0 0 -0.33 -7.99Z"></path>
+        <clipPath id="rail-in"><use href="#rail-cr"></use></clipPath>
+        <clipPath id="rail-up"><polygon points="-10,0 0,0 3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6 10,8.4 10,-10 -10,-10"></polygon></clipPath>
+        <clipPath id="rail-dn"><polygon points="-10,0 0,0 3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6 10,8.4 10,10 -10,10"></polygon></clipPath>
+      </defs>
+      <circle class="rail__ring" r="8"></circle>
+      <g clip-path="url(#rail-up)"><use class="rail__piece" href="#rail-cr"></use></g>
+      <polyline class="rail__crack" clip-path="url(#rail-in)" points="3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6"></polyline>
+      <g class="rail__lower">
+        <g clip-path="url(#rail-dn)"><use class="rail__piece" href="#rail-cr"></use></g>
+        <polyline class="rail__crack" clip-path="url(#rail-in)" points="3.4,2.2 4.3,3.5 5.7,3.6 6.4,5.3 7.9,5.6"></polyline>
+      </g>
+      <path class="rail__piece rail__shard" d="M8.3 6.3 L9.9 6.7 L8.9 7.9Z"></path>
     </svg>
   </div>
   <p class="rail__tip"></p>
 </div>
 
 <script>
-  const SYN = 29.530588853
-  const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14)
-
-  /** the lit part of a moon of radius r, as an SVG path, for tonight */
-  const moonPath = (r: number) => {
-    const age = ((((Date.now() - NEW_MOON) / 86400000) % SYN) + SYN) % SYN
-    const f = age / SYN // 0 new, 0.5 full
-    const rx = Math.abs(Math.cos(2 * Math.PI * f)) * r
-    const crescent = f < 0.25 || f > 0.75
-    if (f < 0.5) {
-      // waxing: lit on the right; the terminator bulges right for a crescent, left when gibbous
-      return `M0 ${-r}A${r} ${r} 0 0 1 0 ${r}A${rx} ${r} 0 0 ${crescent ? 0 : 1} 0 ${-r}Z`
-    }
-    // waning: lit on the left
-    return `M0 ${-r}A${r} ${r} 0 0 0 0 ${r}A${rx} ${r} 0 0 ${crescent ? 1 : 0} 0 ${-r}Z`
-  }
-
   type Mark = { el: Element; label: string; kind: 'part' | 'note' }
 
   const init = () => {
@@ -51,7 +48,6 @@
     const moon = rail.querySelector<HTMLElement>('.rail__moon')!
     const ticks = rail.querySelector<HTMLElement>('.rail__ticks')!
     const tip = rail.querySelector<HTMLElement>('.rail__tip')!
-    rail.querySelector('.rail__lit')!.setAttribute('d', moonPath(6.6))
 
     const lenis = () => (window as any).__lenis as { scrollTo(t: number | Element, o?: object): void } | undefined
     const max = () => Math.max(1, document.documentElement.scrollHeight - innerHeight)
@@ -198,23 +194,59 @@
   }
   .rail__moon {
     position: absolute;
-    left: 1px;
+    left: -1.5px;
     top: 0;
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
     will-change: transform;
     cursor: grab;
   }
   .rail.is-dragging .rail__moon {
     cursor: grabbing;
   }
-  .rail__disc {
-    fill: var(--ultramarine);
-    stroke: var(--ultramarine);
-    stroke-width: 1.2;
+  .rail__moon svg {
+    display: block;
+    overflow: visible;
   }
-  .rail__lit {
+  /* the dark of the moon, a faint ring; the lit crescent, in pieces */
+  .rail__ring {
+    fill: var(--bg); /* so the rail's line passes behind the moon, not through it */
+    stroke: color-mix(in oklab, var(--ultramarine) 40%, var(--bg));
+    stroke-width: 0.7;
+  }
+  .rail__piece {
     fill: #f4f1ff;
+    stroke: var(--ultramarine);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+  .rail__crack {
+    fill: none;
+    stroke: var(--ultramarine);
+    stroke-width: 0.8;
+    stroke-linejoin: round;
+  }
+  .rail__lower,
+  .rail__shard {
+    transform-box: view-box;
+    transition: transform 0.5s var(--ease-out);
+  }
+  /* origins are measured from the box's corner: the moon's centre is at 10 10 */
+  .rail__lower {
+    transform-origin: 10px 10px;
+    transform: translate(-0.5px, 1.1px) rotate(7deg);
+  }
+  .rail__shard {
+    transform-origin: 19px 16.5px;
+    transform: translate(0.9px, 0.7px);
+  }
+  .rail:hover .rail__lower,
+  .rail.is-dragging .rail__lower {
+    transform: translate(-1px, 2.1px) rotate(13deg);
+  }
+  .rail:hover .rail__shard,
+  .rail.is-dragging .rail__shard {
+    transform: translate(2px, 1.6px) rotate(30deg);
   }
   /* ticks are made by the script, so they carry no scoping attribute */
   .rail :global(.rail__tick) {
@@ -271,7 +303,9 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .rail__line,
-    .rail__tip {
+    .rail__tip,
+    .rail__lower,
+    .rail__shard {
       transition: none;
     }
   }
