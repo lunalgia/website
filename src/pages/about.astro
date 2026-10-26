@@ -1,0 +1,220 @@
+---
+/**
+ * About: a few paragraphs from src/data/about.md, set as a single quiet column,
+ * then the credits from src/data/credits.ts. The CV is a link in the header and
+ * in the text (which gets the usual PDF preview card on hover).
+ */
+import Base from '@/layouts/Base.astro'
+import Flip from '@/components/Flip.astro'
+import { frontmatter as about, Content as About } from '@/data/about.md'
+import { credits } from '@/data/credits'
+
+// entries still waiting for a source stay out of the page
+const groups = credits.map((g) => ({ ...g, entries: g.entries.filter((e) => !e.todo) })).filter((g) => g.entries.length)
+---
+
+<Base title="About" description="A little more about me, my CV, and credits for what the site is made from.">
+  <header class="abh">
+    <h1 class="abh__t" aria-label="About"><Flip word="About" to="Lilian" /></h1>
+    <nav class="abh__nav" aria-label="links">
+      <a href="#credits">(credits)</a>
+      <a href="/files/cv.pdf" target="_blank" rel="noopener">(cv ↗)</a>
+    </nav>
+    {about.lede && <p class="abh__lede">{about.lede}</p>}
+  </header>
+
+  <section class="ab" aria-label="about">
+    <div class="ab__text">
+      <About />
+    </div>
+  </section>
+
+  <section class="cr" id="credits" aria-labelledby="credits-h">
+    <header class="cr__top">
+      <h2 id="credits-h">CREDITS</h2>
+      <span>WITH THANKS</span>
+    </header>
+    {
+      groups.map((g) => (
+        <section class="cr__group">
+          <h3 class="cr__h">{g.heading}</h3>
+          <ul class="cr__entries" role="list">
+            {g.entries.map((e) => (
+              <li class="cr__entry">
+                <span class="cr__what">
+                  {e.href ? (
+                    <a href={e.href} target="_blank" rel="noopener">
+                      {e.what}
+                    </a>
+                  ) : (
+                    e.what
+                  )}
+                </span>
+                <span class="cr__body">
+                  {e.by && <span class="cr__by">{e.by}</span>}
+                  {e.note && <span class="cr__note">{e.note}</span>}
+                </span>
+                {e.license && <span class="cr__lic">{e.license}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </section>
+</Base>
+
+<style>
+  .abh {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem 3rem;
+    align-items: end;
+    padding: 7rem 4vw 0;
+    color: var(--ultramarine);
+  }
+  .abh__t {
+    margin: 0;
+    font: 400 clamp(5rem, 12vw, 11rem) / 0.9 var(--font-din);
+  }
+  .abh__nav {
+    display: flex;
+    gap: 1.6rem;
+    font: 400 0.72rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .abh__nav a {
+    text-decoration: none;
+  }
+  .abh__nav a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .abh__lede {
+    grid-column: 1 / -1;
+    max-width: 34rem;
+    font: 1.2rem/1.5 var(--font-body);
+    color: #11135a;
+  }
+
+  .ab {
+    padding: 3.5rem 4vw 7rem;
+    border-top: 0;
+  }
+  .ab__text {
+    max-width: 36rem;
+    margin-left: clamp(0rem, 18vw, 22rem);
+    padding-top: 3rem;
+    border-top: 1.5px solid var(--ultramarine);
+    font: 1.3rem/1.6 var(--font-body);
+    color: var(--ink);
+    hyphens: auto;
+  }
+  .ab__text :global(p) {
+    margin: 0 0 1em;
+    text-wrap: pretty;
+  }
+  .ab__text :global(p:first-child::first-letter) {
+    float: left;
+    padding: 0.04em 0.08em 0 0;
+    font: 4.6em/0.82 var(--font-display);
+    color: var(--ultramarine);
+  }
+  .ab__text :global(a) {
+    color: var(--ultramarine);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+  }
+
+  /* credits: a ledger under the letter, in the same columns as the CV on /work */
+  .cr {
+    padding: 0 4vw 7rem;
+    color: var(--ultramarine);
+  }
+  .cr__top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid var(--ultramarine);
+    font: 0.75rem var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .cr__top h2 {
+    margin: 0;
+    font: inherit;
+  }
+  .cr__group {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem 2rem;
+    padding: 1.6rem 0 1.8rem;
+    border-bottom: 1px solid rgb(2 8 135 / 0.3);
+  }
+  .cr__h {
+    margin: 0.5rem 0 0;
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .cr__entries {
+    display: grid;
+    gap: 1.1rem;
+  }
+  .cr__entry {
+    display: grid;
+    grid-template-columns: minmax(10rem, 15rem) 1fr auto;
+    gap: 0.3rem 2rem;
+    align-items: baseline;
+  }
+  .cr__what {
+    font: italic 400 clamp(1.3rem, 1.8vw, 1.65rem) / 1.15 var(--font-display);
+  }
+  .cr__what a {
+    text-decoration: none;
+  }
+  .cr__what a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  .cr__body {
+    display: grid;
+    gap: 0.15rem;
+    max-width: 40rem;
+  }
+  .cr__by {
+    font: 0.66rem/1.5 var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cr__note {
+    font: 1.05rem/1.45 var(--font-body);
+    color: var(--ink);
+  }
+  .cr__lic {
+    font: 0.62rem var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: right;
+    white-space: nowrap;
+    opacity: 0.75;
+  }
+
+  @media (max-width: 760px) {
+    .cr__group,
+    .cr__entry {
+      grid-template-columns: 1fr;
+    }
+    .cr__lic {
+      text-align: left;
+    }
+    .abh {
+      grid-template-columns: 1fr;
+    }
+    .ab__text {
+      margin-left: 0;
+    }
+  }
+</style>

@@ -10,6 +10,7 @@ export const SITE = {
 
 /** Every room of the house, in footer order. */
 export const NAV = [
+  { href: '/about', label: 'about' },
   { href: '/writing', label: 'writings' },
   { href: '/work', label: 'work' },
   { href: '/academics', label: 'academics' },
