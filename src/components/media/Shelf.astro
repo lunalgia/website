@@ -133,7 +133,16 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
       items.map((b, i) => (
         <div class="lab" data-i={i}>
           <p class="lab__n">{String(i + 1).padStart(2, '0')}</p>
-          <h2 class="lab__t">{b.short ?? b.title}</h2>
+          <h2 class="lab__t" aria-label={b.short ?? b.title}>
+            {(() => {
+              let k = 0
+              return (b.short ?? b.title).split(' ').map((w) => (
+                <span class="lab__w" aria-hidden="true">
+                  {[...w].map((c) => <span class="lab__l" style={`--i:${k++}`}>{c}</span>)}
+                </span>
+              ))
+            })()}
+          </h2>
           <p class="lab__a">
             {b.by}
             {b.year && `, ${b.year}`}
@@ -242,7 +251,25 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
         b.classList.toggle('is-active', j === i)
         b.classList.toggle('is-near', Math.abs(j - i) <= NEAR)
       })
-      root.querySelectorAll<HTMLElement>('.lab, .pn').forEach((l) => l.classList.toggle('is-on', +l.dataset.i! === i))
+      root.querySelectorAll<HTMLElement>('.pn').forEach((l) => l.classList.toggle('is-on', +l.dataset.i! === i))
+      // the label's letters flip over: the old title tips away over the top, the
+      // new one comes up from below; one that has left drops back underneath, unseen
+      root.querySelectorAll<HTMLElement>('.lab').forEach((l) => {
+        const on = +l.dataset.i! === i
+        if (on) {
+          l.classList.remove('was-on', 'no-t')
+          l.classList.add('is-on')
+        } else if (l.classList.contains('is-on')) {
+          l.classList.replace('is-on', 'was-on')
+          setTimeout(() => {
+            if (l.classList.contains('is-on')) return
+            l.classList.add('no-t')
+            l.classList.remove('was-on')
+            l.offsetWidth
+            l.classList.remove('no-t')
+          }, 900)
+        }
+      })
       root.querySelector('.cs__count b')!.textContent = String(i + 1).padStart(2, '0')
       // spine widths only: the facing item's own width is still animating
       shelfX = starts[i]
@@ -601,9 +628,24 @@ const verb = { book: 'FINISHED', record: 'ON REPEAT SINCE', film: 'WATCHED' }[ki
   .lab {
     position: absolute; left: 0; top: 0; padding: 0 0 0 4vw;
     display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 1.6rem;
-    opacity: 0; translate: 0 10px; transition: opacity 0.6s, translate 0.6s var(--ease-cs); pointer-events: none;
+    pointer-events: none;
   }
-  .lab.is-on { opacity: 1; translate: 0 0; pointer-events: auto; }
+  .lab.is-on { pointer-events: auto; }
+  /* the title flips over letter by letter (see Flip.astro); the lines beside it slide in after */
+  .lab__t { perspective: 600px; }
+  .lab__w { display: inline-block; white-space: nowrap; margin-right: 0.24em; }
+  .lab__w:last-child { margin-right: 0; }
+  .lab__l {
+    display: inline-block; backface-visibility: hidden; transform-origin: 50% 50% -0.3em;
+    transform: rotateX(-90deg); opacity: 0;
+    transition: transform 0.5s var(--ease-out), opacity 0.5s var(--ease-out);
+    transition-delay: calc(var(--i) * 26ms);
+  }
+  .lab.is-on .lab__l { transform: none; opacity: 1; }
+  .lab.was-on .lab__l { transform: rotateX(90deg); opacity: 0; transition-duration: 0.35s; transition-delay: calc(var(--i) * 18ms); }
+  .lab > :not(.lab__t) { opacity: 0; translate: 0 8px; transition: opacity 0.35s, translate 0.5s var(--ease-cs); }
+  .lab.is-on > :not(.lab__t) { opacity: 1; translate: 0 0; transition-delay: 0.25s; }
+  .lab.no-t .lab__l, .lab.no-t > * { transition: none; }
   .lab__n { font: 0.75rem var(--font-din); letter-spacing: 0.18em; }
   .lab__t { font: 400 clamp(2.2rem, 3.4vw, 3.4rem)/1 var(--font-display); margin: 0; }
   .lab__a { font: italic 1.2rem var(--font-body); }
