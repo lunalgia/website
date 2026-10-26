@@ -26,6 +26,15 @@
     "h": 828,
     "taken": "2026-10-10"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Course Information.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming",
+    "pages": 2,
+    "image": "/previews/7ed3c49f920c.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/01-functions-and-types.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming with Haskell - Functions and types",
@@ -106,6 +115,60 @@
     "w": 640,
     "h": 360,
     "taken": "2026-10-05"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/10-type-classes.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Polymorphism and type classes",
+    "pages": 72,
+    "image": "/previews/1728fb7fdc8c.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/11-datatypes.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - User-defined data types",
+    "pages": 65,
+    "image": "/previews/234d5be1ff15.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/12-recursive-types.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Recursive data types",
+    "pages": 61,
+    "image": "/previews/3ea2b82ce7ee.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/13-rewriting.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Computation as rewriting",
+    "pages": 59,
+    "image": "/previews/99444eb078a2.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/14-input-output.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Input/Output",
+    "pages": 109,
+    "image": "/previews/6f0ee84c60c2.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/15-more-io.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - More IO",
+    "pages": 42,
+    "image": "/previews/42a9caae0907.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-10-26"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Moodle/21 Assignment 1/Assignment 1. Due- October 2, 2026/Assignment1.pdf": {
     "kind": "pdf",
@@ -206,6 +269,24 @@
     "h": 905,
     "taken": "2026-10-10"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 2.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming",
+    "pages": 3,
+    "image": "/previews/caa861a088a5.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Reading/Evolution of a Haskell Programmer.pdf": {
+    "kind": "pdf",
+    "title": "The Evolution of a Haskell Programmer",
+    "pages": 14,
+    "image": "/previews/0033a287bc56.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Tests/Midsem.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming",
@@ -295,6 +376,42 @@
     "w": 640,
     "h": 906,
     "taken": "2026-10-05"
+  },
+  "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Moodle/09 29 September - 5 October/Biography.pdf": {
+    "kind": "pdf",
+    "title": "Biography",
+    "pages": 4,
+    "image": "/previews/be94a06ad507.webp",
+    "w": 640,
+    "h": 452,
+    "taken": "2026-10-26"
+  },
+  "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Moodle/10 6 October - 12 October/Ballad.pdf": {
+    "kind": "pdf",
+    "title": "The Ballad Of Father Gilligan by William Butler Yeats",
+    "pages": 2,
+    "image": "/previews/f4233c94394d.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-10-26"
+  },
+  "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Moodle/10 6 October - 12 October/Coleridge's ballad.pdf": {
+    "kind": "pdf",
+    "title": "PART I It is an ancient Mariner, And he stoppeth one of three.",
+    "pages": 3,
+    "image": "/previews/045ff6c9b28f.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-10-26"
+  },
+  "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Moodle/11 13 October - 19 October/idioms.pdf": {
+    "kind": "pdf",
+    "title": "English Idioms",
+    "pages": 1,
+    "image": "/previews/2204256d85e0.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
   },
   "/uni/Humanities/Year 1/Sem 1/Empowerment with English/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
@@ -547,6 +664,60 @@
     "w": 640,
     "h": 360,
     "taken": "2026-10-10"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-13.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-13",
+    "pages": 4,
+    "image": "/previews/881d5c05eaca.webp",
+    "w": 640,
+    "h": 301,
+    "taken": "2026-10-26"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-14.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-14",
+    "pages": 5,
+    "image": "/previews/f346c1ac3e9a.webp",
+    "w": 640,
+    "h": 290,
+    "taken": "2026-10-26"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-15.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-15",
+    "pages": 4,
+    "image": "/previews/ff4ebcb4e1e9.webp",
+    "w": 640,
+    "h": 298,
+    "taken": "2026-10-26"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-20.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-20",
+    "pages": 4,
+    "image": "/previews/564b70b03aa0.webp",
+    "w": 640,
+    "h": 288,
+    "taken": "2026-10-26"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-21.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-21",
+    "pages": 4,
+    "image": "/previews/ea207b5cef67.webp",
+    "w": 640,
+    "h": 291,
+    "taken": "2026-10-26"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Board work/2026-10-22.pdf": {
+    "kind": "pdf",
+    "title": "2026-10-22",
+    "pages": 5,
+    "image": "/previews/a84467785543.webp",
+    "w": 640,
+    "h": 298,
+    "taken": "2026-10-26"
   },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Handouts/foundational language practice.pdf": {
     "kind": "pdf",
@@ -1160,6 +1331,15 @@
     "h": 905,
     "taken": "2026-10-08"
   },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Tutorials/Tutorial 6.pdf": {
+    "kind": "pdf",
+    "title": "Tutorial sheet 6 Draft 1. (a) Let A =   200 12−1 13−2 ",
+    "pages": 3,
+    "image": "/previews/4025394d4d50.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-10-26"
+  },
   "/uni/Math/Year 1/Sem 1/Analysis 1/ana1.pdf": {
     "kind": "pdf",
     "title": "ana1",
@@ -1258,6 +1438,231 @@
     "w": 640,
     "h": 905,
     "taken": "2026-10-10"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/HW and solutions/2022 quiz 1 and HW 2,3,4 answers draft.pdf": {
+    "kind": "pdf",
+    "title": "2022 quiz 1 and HW 2,3,4 answers draft",
+    "pages": 8,
+    "image": "/previews/33ddb3ca61b2.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/HW and solutions/cumulative HW.pdf": {
+    "kind": "pdf",
+    "title": "Old HW",
+    "pages": 7,
+    "image": "/previews/4e03d67a37d5.webp",
+    "w": 640,
+    "h": 906,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 01.pdf": {
+    "kind": "pdf",
+    "title": "This course can change your life (if you let it)",
+    "pages": 5,
+    "image": "/previews/c4b91c55838f.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 02.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 02",
+    "pages": 3,
+    "image": "/previews/a121b13b8081.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 03.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 03",
+    "pages": 4,
+    "image": "/previews/1144defbdf57.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 04.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 04",
+    "pages": 5,
+    "image": "/previews/e5f3f653e60f.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 05.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 05",
+    "pages": 4,
+    "image": "/previews/92f7adbb3673.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 06.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 06",
+    "pages": 3,
+    "image": "/previews/30ad0a9137d4.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 07.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 07",
+    "pages": 4,
+    "image": "/previews/e75dcbf43c28.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 08.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 08",
+    "pages": 5,
+    "image": "/previews/becec69e9744.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 09.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 09",
+    "pages": 4,
+    "image": "/previews/e99dc4342062.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 10.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 10",
+    "pages": 5,
+    "image": "/previews/5fde83d66bc4.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 11.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 11",
+    "pages": 4,
+    "image": "/previews/23373ef76221.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 12.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 12",
+    "pages": 4,
+    "image": "/previews/a07da7112f0a.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 13.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 13",
+    "pages": 5,
+    "image": "/previews/0ecf37d17129.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 14.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 14",
+    "pages": 4,
+    "image": "/previews/b77b6c3b7cb0.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 15.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 15",
+    "pages": 3,
+    "image": "/previews/f4f765103252.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 16.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 16",
+    "pages": 5,
+    "image": "/previews/487de6e29a0d.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 17.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 17",
+    "pages": 4,
+    "image": "/previews/e39eb2eef656.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 18.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 18",
+    "pages": 4,
+    "image": "/previews/43037f13cfc3.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 19.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 19",
+    "pages": 4,
+    "image": "/previews/4b065e66dabd.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 20.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 20",
+    "pages": 4,
+    "image": "/previews/a0cbe557a144.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Lecture notes/Lecture 21-22.pdf": {
+    "kind": "pdf",
+    "title": "Lecture 21-22",
+    "pages": 7,
+    "image": "/previews/4380a617d3d0.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Quiz/Quiz 1 board.pdf": {
+    "kind": "pdf",
+    "title": "quiz 1 board.jpeg",
+    "pages": 1,
+    "image": "/previews/36b018cb27eb.webp",
+    "w": 640,
+    "h": 452,
+    "taken": "2026-10-26"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2022 Fall - Course page archive/Quiz/Quiz 1.pdf": {
+    "kind": "pdf",
+    "title": "Algebra 1 Quiz 1 Your roll number: . . . . . . . . . . . .",
+    "pages": 2,
+    "image": "/previews/cc2ac9cb341c.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
   },
   "/uni/Past Material/Sem 1/Algebra 1/2024 Fall - Moodle archive/01 4 August - 10 August/Course Information.pdf": {
     "kind": "pdf",
@@ -1465,6 +1870,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-05"
+  },
+  "/uni/Past Material/Sem 1/Analysis 1/2021 Fall - unknown instructor (Downloads)/Midsem.pdf": {
+    "kind": "pdf",
+    "title": "Analysis -I Mid-Sem examination on Analysis. 3 Nov 2021: 10:30am",
+    "pages": 5,
+    "image": "/previews/a419dc76f98d.webp",
+    "w": 640,
+    "h": 372,
+    "taken": "2026-10-26"
   },
   "/uni/Past Material/Sem 1/Analysis 1/2024 Fall - Prof. Upendra Kulkarni (Arjun Agarwal)/Endsem - Official Grading Scheme.pdf": {
     "kind": "pdf",
@@ -2347,6 +2761,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-05"
+  },
+  "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Assignments/Assignment 4.pdf": {
+    "kind": "pdf",
+    "title": "CM1_2026_ProblemSet4",
+    "pages": 2,
+    "image": "/previews/19a052cd9722.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-10-26"
   },
   "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
