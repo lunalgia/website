@@ -1,0 +1,293 @@
+---
+/**
+ * A few covers, framed like A24's "In theaters": a big title held on the left,
+ * covers in columns split by hairlines, each captioned with its collection
+ * number. Clicking one opens its entry as a row under its line.
+ */
+import Entry from './Entry.astro'
+import { pad, type CatalogueItem } from '@/lib/catalogue'
+interface Props {
+  title: string
+  items: CatalogueItem[]
+  /** the collection number of each item, by id */
+  numbers: Map<string, number>
+  /** what `size` counts: 'min' for films, 'pages' for books */
+  unit: string
+}
+const { title, items, numbers, unit } = Astro.props
+const no = (f: CatalogueItem) => `NO. ${pad(numbers.get(f.id) ?? 0, 3)}`
+---
+
+<div class="fg" style={`--count:${items.length}`}>
+  <h3 class="fg__h">{title}</h3>
+  <ol class="fg__grid">
+    {
+      items.map((f, i) => (
+        <li class="fg__it" style={`--k:${i}`}>
+          <button class="fg__btn" type="button" aria-expanded="false" aria-label={`${f.title}: open`} data-i={i}>
+            {f.thumb ? (
+              <img class="fg__img" src={f.thumb} alt="" loading="lazy" />
+            ) : (
+              <span class="fg__img fg__img--type" style={`--c:${f.color};--f:${f.ink}`}>{f.title}</span>
+            )}
+            <span class="fg__cap">
+              <span class="fg__no">{no(f)}</span>
+              <span class="fg__t">{f.short ?? f.title}</span>
+              <span class="fg__by">{f.by}</span>
+              <span class="fg__sc">{f.year}</span>
+            </span>
+          </button>
+        </li>
+      ))
+    }
+    <li class="fg__open" inert>
+      <div class="fg__inner">
+        {items.map((f, i) => <Entry item={f} i={i} hidden kicker={[no(f), f.size && `${f.size} ${unit}`].filter(Boolean).join(' · ')} />)}
+      </div>
+    </li>
+  </ol>
+</div>
+
+<script>
+  const setup = (root: HTMLElement) => {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const items = [...root.querySelectorAll<HTMLElement>('.fg__it')]
+    const btns = items.map((li) => li.querySelector<HTMLButtonElement>('.fg__btn')!)
+    const open = root.querySelector<HTMLElement>('.fg__open')!
+    const entries = [...open.querySelectorAll<HTMLElement>('.en')]
+    let cur = -1
+    /** the last cover on the same line as cover i: the open row goes after it */
+    const lineEnd = (i: number) => {
+      let last = i
+      while (last + 1 < items.length && items[last + 1].offsetTop === items[i].offsetTop) last++
+      return items[last]
+    }
+    const show = (i: number) => {
+      entries.forEach((e, j) => (e.hidden = j !== i))
+      btns.forEach((b, j) => b.setAttribute('aria-expanded', String(j === i)))
+    }
+    /** ease the row shut, then run `then` once it has closed */
+    const close = (then?: () => void) => {
+      open.classList.remove('is-open')
+      open.inert = true
+      btns.forEach((b) => b.setAttribute('aria-expanded', 'false'))
+      if (still) return then?.()
+      const done = (e: TransitionEvent) => {
+        if (e.target !== open) return
+        open.removeEventListener('transitionend', done)
+        then?.()
+      }
+      open.addEventListener('transitionend', done)
+    }
+    const expand = (i: number) => {
+      lineEnd(i).after(open)
+      show(i)
+      open.offsetHeight
+      open.classList.add('is-open')
+      open.inert = false
+    }
+    btns.forEach((b, i) =>
+      b.addEventListener('click', () => {
+        if (cur === i) {
+          cur = -1
+          return close()
+        }
+        const was = cur
+        cur = i
+        // on the same line: swap what the open row shows; elsewhere: shut it, then open it there
+        if (was < 0) expand(i)
+        else if (lineEnd(was) === lineEnd(i)) show(i)
+        else close(() => cur === i && expand(i))
+      }),
+    )
+    const onResize = () => cur >= 0 && lineEnd(cur).after(open)
+    addEventListener('resize', onResize)
+    document.addEventListener('astro:before-swap', () => removeEventListener('resize', onResize), { once: true })
+    // covers rise in, one after another, as the row comes into view
+    if (still) return
+    root.classList.add('is-armed')
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return
+        root.classList.add('is-in')
+        io.disconnect()
+      },
+      { threshold: 0.25 },
+    )
+    io.observe(root)
+    document.addEventListener('astro:before-swap', () => io.disconnect(), { once: true })
+  }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.fg').forEach(setup))
+</script>
+
+<style>
+  .fg {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 3.2fr);
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .fg__h {
+    position: sticky;
+    /* under the site header and the section bar */
+    top: 6.5rem;
+    align-self: start;
+    margin: 0;
+    padding: 1.6rem 1.6rem 0 0;
+    font: 400 clamp(2.6rem, 4.6vw, 5.4rem) / 0.95 var(--font-din);
+    color: var(--ultramarine);
+  }
+  .fg__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    /* never more columns than covers: the opened entry spans every column, and an
+       empty one would come back and shrink the rest */
+    grid-template-columns: repeat(auto-fill, minmax(max(12rem, 100% / var(--count) - 0.1px), 1fr));
+  }
+  /* hairlines between the columns, as on A24 */
+  .fg__it {
+    padding: 1.6rem 1.4rem 2.2rem;
+    border-left: 1px solid var(--rule);
+  }
+  .fg__btn {
+    all: unset;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    color: var(--ultramarine);
+  }
+  .fg__img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .fg__img--type {
+    display: flex;
+    align-items: flex-end;
+    padding: 0.8rem;
+    box-sizing: border-box;
+    background: var(--c);
+    color: var(--f);
+    font: italic 1.4rem/1 var(--font-display);
+  }
+  .fg__cap {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.3rem 0.6rem;
+    margin-top: 0.9rem;
+  }
+  .fg__no {
+    grid-column: 1 / -1;
+    font: 400 0.56rem/1.3 var(--font-din);
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+  }
+  .fg__t {
+    grid-column: 1 / -1;
+    overflow-wrap: anywhere;
+    font: italic 400 1.4rem/1.05 var(--font-display);
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.14em;
+    transition: text-decoration-color 0.2s;
+  }
+  .fg__btn:hover .fg__t,
+  .fg__btn:focus-visible .fg__t,
+  .fg__btn[aria-expanded='true'] .fg__t {
+    text-decoration-color: currentColor;
+  }
+  .fg__by,
+  .fg__sc {
+    font: 400 0.58rem/1.3 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  /* the open row eases its height from nothing and back */
+  .fg__open {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.55s var(--ease-out);
+  }
+  .fg__open.is-open {
+    grid-template-rows: 1fr;
+  }
+  .fg__inner {
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 1.4rem;
+    border-left: 1px solid var(--rule);
+    opacity: 0;
+    translate: 0 -0.6rem;
+    transition:
+      opacity 0.3s,
+      translate 0.5s var(--ease-out),
+      padding 0.55s var(--ease-out);
+  }
+  .fg__open.is-open .fg__inner {
+    padding: 2.4rem 1.4rem;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.1s, 0.1s, 0s;
+  }
+  /* swapping to another cover on the same line: the new entry fades up */
+  .fg__inner > :global(.en:not([hidden])) {
+    animation: fg-swap 0.5s var(--ease-out);
+  }
+  @keyframes fg-swap {
+    from {
+      opacity: 0;
+      translate: 0 0.6rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fg__open,
+    .fg__inner {
+      transition: none;
+    }
+    .fg__inner > :global(.en) {
+      animation: none;
+    }
+  }
+  .fg.is-armed :is(.fg__h, .fg__it) {
+    opacity: 0;
+    translate: 0 1.4rem;
+  }
+  .fg.is-in :is(.fg__h, .fg__it) {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.7s var(--ease-out),
+      translate 0.9s var(--ease-out);
+  }
+  .fg.is-in .fg__it {
+    transition-delay: calc(var(--k) * 70ms + 80ms);
+  }
+  .fg__img {
+    transition: scale 0.6s var(--ease-out), outline-color 0.2s;
+  }
+  .fg__btn:hover .fg__img {
+    scale: 1.02;
+  }
+  @media (max-width: 860px) {
+    .fg {
+      grid-template-columns: 1fr;
+    }
+    .fg__h {
+      position: static;
+      padding: 1.6rem 0;
+    }
+    .fg__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .fg__it {
+      padding: 1rem 0.8rem 1.6rem;
+    }
+  }
+</style>

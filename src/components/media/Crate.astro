@@ -1,0 +1,317 @@
+---
+/**
+ * Records filed in a crate, drawn flat: the one you are on faces you with its
+ * record half out, the next ones stand behind it, each showing a strip of its
+ * sleeve. Click a strip to jump to it; arrows, buttons or a sideways scroll flip through.
+ */
+import Entry from './Entry.astro'
+import { pad, type CatalogueItem } from '@/lib/catalogue'
+interface Props { items: CatalogueItem[] }
+const { items } = Astro.props
+/** how many sleeves show behind the front one */
+const BEHIND = 9
+---
+
+<section class="cr" id="records" aria-label="records" style={`--n:${BEHIND}`}>
+  <header class="ax-top">
+    <span>II · RECORDS</span>
+    <span class="cr__nav">
+      <button type="button" data-step="-1" aria-label="previous record">
+        <svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M33 7H1M7 1 1 7l6 6" /></svg>
+      </button>
+      <span><b class="cr__n">01</b> / {pad(items.length)}</span>
+      <button type="button" data-step="1" aria-label="next record">
+        <svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M1 7h32M27 1l6 6-6 6" /></svg>
+      </button>
+    </span>
+  </header>
+  <div class="cr__body">
+    <div class="cr__side">
+    <div class="cr__crate" tabindex="0" aria-label="the crate; arrow keys flip through it">
+      {
+        items.map((r, i) => (
+          <button class="sl" data-i={i} tabindex="-1" title={`${r.title}, ${r.by}`} aria-label={`${r.title}, ${r.by}`} style={`--c:${r.color}`}>
+            <span class="sl__disc" aria-hidden="true">
+              <span style={r.thumb ? `background-image:url(${r.thumb})` : `background-color:${r.color}`} />
+            </span>
+            <span class="sl__sleeve" style={r.img ? `background-image:url(${r.img})` : undefined}>
+              {!r.img && <span class="sl__type">{r.title}</span>}
+            </span>
+          </button>
+        ))
+      }
+      <div class="cr__lip" aria-hidden="true">
+        <span>LUNALGIA RECORDS</span>
+        <span>LUN <b class="cr__cat">001</b></span>
+      </div>
+    </div>
+    <p class="cr__hint">Click a sleeve, use ← →, or swipe sideways</p>
+    </div>
+    <div class="cr__entries">
+      {items.map((r, i) => <Entry item={r} i={i} bare flip cat={`LUN ${pad(i + 1, 3)}`} kicker={`${pad(i + 1)} / ${pad(items.length)}`} />)}
+    </div>
+  </div>
+</section>
+
+<script>
+  const setup = (root: HTMLElement) => {
+    const sleeves = [...root.querySelectorAll<HTMLElement>('.sl')]
+    const entries = [...root.querySelectorAll<HTMLElement>('.en')]
+    const crate = root.querySelector<HTMLElement>('.cr__crate')!
+    const n = root.querySelector('.cr__n')!
+    const cat = root.querySelector('.cr__cat')!
+    const behind = Number(getComputedStyle(root).getPropertyValue('--n')) || 9
+    let a = 0
+    const set = (i: number) => {
+      a = Math.max(0, Math.min(sleeves.length - 1, i))
+      n.textContent = String(a + 1).padStart(2, '0')
+      cat.textContent = String(a + 1).padStart(3, '0')
+      sleeves.forEach((s, j) => {
+        const d = j - a
+        s.style.setProperty('--d', String(Math.max(-1, Math.min(behind + 1, d))))
+        s.style.zIndex = String(sleeves.length - j)
+        s.dataset.state = d < 0 ? 'past' : d === 0 ? 'on' : d <= behind ? 'behind' : 'gone'
+      })
+      // the details flip over as on the shelves: the old title tips away over the top,
+      // the new one comes up from below, and the lines under it slide in after
+      entries.forEach((e, j) => {
+        if (j === a) {
+          e.classList.remove('was-on', 'no-t')
+          e.classList.add('is-on')
+          e.inert = false
+        } else if (e.classList.contains('is-on')) {
+          e.classList.replace('is-on', 'was-on')
+          e.inert = true
+          setTimeout(() => {
+            if (e.classList.contains('is-on')) return
+            e.classList.add('no-t')
+            e.classList.remove('was-on')
+            e.offsetWidth
+            e.classList.remove('no-t')
+          }, 900)
+        } else e.inert = true
+      })
+    }
+    set(0)
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => set(a + Number(b.dataset.step))))
+    sleeves.forEach((s, j) => s.addEventListener('click', () => set(j === a ? a + 1 : j)))
+    crate.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') set(a + 1), e.preventDefault()
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') set(a - 1), e.preventDefault()
+    })
+    // sideways scrolling (a trackpad swipe, or shift and the wheel) flips through;
+    // scrolling down always moves the page, so the crate never traps you
+    let acc = 0
+    let last = 0
+    crate.addEventListener(
+      'wheel',
+      (e) => {
+        const dx = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX
+        if (!dx || (!e.shiftKey && Math.abs(e.deltaX) < Math.abs(e.deltaY))) return
+        if ((dx > 0 && a === sleeves.length - 1) || (dx < 0 && a === 0)) return
+        e.preventDefault()
+        // keep the smooth scroller from moving the page as well
+        e.stopPropagation()
+        acc += dx
+        const now = performance.now()
+        if (Math.abs(acc) > 40 && now - last > 110) {
+          set(a + Math.sign(acc))
+          acc = 0
+          last = now
+        }
+      },
+      { passive: false },
+    )
+  }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.cr').forEach(setup))
+</script>
+
+<style>
+  .cr__nav {
+    display: inline-flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  .cr__nav button {
+    all: unset;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .cr__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 3rem 5vw;
+    align-items: start;
+    margin-top: 3rem;
+  }
+  /* every record's details in one cell, so the column never jumps; the one
+     you are on shows, sitting level with the top of the sleeve */
+  .cr__entries {
+    display: grid;
+    padding-top: calc(var(--n) * var(--step-out));
+  }
+  .cr__entries > :global(.en) {
+    grid-area: 1 / 1;
+    min-width: 0;
+    pointer-events: none;
+  }
+  .cr__entries > :global(.en.is-on) {
+    pointer-events: auto;
+  }
+  .cr__entries :global(.en__l) {
+    transform: rotateX(-90deg);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      opacity 0.5s var(--ease-out);
+    /* long titles turn over no slower than a 24-letter one */
+    transition-delay: calc(min(var(--i), 24) * 26ms);
+  }
+  .cr__entries :global(.en.is-on .en__l) {
+    transform: none;
+    opacity: 1;
+  }
+  .cr__entries :global(.en.was-on .en__l) {
+    transform: rotateX(90deg);
+    transition-duration: 0.35s;
+    transition-delay: calc(min(var(--i), 24) * 18ms);
+  }
+  .cr__entries :global(.en__text > :not(.en__t)) {
+    opacity: 0;
+    translate: 0 8px;
+    transition:
+      opacity 0.35s,
+      translate 0.5s var(--ease-out);
+  }
+  .cr__entries :global(.en.is-on .en__text > :not(.en__t)) {
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.25s;
+  }
+  .cr__entries :global(.en.no-t .en__l),
+  .cr__entries :global(.en.no-t .en__text > *) {
+    transition: none;
+  }
+  .cr {
+    --s: clamp(15rem, 28vw, 24rem);
+    --step: calc(var(--s) * 0.045);
+    /* the strips above the front sleeve, which the details line up under */
+    --step-out: var(--step);
+  }
+  .cr__crate {
+    position: relative;
+    isolation: isolate;
+    /* the sleeve, the strips behind it, the lip, and room for the record to the right */
+    width: calc(var(--s) * 1.42);
+    height: calc(var(--s) + var(--n) * var(--step) + 2.4rem);
+    outline: none;
+  }
+  .sl {
+    all: unset;
+    position: absolute;
+    left: 0;
+    bottom: 2.4rem;
+    width: var(--s);
+    height: var(--s);
+    cursor: pointer;
+    transform: translateY(calc(var(--d) * var(--step) * -1));
+    transition: transform 0.5s var(--ease-out), opacity 0.3s;
+  }
+  .sl[data-state='behind']:hover {
+    transform: translateY(calc(var(--d) * var(--step) * -1 - 0.5rem));
+  }
+  .sl[data-state='past'] {
+    transform: translateY(2.4rem);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sl[data-state='gone'] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sl__sleeve {
+    position: absolute;
+    inset: 0;
+    background: var(--c) center / cover;
+    /* a hairline of the page between one sleeve and the next */
+    box-shadow: 0 -1.5px 0 var(--bg);
+  }
+  .sl__type {
+    display: block;
+    padding: 1.2rem;
+    font: italic 1.8rem/1 var(--font-display);
+  }
+  /* the record, half out of the front sleeve */
+  .sl__disc {
+    position: absolute;
+    top: 3%;
+    left: 3%;
+    width: 94%;
+    height: 94%;
+    border-radius: 50%;
+    background: #14142b;
+    box-shadow: inset 0 0 0 calc(var(--s) * 0.09) #14142b, inset 0 0 0 calc(var(--s) * 0.092) rgb(255 255 255 / 0.12);
+    display: grid;
+    place-items: center;
+    transition: translate 0.6s var(--ease-out) 0.08s;
+  }
+  .sl__disc span {
+    width: 34%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: center / cover;
+  }
+  .sl[data-state='on'] .sl__disc {
+    translate: 42% 0;
+  }
+  /* the front of the crate */
+  .cr__lip {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 999;
+    width: var(--s);
+    height: 2.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.9rem;
+    box-sizing: border-box;
+    background: var(--ultramarine);
+    color: var(--lavender);
+    font: 400 0.6rem/1 var(--font-din);
+    letter-spacing: 0.2em;
+  }
+  .cr__hint {
+    margin: 1.2rem 0 0;
+    font: 400 0.6rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cr__lip b {
+    font-weight: inherit;
+  }
+  .cr__crate:focus-visible .cr__lip {
+    outline: 1.5px solid var(--ultramarine);
+    outline-offset: 4px;
+  }
+  @media (max-width: 1000px) {
+    .cr__body {
+      grid-template-columns: 1fr;
+    }
+    .cr {
+      --s: min(20rem, 66vw);
+    }
+    .cr__entries {
+      padding-top: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sl,
+    .sl__disc {
+      transition: none;
+    }
+  }
+</style>

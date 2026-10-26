@@ -1,0 +1,498 @@
+---
+/**
+ * The full list, after A24's film index: grouped by year, the year set large
+ * on the first row of its group, the title big, a couple of narrow columns,
+ * the score at the end. The cover follows the cursor along the rows; clicking
+ * a row opens its details underneath, with the way through to the full review.
+ */
+import { pad, type CatalogueItem } from '@/lib/catalogue'
+interface Column {
+  label: string
+  value: (it: CatalogueItem) => string | undefined
+  /** one value per line, set as small outlined tags */
+  chips?: boolean
+}
+interface Props {
+  title: string
+  items: CatalogueItem[]
+  columns: Column[]
+  /** films and books want a portrait cover, records a square one */
+  square?: boolean
+  /** the ids shown in the selection above, tagged as such */
+  selected?: Set<string>
+}
+const { title, items, columns, square, selected } = Astro.props
+const sorted = [...items].sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || (b.rating ?? 0) - (a.rating ?? 0))
+---
+
+<div class:list={['ix', { 'ix--square': square }]} style={`--cols:${columns.length}`}>
+  <h3 class="ix__h">{title}</h3>
+  <div class="ix__head" aria-hidden="true">
+    <span>YEAR ↓</span>
+    <span />
+    <span>TITLE</span>
+    {columns.map((c) => <span class="ix__extra">{c.label}</span>)}
+    <span class="ix__right">SCORE</span>
+    <span />
+  </div>
+  <ol class="ix__list">
+    {
+      sorted.map((it, i) => {
+        const first = i === 0 || sorted[i - 1].year !== it.year
+        return (
+          <li class:list={['ix__row', { 'ix__row--first': first }]} data-cover={it.thumb}>
+            <button class="ix__btn" type="button" aria-expanded="false">
+              <span class="ix__year">{first ? it.year : ''}</span>
+              {it.thumb ? <img class="ix__thumb" src={it.thumb} alt="" loading="lazy" /> : <span class="ix__thumb" style={`background:${it.color}`} />}
+              <span class="ix__t">{it.title}</span>
+              {columns.map((c) => {
+                const v = c.value(it)
+                return c.chips ? (
+                  <span class="ix__extra ix__chips">{v ? v.split('\n').map((t) => <i>{t}</i>) : '—'}</span>
+                ) : (
+                  <span class="ix__extra">{v || '—'}</span>
+                )
+              })}
+              <span class="ix__right">
+                <b>{it.rating ?? '—'}</b>
+                {it.favourite ? <i class="ix__tag">ALL-TIME</i> : selected?.has(it.id) && <i class="ix__tag ix__tag--sel">SELECTED</i>}
+              </span>
+              <span class="ix__pm" aria-hidden="true" />
+            </button>
+            <div class="ix__open" inert>
+              <div class="ix__inner">
+                {it.img && <img class="ix__big" src={it.img} alt="" loading="lazy" />}
+                <div>
+                  {it.facts.length > 0 && (
+                    <dl class="ix__facts">
+                      {it.facts.map(([k, v]) => (
+                        <div>
+                          <dt>{k}</dt>
+                          <dd>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  <p class="ix__links">
+                    {it.href ? <a class="ix__go" href={it.href}>Read the review <span aria-hidden="true">→</span></a> : <span class="ix__none">No review yet</span>}
+                    {it.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </li>
+        )
+      })
+    }
+  </ol>
+  <img class:list={['ix__cover', { 'ix__cover--sq': square }]} alt="" aria-hidden="true" />
+</div>
+
+<script>
+  const setup = (root: HTMLElement) => {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const cover = root.querySelector<HTMLImageElement>('.ix__cover')!
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches
+    const rows = [...root.querySelectorAll<HTMLElement>('.ix__row')]
+    for (const row of rows) {
+      const btn = row.querySelector<HTMLButtonElement>('.ix__btn')!
+      const open = row.querySelector<HTMLElement>('.ix__open')!
+      btn.addEventListener('click', () => {
+        const on = !row.classList.contains('is-open')
+        row.classList.toggle('is-open', on)
+        btn.setAttribute('aria-expanded', String(on))
+        open.inert = !on
+        if (on) cover.classList.remove('on')
+      })
+      if (!fine || !row.dataset.cover) continue
+      btn.addEventListener('pointerenter', () => {
+        if (row.classList.contains('is-open')) return
+        cover.src = row.dataset.cover!
+        cover.classList.add('on')
+      })
+      btn.addEventListener('pointerleave', () => cover.classList.remove('on'))
+    }
+    // the cover sits just right of the cursor
+    root.addEventListener('pointermove', (e) => {
+      cover.style.translate = `${e.clientX + 24}px ${e.clientY - cover.offsetHeight / 2}px`
+    })
+    // rows rise in as they come into view; armed by JS, so nothing is hidden without it
+    if (still) return
+    root.classList.add('is-armed')
+    const io = new IntersectionObserver(
+      (seen) => {
+        let n = 0
+        for (const e of seen) {
+          if (!e.isIntersecting) continue
+          const el = e.target as HTMLElement
+          el.style.setProperty('--n', String(n++))
+          el.classList.add('is-in')
+          io.unobserve(el)
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px' },
+    )
+    root.querySelectorAll('.ix__h, .ix__head, .ix__row').forEach((el) => io.observe(el))
+    document.addEventListener('astro:before-swap', () => io.disconnect(), { once: true })
+  }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.ix').forEach(setup))
+</script>
+
+<style>
+  .ix {
+    --grid: 6.5rem 3.2rem minmax(0, 1.6fr) repeat(var(--cols), minmax(0, 1fr)) 6rem 1.4rem;
+    color: var(--ultramarine);
+  }
+  .ix__h {
+    margin: 0 0 2.2rem;
+    font: 400 clamp(2.8rem, 6vw, 5.4rem) / 0.95 var(--font-din);
+  }
+  .ix__head,
+  .ix__btn {
+    display: grid;
+    grid-template-columns: var(--grid);
+    gap: 0 1.4rem;
+  }
+  .ix__head {
+    padding-bottom: 0.8rem;
+    border-bottom: 1.5px solid var(--ultramarine);
+    font: 400 0.6rem/1 var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .ix__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ix__row {
+    position: relative;
+  }
+  /* rows in a year are ruled from the title on; a new year rules the full width */
+  .ix__row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: calc(6.5rem + 1.4rem);
+    border-top: 1px solid var(--rule);
+  }
+  .ix__row--first::before {
+    left: 0;
+    border-top-color: var(--ultramarine);
+  }
+  .ix__row:first-child::before {
+    display: none;
+  }
+  .ix__btn {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: var(--grid);
+    gap: 0 1.4rem;
+    align-items: start;
+    width: 100%;
+    padding: 1rem 0 1.1rem;
+    cursor: pointer;
+  }
+  .ix__thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__thumb {
+    aspect-ratio: 1;
+  }
+  /* a plus that turns into a minus while the row is open */
+  .ix__pm {
+    position: relative;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.6rem;
+    justify-self: end;
+  }
+  .ix__pm::before,
+  .ix__pm::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    background: currentColor;
+    transition: rotate 0.3s var(--ease-out);
+  }
+  .ix__pm::after {
+    rotate: 90deg;
+  }
+  .ix__btn[aria-expanded='true'] .ix__pm::after {
+    rotate: 0deg;
+  }
+  .ix__year {
+    font: 400 clamp(1.6rem, 2.4vw, 2.3rem) / 1 var(--font-din);
+  }
+  .ix__t {
+    overflow-wrap: anywhere;
+    font: italic 400 clamp(1.7rem, 2.6vw, 2.6rem) / 1 var(--font-display);
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.14em;
+    transition: text-decoration-color 0.2s;
+  }
+  .ix__btn:hover .ix__t,
+  .ix__btn:focus-visible .ix__t,
+  .ix__btn[aria-expanded='true'] .ix__t {
+    text-decoration-color: currentColor;
+  }
+  .ix__extra {
+    padding-top: 0.35rem;
+    font: 0.98rem/1.3 var(--font-body);
+    color: var(--ink);
+  }
+  .ix__head .ix__extra {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+  }
+  .ix__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 0.35rem;
+    padding-top: 0.45rem;
+  }
+  .ix__chips i {
+    font: normal 400 0.58rem/1 var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid rgb(2 8 135 / 0.4);
+    color: var(--ultramarine);
+  }
+  .ix__right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    padding-top: 0.1rem;
+    text-align: right;
+  }
+  .ix__right b {
+    font: italic 400 1.7rem/1 var(--font-display);
+  }
+  /* the small inverted tag, as A24 marks what is now playing */
+  /* in the terminal blocks' blue, ultramarine eased toward the lavender */
+  .ix__tag {
+    padding: 0.3rem 0.45rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    font: normal 400 0.5rem/1 var(--font-din);
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+  }
+  /* selected is a step down from all-time: outlined, not filled */
+  .ix__tag--sel {
+    padding: calc(0.3rem - 1px) calc(0.45rem - 1px);
+    background: none;
+    border: 1px solid rgb(2 8 135 / 0.45);
+    color: var(--ultramarine);
+  }
+  /* the details open by easing the row's height from nothing */
+  .ix__open {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.55s var(--ease-out);
+  }
+  .ix__row.is-open .ix__open {
+    grid-template-rows: 1fr;
+  }
+  .ix__inner {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 36rem);
+    gap: 2rem;
+    min-height: 0;
+    overflow: hidden;
+    margin-left: calc(6.5rem + 1.4rem);
+    padding-bottom: 0;
+    opacity: 0;
+    translate: 0 -0.6rem;
+    transition:
+      opacity 0.3s,
+      translate 0.5s var(--ease-out),
+      padding-bottom 0.55s var(--ease-out);
+  }
+  .ix__row.is-open .ix__inner {
+    padding-bottom: 2rem;
+    opacity: 1;
+    translate: 0 0;
+    transition-delay: 0.12s, 0.12s, 0s;
+  }
+  .ix__big {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__big {
+    aspect-ratio: 1;
+  }
+  .ix__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.9rem 1.6rem;
+    margin: 0;
+  }
+  .ix__facts dt {
+    font: 400 0.56rem/1.6 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ix__facts dd {
+    margin: 0.15rem 0 0;
+    font: 1rem/1.3 var(--font-body);
+    color: var(--ink);
+  }
+  .ix__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1.4rem;
+    margin: 1.6rem 0 0;
+    font: 400 0.72rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .ix__links a {
+    color: var(--ultramarine);
+    text-decoration: none;
+  }
+  .ix__links a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .ix__links .ix__go {
+    display: inline-flex;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    transition: background 0.25s;
+  }
+  .ix__links .ix__go:hover {
+    background: var(--ultramarine);
+  }
+  .ix__links .ix__go:hover {
+    text-decoration: none;
+  }
+  .ix__go span {
+    transition: translate 0.3s var(--ease-out);
+  }
+  .ix__go:hover span {
+    translate: 0.3rem 0;
+  }
+  .ix__none {
+    color: var(--muted);
+  }
+  /* rows rise in as they come into view */
+  .ix.is-armed :is(.ix__h, .ix__head, .ix__row) {
+    opacity: 0;
+    translate: 0 1.2rem;
+  }
+  .ix.is-armed :is(.ix__h, .ix__head, .ix__row).is-in {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.6s var(--ease-out),
+      translate 0.8s var(--ease-out);
+    transition-delay: calc(min(var(--n, 0), 8) * 55ms);
+  }
+  .ix__cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    width: 11rem;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .ix__cover--sq {
+    aspect-ratio: 1;
+  }
+  .ix__cover.on {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ix__open,
+    .ix__inner,
+    .ix__pm::before,
+    .ix__pm::after {
+      transition: none;
+    }
+  }
+  @media (max-width: 860px) {
+    .ix {
+      --grid: 2.6rem 2.4rem minmax(0, 1fr) 3rem 0.9rem;
+    }
+    .ix__head,
+    .ix__btn {
+      gap: 0 0.8rem;
+    }
+    .ix__extra {
+      display: none;
+    }
+    .ix__row::before {
+      left: calc(2.6rem + 0.8rem);
+    }
+    .ix__inner {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 1.2rem;
+      margin-left: calc(2.6rem + 0.8rem);
+    }
+    .ix__row--first::before {
+      left: 0;
+    }
+    .ix__thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+  }
+  .ix--square .ix__thumb {
+    aspect-ratio: 1;
+  }
+  /* a plus that turns into a minus while the row is open */
+  .ix__pm {
+    position: relative;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-top: 0.6rem;
+    justify-self: end;
+  }
+  .ix__pm::before,
+  .ix__pm::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    background: currentColor;
+    transition: rotate 0.3s var(--ease-out);
+  }
+  .ix__pm::after {
+    rotate: 90deg;
+  }
+  .ix__btn[aria-expanded='true'] .ix__pm::after {
+    rotate: 0deg;
+  }
+  .ix__year {
+      font-size: 1.1rem;
+      padding-top: 0.35rem;
+    }
+  }
+</style>
