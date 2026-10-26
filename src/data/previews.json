@@ -260,6 +260,15 @@
     "h": 886,
     "taken": "2026-10-05"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 solutions.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: Quiz 1 Solutions",
+    "pages": 2,
+    "image": "/previews/9796782fddb7.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming",
@@ -268,6 +277,15 @@
     "w": 640,
     "h": 905,
     "taken": "2026-10-10"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 2 solutions.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: Quiz 2 Solutions",
+    "pages": 3,
+    "image": "/previews/16334ef10414.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-10-26"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 2.pdf": {
     "kind": "pdf",
