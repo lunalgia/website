@@ -450,13 +450,51 @@ const drawings = [
     )
 
     // 3. the name, written: one sweep of the pen, easing in as it sets down and
-    // out as it lifts, and quicker where it only goes back over its own ink; then
+    // out as it lifts, slowing into turns, and quicker where it only goes back
+    // over its own ink; then
     // it comes back to dot the i (with no roads first, on phones, it starts sooner)
     const START = roads.length ? 1.5 : 0.6
-    const WRITE = 2.1
+    const WRITE = 2.7
     const RETRACE = 0.3 // a retraced stretch takes this share of the time of fresh ink
+    const TURN = 10 // a bend of one radian costs the pen as much time as this many units of line
+    /**
+     * The pen's rhythm, as a hand has it: time along each stroke grows with its
+     * length and with how sharply it bends, so the pen slows into the tops of
+     * the u and n and round the bowls and loops, and glides along the long
+     * strokes. Each stroke becomes a table from time spent to length drawn.
+     */
+    const rhythm = (s: (typeof pen)[number]) => {
+      const n = Math.max(2, Math.ceil(s.len / 1.5))
+      const pts = Array.from({ length: n + 1 }, (_, k) => s.el.getPointAtLength((s.len * k) / n))
+      const lens = [0]
+      const costs = [0]
+      let dir = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x)
+      for (let k = 1; k <= n; k++) {
+        const dx = pts[k].x - pts[k - 1].x
+        const dy = pts[k].y - pts[k - 1].y
+        const next = Math.atan2(dy, dx)
+        const bend = Math.abs(Math.atan2(Math.sin(next - dir), Math.cos(next - dir)))
+        dir = next
+        lens.push((s.len * k) / n)
+        costs.push(costs[k - 1] + (Math.hypot(dx, dy) + TURN * bend) * (s.retrace ? RETRACE : 1))
+      }
+      return { lens, costs }
+    }
+    /** how much of a stroke is drawn once `t` of its time has gone by */
+    const drawnAt = ({ lens, costs }: ReturnType<typeof rhythm>, t: number) => {
+      let lo = 0
+      let hi = costs.length - 1
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1
+        if (costs[mid] <= t) lo = mid
+        else hi = mid
+      }
+      const f = (t - costs[lo]) / (costs[hi] - costs[lo] || 1)
+      return lens[lo] + (lens[hi] - lens[lo]) * f
+    }
     const draw = (strokes: typeof pen, at: number, duration: number, ease: string) => {
-      const cost = strokes.map((s) => s.len * (s.retrace ? RETRACE : 1))
+      const tables = strokes.map(rhythm)
+      const cost = tables.map((r) => r.costs[r.costs.length - 1])
       const total = cost.reduce((a, b) => a + b, 0)
       const w = { t: 0 }
       tl.to(
@@ -468,8 +506,9 @@ const drawings = [
           onUpdate: () => {
             let from = 0
             strokes.forEach((s, i) => {
-              const done = Math.min(Math.max((w.t - from) / cost[i], 0), 1)
-              s.el.style.strokeDashoffset = String(s.len * (1 - done))
+              const local = w.t - from
+              const drawn = local <= 0 ? 0 : local >= cost[i] ? s.len : drawnAt(tables[i], local)
+              s.el.style.strokeDashoffset = String(s.len - drawn)
               from += cost[i]
             })
           },
