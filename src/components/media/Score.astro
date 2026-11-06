@@ -1,11 +1,11 @@
 ---
-/** A score out of 100, with the all-time-favourite mark and the heart. */
-interface Props { rating?: number; favourite?: boolean; liked?: boolean; class?: string }
-const { rating, favourite, liked, class: cls } = Astro.props
+/** A score out of 100, with the all-time-favourite mark. */
+interface Props { rating?: number; favourite?: boolean; class?: string }
+const { rating, favourite, class: cls } = Astro.props
 ---
 
 {
-  (rating != null || favourite || liked) && (
+  (rating != null || favourite) && (
     <span class:list={['sc', cls]}>
       {rating != null && (
         <span class="sc__n" aria-label={`${rating} out of 100`}>
@@ -14,7 +14,6 @@ const { rating, favourite, liked, class: cls } = Astro.props
         </span>
       )}
       {favourite && <span class="sc__fav">all-time favourite</span>}
-      {liked && <span class="sc__heart" title="liked">♥</span>}
     </span>
   )
 }
@@ -42,8 +41,5 @@ const { rating, favourite, liked, class: cls } = Astro.props
     padding: 0.35em 0.7em;
     border: 1px solid currentColor;
     border-radius: 2em;
-  }
-  .sc__heart {
-    color: #e46c9b;
   }
 </style>
