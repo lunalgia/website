@@ -46,7 +46,9 @@ const settle = () => {
 
 document.addEventListener('astro:page-load', () => {
   start()
-  // follow the router: it has already put the page where it belongs
+  // follow the router: it has already put the page where it belongs. Measure first, or the
+  // old page's height clamps the position and Back lands short of where you left
+  lenis?.resize()
   lenis?.scrollTo(window.scrollY, { immediate: true, force: true })
   settle()
 })
