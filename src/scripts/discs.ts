@@ -102,10 +102,14 @@ const slotAt = (k: number, o: { x: number; y: number; z: number; pitch: number; 
 const GROW = 0.05
 const FOG = 0.3
 
-const loadImage = (src: string) =>
+/** how long the discs on screen wait for their art before they arrive without it, in ms */
+const PATIENCE = 4000
+
+const loadImage = (src: string, soon: boolean) =>
   new Promise<HTMLImageElement | null>((ok) => {
     if (!src) return ok(null)
     const img = new Image()
+    img.fetchPriority = soon ? 'high' : 'low'
     img.onload = () => ok(img)
     img.onerror = () => ok(null)
     img.src = src
@@ -211,8 +215,8 @@ const arcText = (g: CanvasRenderingContext2D, R: number, text: string, radius: n
  * over a soft darkening at its foot, the number under it and the credits round
  * the bottom, all small and in white, as lettering printed on the picture.
  */
-const label = (it: DiscItem, img: HTMLImageElement | null) => {
-  const c = document.createElement('canvas')
+const label = (it: DiscItem, img: HTMLImageElement | null, c = document.createElement('canvas')) => {
+  // setting the size also wipes a print being done again, now with its art
   c.width = c.height = SIZE
   const g = c.getContext('2d')!
   const R = SIZE / 2
@@ -356,9 +360,22 @@ const penDrawings = (LINES as unknown as [number, number[], number[]][][]).map((
   }),
 )
 
-export async function mount(stage: HTMLElement, items: DiscItem[], on: { pick: (i: number) => void }) {
+export async function mount(stage: HTMLElement, items: DiscItem[], on: { pick: (i: number) => void }, start = 0) {
+  // the row only waits for the art it will show first, and that not for ever; the rest is
+  // pressed without its art and printed again as the art comes in behind
+  const onScreen = (i: number) => i - start > -4.4 && i - start < 2.4
+  const images = items.map((): HTMLImageElement | null => null)
+  let reprint: ((i: number) => void) | null = null
+  const fetchArt = async (i: number) => {
+    const img = await loadImage(items[i].src, onScreen(i))
+    if (!img) return
+    await img.decode().catch(() => {})
+    images[i] = img
+    reprint?.(i)
+  }
+  const shown = Promise.all(items.flatMap((_, i) => (onScreen(i) ? [fetchArt(i)] : [])))
   await Promise.all([document.fonts.load('italic 40px "Instrument Serif"'), document.fonts.load('20px DINdong')])
-  const images = await Promise.all(items.map((it) => loadImage(it.src)))
+  await Promise.race([shown, new Promise((ok) => setTimeout(ok, PATIENCE))])
 
   const renderer = new WebGLRenderer({ antialias: true, alpha: true })
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
@@ -436,7 +453,8 @@ export async function mount(stage: HTMLElement, items: DiscItem[], on: { pick: (
   // the page's colour, which the discs away from the front fade toward, as things far off do in a print
   const page = new Color(getComputedStyle(stage).getPropertyValue('--bg').trim() || '#a297cb')
   const discs = items.map((it, i) => {
-    const tex = new CanvasTexture(label(it, images[i]))
+    const printed = label(it, images[i])
+    const tex = new CanvasTexture(printed)
     tex.colorSpace = SRGBColorSpace
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy()
     textures.push(tex)
@@ -479,8 +497,16 @@ export async function mount(stage: HTMLElement, items: DiscItem[], on: { pick: (
     const shade = new Mesh(shadowShape, mat(new MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0 })))
     shade.renderOrder = -1
     scene.add(shade)
-    return { pose, turn, target, fog, shade, flipped: false, spin: 0, held: true, lean: new Vector2(), leanTo: new Vector2() }
+    return { pose, turn, target, fog, shade, printed, tex, flipped: false, spin: 0, held: true, lean: new Vector2(), leanTo: new Vector2() }
   })
+  reprint = (i) => {
+    label(items[i], images[i], discs[i].printed)
+    discs[i].tex.needsUpdate = true
+  }
+  // the art for the discs off screen, one at a time
+  void (async () => {
+    for (let i = 0; i < items.length; i++) if (!onScreen(i) && reprint) await fetchArt(i)
+  })()
 
   /** where the row is going: a film's index at rest, in between while it is dragged */
   let goal = 0
@@ -821,6 +847,7 @@ export async function mount(stage: HTMLElement, items: DiscItem[], on: { pick: (
     /** the pointer has gone from the discs, to something over them */
     away: onLeave,
     dispose() {
+      reprint = null
       cancelAnimationFrame(frame)
       ro.disconnect()
       io.disconnect()

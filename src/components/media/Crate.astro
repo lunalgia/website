@@ -1,18 +1,45 @@
 ---
 /**
- * Records filed in a crate, drawn flat: the one you are on faces you with its
- * record half out, the next ones stand behind it, each showing a strip of its
- * sleeve. Click a strip to jump to it; arrows, buttons or a sideways scroll flip through.
+ * The records, one at a time, as one giant record printed in the site's ink and
+ * cut off by the edge of the page: the art for its label, a band of grooves for
+ * each track, the details beside it. It turns slowly. Going to the next rolls
+ * this one down off the page and the next one in from above; click the record,
+ * or use the arrows, the keys or a sideways swipe. Only the first is in the page;
+ * the rest are pressed from .cr__data as you come to them, so their art stays
+ * unloaded until you are near.
+ *
+ * The grooves are a pattern of fine rings set hard against the pixel grid, with
+ * no smoothing, so that they beat against it and shimmer into interference
+ * bands, as a real record's do in the light. That is drawn once per size, so it
+ * looks the same on every screen. Round them, what a pressing has: a raised rim,
+ * a clear gap between tracks, the smooth run-out with its spiral and the matrix
+ * number scratched into it, and a ring of lettering round the art.
+ *
+ * The tonearm is printed too, its pivot off the page above. It belongs to the
+ * stage rather than the record: it swings clear before a record leaves, comes
+ * back once the next has arrived, and creeps inward over the album's real length.
  */
 import Entry from './Entry.astro'
+import { matrixLine, rims, runOut, trackGaps } from '@/lib/grooves'
 import { pad, type CatalogueItem } from '@/lib/catalogue'
 interface Props { items: CatalogueItem[] }
 const { items } = Astro.props
-/** how many sleeves show behind the front one */
-const BEHIND = 9
+const records = items.map((r, i) => ({
+  title: r.title,
+  img: r.img ?? '',
+  color: r.color,
+  cat: `LUN ${pad(i + 1, 3)}`,
+  tracks: parseInt(r.meta.tracks ?? '', 10) || 8,
+  minutes: parseInt(r.meta.length ?? '', 10) || 40,
+}))
+const first = records[0]
+/** a title short enough to go round the label's foot */
+const round = (s: string) => (s.length > 38 ? `${s.slice(0, 37)}…` : s).toUpperCase()
+/** the arm's line, from the pivot straight down to a bend and the head; the needle is at its length, 807 */
+const ARM = 'M0 0L0 640Q0 690 -16 730L-22 750'
 ---
 
-<section class="cr" id="records" aria-label="records" style={`--n:${BEHIND}`}>
+<section class="cr" id="records" aria-label="records">
   <header class="ax-top">
     <span>II · RECORDS</span>
     <span class="cr__nav">
@@ -26,52 +53,231 @@ const BEHIND = 9
     </span>
   </header>
   <div class="cr__body">
-    <div class="cr__side">
-    <div class="cr__crate" tabindex="0" aria-label="the crate; arrow keys flip through it">
+    <div class="cr__stage" tabindex="0" aria-label="the records; arrow keys or a click on the record go to the next one">
+      {/* the lines the lettering runs along, shared by every record */}
+      <svg class="rc__lines" width="0" height="0" aria-hidden="true">
+        <defs>
+          <path id="rc-head" d="M-170 0A170 170 0 0 1 170 0" />
+          <path id="rc-foot" d="M-183 0A183 183 0 0 0 183 0" />
+          <path id="rc-wax" d={matrixLine} />
+        </defs>
+      </svg>
       {
-        items.map((r, i) => (
-          <button class="sl" data-i={i} tabindex="-1" title={`${r.title}, ${r.by}`} aria-label={`${r.title}, ${r.by}`} style={`--c:${r.color}`}>
-            <span class="sl__disc" aria-hidden="true">
-              <span style={r.thumb ? `background-image:url(${r.thumb})` : `background-color:${r.color}`} />
-            </span>
-            <span class="sl__sleeve" style={r.img ? `background-image:url(${r.img})` : undefined}>
-              {!r.img && <span class="sl__type">{r.title}</span>}
-            </span>
-          </button>
-        ))
+        first && (
+          <div class="rc" data-at="on" aria-hidden="true">
+            <div class="rc__grooves" />
+            <div class="rc__sheen" />
+            <svg class="rc__press" viewBox="-500 -500 1000 1000" fill="none">
+              <path class="rc__gaps" d={trackGaps(first.title, first.tracks)} />
+              <path class="rc__line" d={rims} />
+            </svg>
+            <div class="rc__roll">
+              <div class="rc__turn">
+                <div class="rc__art" style={`background-color:${first.color}`}>
+                  {first.img && <img src={first.img} alt="" />}
+                </div>
+                <svg viewBox="-500 -500 1000 1000" fill="none">
+                  <path class="rc__line" d={runOut} />
+                  <circle class="rc__line" r="156" />
+                  <text class="rc__etch">
+                    <textPath href="#rc-wax" class="rc__matrix">{first.cat}–A1</textPath>
+                  </text>
+                  <text class="rc__type" text-anchor="middle">
+                    <textPath href="#rc-head" startOffset="50%">SIDE A · 33 RPM · LUNALGIA RECORDS</textPath>
+                  </text>
+                  <text class="rc__type" text-anchor="middle">
+                    <textPath href="#rc-foot" startOffset="50%" class="rc__name">{round(first.title)}</textPath>
+                  </text>
+                  <circle class="rc__hole" r="7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        )
       }
-      <div class="cr__lip" aria-hidden="true">
-        <span>LUNALGIA RECORDS</span>
-        <span>LUN <b class="cr__cat">001</b></span>
+      <div class="rc__arm" aria-hidden="true">
+        <svg viewBox="-500 -500 1000 1000" fill="none">
+          <g transform="translate(120 -700)">
+            <g class="rc__swing">
+              <path class="rc__arm-shade" d={ARM} />
+              <path class="rc__arm-edge" d={ARM} />
+              <path class="rc__arm-tube" d={ARM} />
+              <g transform="translate(-22 750) rotate(16)">
+                <rect class="rc__head" x="-10" y="0" width="20" height="58" rx="2" />
+                <path class="rc__arm-edge rc__lift" d="M10 12L26 7" />
+              </g>
+            </g>
+          </g>
+        </svg>
       </div>
-    </div>
-    <p class="cr__hint">Click a sleeve, use ← →, or swipe sideways</p>
     </div>
     <div class="cr__entries">
       {items.map((r, i) => <Entry item={r} i={i} bare flip cat={`LUN ${pad(i + 1, 3)}`} kicker={`${pad(i + 1)} / ${pad(items.length)}`} />)}
     </div>
+    <p class="cr__hint">Click the record, use ← →, or swipe sideways</p>
   </div>
+  <script type="application/json" class="cr__data" set:html={JSON.stringify(records)} />
 </section>
 
 <script>
+  import { INNER, OUTER, trackGaps } from '@/lib/grooves'
+  import { whenIdle } from '@/scripts/after-intro'
+
+  interface Pressing {
+    title: string
+    img: string
+    color: string
+    cat: string
+    tracks: number
+    minutes: number
+  }
+
+  /** the arm's pivot and length, as drawn, in the record's units (a radius of 500) */
+  const PIVOT = [120, -700]
+  const REACH = 807
+  /** how far round it swings to clear the page, and where its needle starts and ends on a record */
+  const CLEAR = 88
+  const SIDE_START = 474
+  const SIDE_END = 272
+  /** the swing, in degrees, that puts the needle this far from the spindle */
+  const swingFor = (r: number) => {
+    for (let t = 0; t < 90; t += 0.05) {
+      const a = (t * Math.PI) / 180
+      if (Math.hypot(PIVOT[0] - REACH * Math.sin(a), PIVOT[1] + REACH * Math.cos(a)) >= r) return t
+    }
+    return CLEAR
+  }
+
+  /** the rings, in the screen's own pixels: a little under four apart and one wide; closer or wider and the bands wash out */
+  const PITCH = 3.9
+  const LINE = 1
+  /**
+   * The grooves, one pixel at a time and each either inked or not, for a record
+   * this many of the screen's pixels across. It is that hard edge against the
+   * pixel grid that makes the interference bands, so it is never smoothed.
+   */
+  const pressGrooves = (size: number) => {
+    const c = document.createElement('canvas')
+    c.width = c.height = size
+    const g = c.getContext('2d')!
+    const px = g.createImageData(size, size)
+    const mid = size / 2
+    const from = (mid * INNER) / 500
+    const to = (mid * OUTER) / 500
+    const ink = [2, 8, 135]
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const r = Math.hypot(x - mid + 0.5, y - mid + 0.5)
+        if (r < from || r > to || r % PITCH >= LINE) continue
+        const at = (y * size + x) * 4
+        px.data[at] = ink[0]
+        px.data[at + 1] = ink[1]
+        px.data[at + 2] = ink[2]
+        px.data[at + 3] = 255
+      }
+    }
+    g.putImageData(px, 0, 0)
+    return new Promise<Blob | null>((ok) => c.toBlob(ok))
+  }
+
   const setup = (root: HTMLElement) => {
-    const sleeves = [...root.querySelectorAll<HTMLElement>('.sl')]
+    const records: Pressing[] = JSON.parse(root.querySelector('.cr__data')!.textContent!)
     const entries = [...root.querySelectorAll<HTMLElement>('.en')]
-    const crate = root.querySelector<HTMLElement>('.cr__crate')!
+    const stage = root.querySelector<HTMLElement>('.cr__stage')!
     const n = root.querySelector('.cr__n')!
-    const cat = root.querySelector('.cr__cat')!
-    const behind = Number(getComputedStyle(root).getPropertyValue('--n')) || 9
+    let current = stage.querySelector<HTMLElement>('.rc')!
+    if (!current) return
+    /** a clean copy to press the others from, keeping the component's scoped styles */
+    const blank = current.cloneNode(true) as HTMLElement
+    const press = (i: number) => {
+      const r = records[i]
+      const el = blank.cloneNode(true) as HTMLElement
+      el.querySelector('.rc__gaps')!.setAttribute('d', trackGaps(r.title, r.tracks))
+      el.querySelector<HTMLElement>('.rc__art')!.style.backgroundColor = r.color
+      el.querySelector('.rc__matrix')!.textContent = `${r.cat}–A1`
+      el.querySelector('.rc__name')!.textContent = (r.title.length > 38 ? `${r.title.slice(0, 37)}…` : r.title).toUpperCase()
+      const img = el.querySelector('img')
+      if (img && r.img) img.src = r.img
+      else img?.remove()
+      return el
+    }
+    /** this one rolls off the way you are going, and the next rolls in behind it */
+    const roll = (dir: number, i: number) => {
+      const old = current
+      old.dataset.at = dir > 0 ? 'below' : 'above'
+      const gone = () => old.remove()
+      old.addEventListener('transitionend', (e) => e.target === old && e.propertyName === 'translate' && gone())
+      setTimeout(gone, 1200)
+      current = press(i)
+      current.dataset.at = dir > 0 ? 'above' : 'below'
+      stage.append(current)
+      // let it be drawn where it starts, so that it moves
+      current.offsetWidth
+      current.dataset.at = 'on'
+    }
+    /** the art either side of you, so the next one arrives with its label on */
+    const nearby = new Set<number>()
+    const preload = (i: number) => {
+      for (const j of [i - 1, i + 1, i + 2]) {
+        if (!records[j]?.img || nearby.has(j)) continue
+        nearby.add(j)
+        new Image().src = records[j].img
+      }
+    }
+    /** the arm: lifted, swung to an angle over so many seconds */
+    const arm = root.querySelector<HTMLElement>('.rc__arm')!
+    const swing = root.querySelector<SVGGElement>('.rc__swing')!
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const swingTo = (deg: number, seconds: number, ease: string) => {
+      swing.style.transition = seconds ? `rotate ${seconds}s ${ease}` : 'none'
+      swing.style.rotate = `${deg}deg`
+    }
+    let armTimers: number[] = []
+    const armLater = (ms: number, f: () => void) => armTimers.push(window.setTimeout(f, ms))
+    /** the swing that just takes the head off the top of the stage, so it travels no further than it must */
+    const clearAngle = () => {
+      const box = arm.getBoundingClientRect()
+      const top = ((stage.getBoundingClientRect().top - (box.top + box.height / 2)) / box.height) * 1000
+      const cos = (top - 90 - PIVOT[1]) / REACH
+      return Math.min(CLEAR, (Math.acos(Math.max(0, Math.min(1, cos))) * 180) / Math.PI)
+    }
+    /** down onto the record in one movement, lowering as it comes, then riding inward for the length of the album */
+    const play = () => {
+      armTimers.forEach(clearTimeout)
+      armTimers = []
+      swingTo(swingFor(SIDE_START), 0.5, 'cubic-bezier(0.3, 0.7, 0.2, 1)')
+      arm.classList.remove('is-lifted')
+      armLater(520, () => {
+        // on the record for certain, even if a throttled tab never ran the swing, then the slow ride
+        swingTo(swingFor(SIDE_START), 0, '')
+        swing.getBoundingClientRect()
+        swingTo(swingFor(SIDE_END), records[a].minutes * 60, 'linear')
+      })
+    }
+    /** up and away at once, to come back as the next record lands */
+    const clear = () => {
+      armTimers.forEach(clearTimeout)
+      armTimers = []
+      arm.classList.add('is-lifted')
+      swing.style.transition = 'rotate 0s'
+      // from wherever it has got to on its slow way in
+      swing.style.rotate = getComputedStyle(swing).rotate
+      swing.getBoundingClientRect()
+      swingTo(clearAngle(), 0.26, 'cubic-bezier(0.4, 0, 0.9, 0.5)')
+      armLater(420, play)
+    }
     let a = 0
     const set = (i: number) => {
-      a = Math.max(0, Math.min(sleeves.length - 1, i))
+      const next = Math.max(0, Math.min(records.length - 1, i))
+      const dir = Math.sign(next - a)
+      a = next
       n.textContent = String(a + 1).padStart(2, '0')
-      cat.textContent = String(a + 1).padStart(3, '0')
-      sleeves.forEach((s, j) => {
-        const d = j - a
-        s.style.setProperty('--d', String(Math.max(-1, Math.min(behind + 1, d))))
-        s.style.zIndex = String(sleeves.length - j)
-        s.dataset.state = d < 0 ? 'past' : d === 0 ? 'on' : d <= behind ? 'behind' : 'gone'
-      })
+      if (dir) {
+        roll(dir, a)
+        if (still) swingTo(swingFor(SIDE_START), 0, '')
+        else clear()
+      }
+      preload(a)
       // the details flip over as on the shelves: the old title tips away over the top,
       // the new one comes up from below, and the lines under it slide in after
       entries.forEach((e, j) => {
@@ -94,13 +300,12 @@ const BEHIND = 9
     }
     set(0)
     root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => set(a + Number(b.dataset.step))))
-    sleeves.forEach((s, j) => s.addEventListener('click', () => set(j === a ? a + 1 : j)))
-    // ← and → flip through while the crate fills the middle of the screen, as the posters on
+    // ← and → go through them while the record fills the middle of the screen, as the posters on
     // the work page do, or while it has focus; ↑ and ↓ only with focus, since they scroll the page
     const onKey = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.target as Element).closest?.('input, textarea, select, [contenteditable]')) return
-      const mine = crate.contains(document.activeElement)
-      const r = crate.getBoundingClientRect()
+      const mine = document.activeElement === stage
+      const r = stage.getBoundingClientRect()
       const here = mine || (r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5)
       if (here && e.key === 'ArrowRight') set(a + 1)
       else if (here && e.key === 'ArrowLeft') set(a - 1)
@@ -111,16 +316,16 @@ const BEHIND = 9
     }
     addEventListener('keydown', onKey)
     document.addEventListener('astro:before-swap', () => removeEventListener('keydown', onKey), { once: true })
-    // sideways scrolling (a trackpad swipe, or shift and the wheel) flips through;
-    // scrolling down always moves the page, so the crate never traps you
+    // sideways scrolling (a trackpad swipe, or shift and the wheel) goes through them;
+    // scrolling down always moves the page, so the record never traps you
     let acc = 0
     let last = 0
-    crate.addEventListener(
+    stage.addEventListener(
       'wheel',
       (e) => {
         const dx = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX
         if (!dx || (!e.shiftKey && Math.abs(e.deltaX) < Math.abs(e.deltaY))) return
-        if ((dx > 0 && a === sleeves.length - 1) || (dx < 0 && a === 0)) return
+        if ((dx > 0 && a === records.length - 1) || (dx < 0 && a === 0)) return
         e.preventDefault()
         // keep the smooth scroller from moving the page as well
         e.stopPropagation()
@@ -133,6 +338,123 @@ const BEHIND = 9
         }
       },
       { passive: false },
+    )
+    // a swipe across goes to the next or the last; a tap on the record goes to the next
+    let down: { x: number; y: number } | null = null
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.button === 0) down = { x: e.clientX, y: e.clientY }
+    })
+    stage.addEventListener('pointerup', (e) => {
+      if (!down) return
+      const dx = e.clientX - down.x
+      const dy = e.clientY - down.y
+      down = null
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) set(a - Math.sign(dx))
+      else if (Math.hypot(dx, dy) < 8 && (e.target as Element).closest('.rc')) set(a + 1)
+    })
+    stage.addEventListener('pointercancel', () => (down = null))
+
+    // the grooves are drawn for the record's size, after the page has settled, and again if that changes;
+    // every record shares them, and until then a plain pattern stands in
+    let pressedAt = 0
+    let pressed = ''
+    let gone = false
+    const repress = async () => {
+      const size = Math.round(current.clientWidth * devicePixelRatio)
+      if (gone || !size || size === pressedAt) return
+      pressedAt = size
+      const blob = await pressGrooves(size)
+      if (gone || !blob || size !== pressedAt) return
+      if (pressed) URL.revokeObjectURL(pressed)
+      pressed = URL.createObjectURL(blob)
+      stage.style.setProperty('--grooves', `url(${pressed})`)
+    }
+    let sizeTimer = 0
+    const ro = new ResizeObserver(() => {
+      clearTimeout(sizeTimer)
+      sizeTimer = window.setTimeout(repress, 200)
+    })
+    whenIdle(() => {
+      if (gone) return
+      repress()
+      ro.observe(stage)
+    }, 800)
+
+    // the arm comes down the first time the record is in view; with reduced motion it just rests there
+    let armSeen = false
+    const armIo = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting || armSeen) return
+        armSeen = true
+        armIo.disconnect()
+        if (armTimers.length) return
+        // waiting just off the page, with no long way to come
+        arm.classList.add('is-lifted')
+        swingTo(clearAngle(), 0, '')
+        swing.getBoundingClientRect()
+        play()
+      },
+      { threshold: 0.35 },
+    )
+    if (still) {
+      swingTo(swingFor(SIDE_START), 0, '')
+      arm.classList.remove('is-lifted')
+    } else armIo.observe(stage)
+
+    // the light follows the pointer, as if you were tilting the disc under a lamp; where there is
+    // no pointer, scrolling tilts it instead. It eases along behind, and stops when it has caught up
+    const light = { x: 9, y: -4 }
+    const lightTo = { ...light }
+    let lightFrame = 0
+    const shine = () => {
+      lightFrame = 0
+      light.x += (lightTo.x - light.x) * 0.12
+      light.y += (lightTo.y - light.y) * 0.12
+      stage.style.setProperty('--light-x', `${light.x.toFixed(2)}px`)
+      stage.style.setProperty('--light-y', `${light.y.toFixed(2)}px`)
+      // the fan runs square to the way the rings are parted
+      stage.style.setProperty('--light-a', `${((Math.atan2(light.x, -light.y) * 180) / Math.PI + 90).toFixed(1)}deg`)
+      if (Math.abs(lightTo.x - light.x) + Math.abs(lightTo.y - light.y) > 0.02) lightFrame = requestAnimationFrame(shine)
+    }
+    const aimLight = (dx: number, dy: number) => {
+      // never quite together, or the fan would open out to nothing
+      const far = Math.max(1e-3, Math.hypot(dx, dy))
+      // parted by the screen's pixels, like the rings, so the fan is the same on any screen
+      const part = (5 + 7 * Math.min(1, far)) / devicePixelRatio
+      lightTo.x = (dx / far) * part
+      lightTo.y = (dy / far) * part
+      if (!lightFrame) lightFrame = requestAnimationFrame(shine)
+    }
+    const onLightMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
+      const b = current.getBoundingClientRect()
+      if (!b.width) return
+      aimLight((e.clientX - (b.left + b.width / 2)) / (b.width / 2), (e.clientY - (b.top + b.height / 2)) / (b.height / 2))
+    }
+    const onLightScroll = () => {
+      const b = stage.getBoundingClientRect()
+      if (b.bottom < 0 || b.top > innerHeight) return
+      const t = (b.top + b.height / 2) / innerHeight - 0.5
+      aimLight(Math.cos(t * 5), Math.sin(t * 5))
+    }
+    const moving = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    const hovering = matchMedia('(hover: hover)').matches
+    aimLight(0.9, -0.4)
+    if (moving && hovering) root.addEventListener('pointermove', onLightMove)
+    if (moving && !hovering) addEventListener('scroll', onLightScroll, { passive: true })
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        gone = true
+        ro.disconnect()
+        clearTimeout(sizeTimer)
+        cancelAnimationFrame(lightFrame)
+        removeEventListener('scroll', onLightScroll)
+        armIo.disconnect()
+        armTimers.forEach(clearTimeout)
+        if (pressed) URL.revokeObjectURL(pressed)
+      },
+      { once: true },
     )
   }
   // the site swaps pages without reloading, so set up on every arrival, not once
@@ -150,18 +472,211 @@ const BEHIND = 9
     display: inline-flex;
     cursor: pointer;
   }
-  .cr__body {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 3rem 5vw;
-    align-items: start;
-    margin-top: 3rem;
+  .cr {
+    /* the column the details keep, clear of the record */
+    --side: min(30vw, 27rem);
   }
-  /* every record's details in one cell, so the column never jumps; the one
-     you are on shows, sitting level with the top of the sleeve */
+  .cr__body {
+    position: relative;
+    /* the screen, under the site header, the section bar and this section's own */
+    min-height: clamp(34rem, calc(100svh - 8.5rem), 58rem);
+  }
+  /* out to both edges of the screen, and cut off at the rule above */
+  .cr__stage {
+    position: absolute;
+    inset: 0 -4vw;
+    container-type: size;
+    overflow: hidden;
+    outline: none;
+    touch-action: pan-y;
+  }
+  .cr__stage:focus-visible {
+    outline: 1.5px solid var(--ultramarine);
+    outline-offset: -1.5px;
+  }
+  /* as large as the height allows, without its rim reaching the details */
+  .rc {
+    --r: min(150cqh, calc((100cqw - 4vw - var(--side) - 2rem) / 0.66));
+    position: absolute;
+    top: calc(50cqh - var(--r) / 2);
+    right: calc(var(--r) * -0.34);
+    width: var(--r);
+    height: var(--r);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: translate 0.85s var(--ease-out);
+  }
+  .rc svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .rc__lines {
+    position: absolute;
+  }
+  /* shown pixel for pixel, or the interference bands are smoothed away; the plain rings stand in until it is drawn */
+  .rc__grooves {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    mask: radial-gradient(closest-side, transparent 52.4%, #000 52.4% 96.8%, transparent 96.8%);
+  }
+  /* the same rings twice, a few pixels apart: where they fall together the page shows through and
+     where they fall between it does not, which draws a fan of bright bands across the disc, as
+     light does on the face of a CD. Moving the second set moves the light */
+  .rc__grooves::before,
+  .rc__grooves::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--grooves, repeating-radial-gradient(circle, var(--ultramarine) 0 1px, transparent 1px 3.9px));
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+  }
+  .rc__grooves::after {
+    translate: var(--light-x, 9px) var(--light-y, -4px);
+  }
+  /* the brightest of it, along the same line as the fan; it stays with the light while the record turns */
+  .rc__sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+      from calc(var(--light-a, 66deg) - 29deg),
+      transparent 0,
+      var(--bg) 8%,
+      transparent 16% 50%,
+      var(--bg) 58%,
+      transparent 66%
+    );
+    opacity: 0.9;
+    mask: radial-gradient(closest-side, transparent 52.4%, #000 52.4% 96.8%, transparent 96.8%);
+  }
+  .rc__gaps {
+    stroke: var(--bg);
+    stroke-width: 7;
+  }
+  .rc__line {
+    stroke: var(--ultramarine);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  /* scratched in by hand, as matrix numbers are */
+  .rc__etch {
+    fill: var(--ultramarine);
+    font: italic 400 15px var(--font-display);
+    letter-spacing: 0.08em;
+  }
+  /* the arm sits where the record does and is measured the same way, over it and clear of the pointer */
+  .rc__arm {
+    --r: min(150cqh, calc((100cqw - 4vw - var(--side) - 2rem) / 0.66));
+    position: absolute;
+    z-index: 1;
+    top: calc(50cqh - var(--r) / 2);
+    right: calc(var(--r) * -0.34);
+    width: var(--r);
+    height: var(--r);
+    pointer-events: none;
+  }
+  .rc__swing {
+    rotate: 88deg;
+  }
+  /* a line of ink filled with the page, so the grooves stop at it */
+  .rc__arm-edge {
+    stroke: var(--ultramarine);
+    stroke-width: 11;
+    stroke-linecap: round;
+  }
+  .rc__arm-tube {
+    stroke: var(--bg);
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+  .rc__lift {
+    stroke-width: 3;
+  }
+  .rc__head {
+    fill: var(--ultramarine);
+  }
+  /* its shadow, printed flat as the sleeves' were: close while it plays, further off when lifted */
+  .rc__arm-shade {
+    stroke: var(--ultramarine);
+    stroke-width: 9;
+    stroke-linecap: round;
+    opacity: 0.22;
+    translate: 7px 2px;
+    transition: translate 0.5s var(--ease-out);
+  }
+  .rc__arm.is-lifted .rc__arm-shade {
+    translate: 20px 6px;
+  }
+  .rc__type {
+    fill: var(--ultramarine);
+    font: 400 10.5px var(--font-din);
+    letter-spacing: 0.16em;
+  }
+  .rc__hole {
+    fill: var(--bg);
+    stroke: var(--ultramarine);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  /* it starts and leaves clear of the stage, however tall the stage is against the record */
+  .rc[data-at='above'] {
+    translate: 0 calc(-100% - 25cqh);
+  }
+  .rc[data-at='below'] {
+    translate: 0 calc(100% + 25cqh);
+  }
+  .rc:not([data-at='on']) {
+    pointer-events: none;
+  }
+  /* rolling down the page turns it, as a wheel does; the slow turn is inside that */
+  .rc__roll {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: rotate 0.85s var(--ease-out);
+  }
+  .rc[data-at='above'] .rc__roll {
+    rotate: -120deg;
+  }
+  .rc[data-at='below'] .rc__roll {
+    rotate: 120deg;
+  }
+  .rc__turn {
+    position: absolute;
+    inset: 0;
+    animation: rc-turn 48s linear infinite;
+  }
+  /* the art, inside the ring of lettering */
+  .rc__art {
+    position: absolute;
+    inset: 34.4%;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  .rc__art img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @keyframes rc-turn {
+    to {
+      rotate: 360deg;
+    }
+  }
+  /* every record's details in one cell, so the column never jumps */
   .cr__entries {
+    position: relative;
+    z-index: 2;
     display: grid;
-    padding-top: calc(var(--n) * var(--step-out));
+    width: var(--side);
+    padding-top: 2.2rem;
   }
   .cr__entries > :global(.en) {
     grid-area: 1 / 1;
@@ -205,125 +720,57 @@ const BEHIND = 9
   .cr__entries :global(.en.no-t .en__text > *) {
     transition: none;
   }
-  .cr {
-    --s: clamp(15rem, 28vw, 24rem);
-    --step: calc(var(--s) * 0.045);
-    /* the strips above the front sleeve, which the details line up under */
-    --step-out: var(--step);
-  }
-  .cr__crate {
-    position: relative;
-    isolation: isolate;
-    /* the sleeve, the strips behind it, the lip, and room for the record to the right */
-    width: calc(var(--s) * 1.42);
-    height: calc(var(--s) + var(--n) * var(--step) + 2.4rem);
-    outline: none;
-  }
-  .sl {
-    all: unset;
-    position: absolute;
-    left: 0;
-    bottom: 2.4rem;
-    width: var(--s);
-    height: var(--s);
-    cursor: pointer;
-    transform: translateY(calc(var(--d) * var(--step) * -1));
-    transition: transform 0.5s var(--ease-out), opacity 0.3s;
-  }
-  .sl[data-state='behind']:hover {
-    transform: translateY(calc(var(--d) * var(--step) * -1 - 0.5rem));
-  }
-  .sl[data-state='past'] {
-    transform: translateY(2.4rem);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .sl[data-state='gone'] {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .sl__sleeve {
-    position: absolute;
-    inset: 0;
-    background: var(--c) center / cover;
-    /* a hairline of the page between one sleeve and the next */
-    box-shadow: 0 -1.5px 0 var(--bg);
-  }
-  .sl__type {
-    display: block;
-    padding: 1.2rem;
-    font: italic 1.8rem/1 var(--font-display);
-  }
-  /* the record, half out of the front sleeve */
-  .sl__disc {
-    position: absolute;
-    top: 3%;
-    left: 3%;
-    width: 94%;
-    height: 94%;
-    border-radius: 50%;
-    background: #14142b;
-    box-shadow: inset 0 0 0 calc(var(--s) * 0.09) #14142b, inset 0 0 0 calc(var(--s) * 0.092) rgb(255 255 255 / 0.12);
-    display: grid;
-    place-items: center;
-    transition: translate 0.6s var(--ease-out) 0.08s;
-  }
-  .sl__disc span {
-    width: 34%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: center / cover;
-  }
-  .sl[data-state='on'] .sl__disc {
-    translate: 42% 0;
-  }
-  /* the front of the crate */
-  .cr__lip {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    z-index: 999;
-    width: var(--s);
-    height: 2.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 0.9rem;
-    box-sizing: border-box;
-    background: var(--ultramarine);
-    color: var(--lavender);
-    font: 400 0.6rem/1 var(--font-din);
-    letter-spacing: 0.2em;
-  }
   .cr__hint {
-    margin: 1.2rem 0 0;
+    position: absolute;
+    left: 0;
+    bottom: 0.9rem;
+    z-index: 2;
+    margin: 0;
+    pointer-events: none;
     font: 400 0.6rem/1.4 var(--font-din);
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted);
   }
-  .cr__lip b {
-    font-weight: inherit;
-  }
-  .cr__crate:focus-visible .cr__lip {
-    outline: 1.5px solid var(--ultramarine);
-    outline-offset: 4px;
-  }
-  @media (max-width: 1000px) {
+  /* on a phone: the record's corner across the top, the details under it */
+  @media (max-width: 760px) {
     .cr__body {
-      grid-template-columns: 1fr;
+      min-height: 0;
     }
-    .cr {
-      --s: min(20rem, 66vw);
+    .cr__stage {
+      position: relative;
+      inset: auto;
+      margin-inline: -4vw;
+      height: 93vw;
+    }
+    .rc,
+    .rc__arm {
+      --r: 150vw;
+      top: -37.5vw;
+      right: -78vw;
     }
     .cr__entries {
-      padding-top: 0;
+      width: auto;
+      padding-top: 1.4rem;
+    }
+    .cr__hint {
+      position: static;
+      margin-top: 1.4rem;
+    }
+  }
+  /* the keys mean nothing on a touch screen */
+  @media (hover: none) {
+    .cr__hint {
+      display: none;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sl,
-    .sl__disc {
+    .rc,
+    .rc__roll {
       transition: none;
+    }
+    .rc__turn {
+      animation: none;
     }
   }
 </style>
