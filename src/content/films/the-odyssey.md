@@ -3,6 +3,7 @@ title: The Odyssey
 by: Christopher Nolan
 year: 2026
 rating: 80
+pull: Visually incredible
 liked: true
 genres:
   - fantasy
