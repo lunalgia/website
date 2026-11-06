@@ -1,0 +1,645 @@
+---
+/**
+ * The books, one at a time, as one giant book printed in the site's ink: the
+ * cover lying flat, in colour, and under it the edges of the paper, as thick as the
+ * book has pages and ruled by hand (src/lib/block.ts). There is no play of light,
+ * as there is on the record: paper does not catch it. Going to the next slides this
+ * one down off the page and the next one in from above; click the book, or use the
+ * arrows, the keys or a sideways swipe. Only the first is in the page; the rest are
+ * drawn from .bk__data as you come to them, so their covers stay unloaded until you
+ * are near.
+ *
+ * The details hold still as the films' do: every book's value for a line sits in
+ * the same cell, so each line is as tall as its longest entry and only the words
+ * turn over. The ribbon belongs to the book: it swings as the book lands, then leans
+ * after the pointer.
+ */
+import Score from './Score.astro'
+import { COVER_H, COVER_W, HEIGHT, WIDTH, blockOf, coverMatrix, ribbonOf } from '@/lib/block'
+import { pad, type CatalogueItem } from '@/lib/catalogue'
+interface Props {
+  items: CatalogueItem[]
+}
+const { items } = Astro.props
+const no = (i: number) => `NO. ${pad(i + 1, 3)}`
+const state = (i: number) => (i ? 'off' : 'on')
+const books = items.map((b) => ({
+  img: b.img ?? '',
+  color: b.color,
+  pages: b.size ?? 300,
+}))
+const first = books[0]
+const shape = first && blockOf(first.pages)
+const ribbon = shape && ribbonOf(shape.ribbon)
+/** a line set letter by letter, so it can turn over as the crate's titles do */
+const letters = (s: string) => {
+  let k = 0
+  return s.split(' ').map((w) => [...w].map((c) => ({ c, i: k++ })))
+}
+---
+
+<section class="bk" id="books" aria-label="books">
+  <header class="ax-top">
+    <span>I · BOOKS</span>
+    <span class="bk__nav">
+      <button type="button" data-step="-1" aria-label="previous book">
+        <svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M33 7H1M7 1 1 7l6 6" /></svg>
+      </button>
+      <span><b class="bk__n">01</b> / {pad(items.length)}</span>
+      <button type="button" data-step="1" aria-label="next book">
+        <svg viewBox="0 0 34 14" width="34" height="14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M1 7h32M27 1l6 6-6 6" /></svg>
+      </button>
+    </span>
+  </header>
+  <div class="bk__body">
+    <div class="bk__stage" data-keys tabindex="0" aria-label="the books; arrow keys or a click on the book go to the next one">
+      {
+        first && (
+          <svg class="bk__book" data-at="on" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} fill="none" aria-hidden="true">
+            <path class="bk__paper" d={shape.paper} />
+            <path class="bk__rules" d={shape.rules} />
+            <path class="bk__line bk__outline" d={shape.outline} />
+            <path class="bk__line bk__board" d={shape.board} />
+            <g transform={coverMatrix}>
+              <rect class="bk__ground" width={COVER_W} height={COVER_H} fill={first.color} />
+              {first.img && <image class="bk__cover" href={first.img} width={COVER_W} height={COVER_H} preserveAspectRatio="xMidYMid slice" />}
+            </g>
+            <path class="bk__ribbon" d={ribbon.ribbon} />
+            <path class="bk__weave" d={ribbon.weave} />
+          </svg>
+        )
+      }
+    </div>
+    <article class="bk__side">
+      <div class="bk__k bk__slot">
+        {items.map((_, i) => <div class="bk__part" data-i={i} data-state={state(i)}><div class="bk__ln" style="--k:0">{pad(i + 1)} / {pad(items.length)}</div></div>)}
+      </div>
+      {/* titles rest on the line under them, however many lines the longest one takes */}
+      <h3 class="bk__t bk__slot">
+        {
+          items.map((b, i) => (
+            <div class="bk__part" data-i={i} data-state={state(i)} aria-label={b.title}>
+              {letters(b.short ?? b.title).map((w) => (
+                <span class="bk__w" aria-hidden="true">
+                  {w.map(({ c, i }) => (
+                    <span class="bk__l" style={`--i:${i}`}>{c}</span>
+                  ))}
+                </span>
+              ))}
+            </div>
+          ))
+        }
+      </h3>
+      <div class="bk__by bk__slot">
+        {items.map((b, i) => <div class="bk__part" data-i={i} data-state={state(i)}><div class="bk__ln" style="--k:1">{b.by}{b.year && `, ${b.year}`}</div></div>)}
+      </div>
+      <div class="bk__cat bk__slot">
+        {items.map((_, i) => <div class="bk__part" data-i={i} data-state={state(i)}><div class="bk__ln" style="--k:2">{no(i)}</div></div>)}
+      </div>
+      <div class="bk__score bk__slot">
+        {
+          items.map((b, i) => (
+            <div class="bk__part" data-i={i} data-state={state(i)}>
+              <div class="bk__ln bk__row" style="--k:3">
+                {b.rating != null ? <Score rating={b.rating} /> : <span class="bk__none">Not scored</span>}
+                {b.favourite && <span class="bk__tag">ALL-TIME FAVOURITE</span>}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <dl class="bk__facts">
+        {
+          [
+            ['Pages', (b: CatalogueItem) => b.size],
+            ['Language', (b: CatalogueItem) => b.meta.language],
+            ['Country', (b: CatalogueItem) => b.meta.country],
+          ].map(([label, value]: any) => (
+            <div>
+              <dt>{label}</dt>
+              <dd class="bk__slot">
+                {items.map((b, i) => <div class="bk__part" data-i={i} data-state={state(i)}><div class="bk__ln" style="--k:4">{value(b) ?? '—'}</div></div>)}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+      <div class="bk__tags bk__slot">
+        {
+          items.map((b, i) => (
+            <div class="bk__part" data-i={i} data-state={state(i)}>
+              <div class="bk__ln bk__row" style="--k:5">
+                {b.genres.map((g) => <span>{g}</span>)}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="bk__links bk__slot">
+        {
+          items.map((b, i) => (
+            <div class="bk__part" data-i={i} data-state={state(i)}>
+              <div class="bk__ln bk__row" style="--k:6">
+                {b.href ? <a class="bk__go" href={b.href}>Read the review <span aria-hidden="true">→</span></a> : <span class="bk__none">No review yet</span>}
+                {b.links.slice(0, 2).map(([k, u]) => <a href={u} target="_blank" rel="noopener">{k} ↗</a>)}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </article>
+    <p class="bk__hint">Click the book, use ← →, or swipe sideways</p>
+  </div>
+  <script type="application/json" class="bk__data" set:html={JSON.stringify(books)} />
+  <slot />
+</section>
+
+<script>
+  import { blockOf, ribbonOf } from '@/lib/block'
+  import { holdsKeys } from '@/scripts/stage-keys'
+
+  interface Drawn {
+    img: string
+    color: string
+    pages: number
+  }
+
+  const setup = (root: HTMLElement) => {
+    const books: Drawn[] = JSON.parse(root.querySelector('.bk__data')!.textContent!)
+    const stage = root.querySelector<HTMLElement>('.bk__stage')!
+    const parts = [...root.querySelectorAll<HTMLElement>('.bk__part')]
+    const n = root.querySelector('.bk__n')!
+    let current = stage.querySelector<SVGSVGElement>('.bk__book')!
+    if (!current) return
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    /** a clean copy to draw the others from, keeping the component's scoped styles */
+    const blank = current.cloneNode(true) as SVGSVGElement
+    /** where the ribbon of the book in front starts */
+    let from = blockOf(books[0].pages).ribbon
+    const drawRibbon = (el: SVGSVGElement, sway: number) => {
+      const r = ribbonOf(from, sway)
+      el.querySelector('.bk__ribbon')!.setAttribute('d', r.ribbon)
+      el.querySelector('.bk__weave')!.setAttribute('d', r.weave)
+    }
+    const draw = (i: number) => {
+      const b = books[i]
+      const shape = blockOf(b.pages)
+      const el = blank.cloneNode(true) as SVGSVGElement
+      el.querySelector('.bk__paper')!.setAttribute('d', shape.paper)
+      el.querySelector('.bk__rules')!.setAttribute('d', shape.rules)
+      el.querySelector('.bk__outline')!.setAttribute('d', shape.outline)
+      el.querySelector('.bk__board')!.setAttribute('d', shape.board)
+      el.querySelector('.bk__ground')!.setAttribute('fill', b.color)
+      const img = el.querySelector('image')
+      if (img && b.img) img.setAttribute('href', b.img)
+      else img?.remove()
+      from = shape.ribbon
+      drawRibbon(el, 0)
+      return el
+    }
+    /** the ribbon, on a spring */
+    let sway = 0
+    let vel = 0
+    let lean = 0
+    let frame = 0
+    const tick = () => {
+      frame = 0
+      vel += (lean - sway) * 0.035
+      vel *= 0.9
+      sway += vel
+      drawRibbon(current, sway)
+      if (Math.abs(lean - sway) + Math.abs(vel) > 0.002) frame = requestAnimationFrame(tick)
+    }
+    const wake = () => {
+      if (!frame) frame = requestAnimationFrame(tick)
+    }
+    /** the cover either side of you, so the next one arrives with its art on */
+    const nearby = new Set<number>()
+    const preload = (i: number) => {
+      for (const j of [i - 1, i + 1, i + 2]) {
+        if (!books[j]?.img || nearby.has(j)) continue
+        nearby.add(j)
+        new Image().src = books[j].img
+      }
+    }
+    let a = 0
+    const set = (i: number) => {
+      const next = Math.max(0, Math.min(books.length - 1, i))
+      const dir = Math.sign(next - a)
+      if (!dir) return
+      a = next
+      n.textContent = String(a + 1).padStart(2, '0')
+      // this one goes off the way you are going, and the next comes in behind it
+      const old = current
+      old.dataset.at = dir > 0 ? 'below' : 'above'
+      setTimeout(() => old.remove(), still ? 0 : 900)
+      current = draw(a)
+      current.dataset.at = dir > 0 ? 'above' : 'below'
+      stage.append(current)
+      // let it be drawn where it starts, so that it moves
+      current.getBoundingClientRect()
+      current.dataset.at = 'on'
+      // the ribbon trails behind as it comes in, and settles
+      if (!still) {
+        sway = -dir * 1.5
+        vel = 0
+        wake()
+      }
+      // the old words tip away, the new ones come up in the same place, and nothing else moves
+      parts.forEach((el) => {
+        if (Number(el.dataset.i) === a) el.dataset.state = 'on'
+        else if (el.dataset.state === 'on') {
+          el.dataset.state = 'was'
+          setTimeout(() => el.dataset.state === 'was' && (el.dataset.state = 'off'), 650)
+        }
+      })
+      preload(a)
+    }
+    preload(0)
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => b.addEventListener('click', () => set(a + Number(b.dataset.step))))
+    // ← and → go through them while the book has most of the screen, centred or not;
+    // ↑ and ↓ only with focus, since they scroll the page
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.target as Element).closest?.('input, textarea, select, [contenteditable]')) return
+      const mine = document.activeElement === stage
+      const here = holdsKeys(stage)
+      if (here && e.key === 'ArrowRight') set(a + 1)
+      else if (here && e.key === 'ArrowLeft') set(a - 1)
+      else if (mine && e.key === 'ArrowDown') set(a + 1)
+      else if (mine && e.key === 'ArrowUp') set(a - 1)
+      else return
+      e.preventDefault()
+    }
+    addEventListener('keydown', onKey)
+    // sideways scrolling (a trackpad swipe, or shift and the wheel) goes through them;
+    // scrolling down always moves the page, so the book never traps you
+    let acc = 0
+    let last = 0
+    stage.addEventListener(
+      'wheel',
+      (e) => {
+        const dx = e.shiftKey ? e.deltaY || e.deltaX : e.deltaX
+        if (!dx || (!e.shiftKey && Math.abs(e.deltaX) < Math.abs(e.deltaY))) return
+        if ((dx > 0 && a === books.length - 1) || (dx < 0 && a === 0)) return
+        e.preventDefault()
+        // keep the smooth scroller from moving the page as well
+        e.stopPropagation()
+        acc += dx
+        const now = performance.now()
+        if (Math.abs(acc) > 40 && now - last > 110) {
+          set(a + Math.sign(acc))
+          acc = 0
+          last = now
+        }
+      },
+      { passive: false },
+    )
+    // a swipe across goes to the next or the last; a tap on the book goes to the next
+    let down: { x: number; y: number } | null = null
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.button === 0) down = { x: e.clientX, y: e.clientY }
+    })
+    stage.addEventListener('pointerup', (e) => {
+      if (!down) return
+      const dx = e.clientX - down.x
+      const dy = e.clientY - down.y
+      down = null
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) set(a - Math.sign(dx))
+      else if (Math.hypot(dx, dy) < 8 && (e.target as Element).closest('.bk__paper, .bk__cover, .bk__ground')) set(a + 1)
+    })
+    stage.addEventListener('pointercancel', () => (down = null))
+    // the ribbon leans after the pointer
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
+      const r = stage.getBoundingClientRect()
+      lean = ((e.clientX - r.left) / r.width - 0.5) * 1.2
+      wake()
+    }
+    if (!still) root.addEventListener('pointermove', onMove)
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        removeEventListener('keydown', onKey)
+        cancelAnimationFrame(frame)
+      },
+      { once: true },
+    )
+  }
+  // the site swaps pages without reloading, so set up on every arrival, not once
+  document.addEventListener('astro:page-load', () => document.querySelectorAll<HTMLElement>('.bk').forEach(setup))
+</script>
+
+<style>
+  .bk__nav {
+    display: inline-flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  .bk__nav button {
+    all: unset;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .bk {
+    /* the column the details keep, clear of the book */
+    --side: min(30vw, 27rem);
+  }
+  .bk__body {
+    position: relative;
+    /* the screen, under the site header, the section bar and this section's own */
+    min-height: clamp(34rem, calc(100svh - 8.5rem), 58rem);
+  }
+  /* out to both edges of the screen, and cut off at the rule above */
+  .bk__stage {
+    --clear: calc(4vw + var(--side) + 1rem);
+    position: absolute;
+    inset: 0 -4vw;
+    container-type: size;
+    overflow: hidden;
+    outline: none;
+    touch-action: pan-y;
+  }
+  .bk__stage:focus-visible {
+    outline: 1.5px solid var(--ultramarine);
+    outline-offset: -1.5px;
+  }
+  /* all of it on stage, as large as the room beside the details allows */
+  .bk__book {
+    --w: min(calc(100cqw - var(--clear) - 1rem), calc(100cqh * 733 / 800));
+    position: absolute;
+    top: calc(50cqh - var(--w) * 400 / 733);
+    left: calc(var(--clear) + (100cqw - var(--clear) - var(--w)) / 2);
+    width: var(--w);
+    height: calc(var(--w) * 800 / 733);
+    overflow: visible;
+    pointer-events: none;
+    transition: translate 0.85s var(--ease-out);
+  }
+  .bk__book[data-at='above'] {
+    translate: 8% calc(-100% - 25cqh);
+  }
+  .bk__book[data-at='below'] {
+    translate: -8% calc(100% + 25cqh);
+  }
+  .bk__paper {
+    fill: var(--bg);
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .bk__rules,
+  .bk__line {
+    stroke: var(--ultramarine);
+    vector-effect: non-scaling-stroke;
+  }
+  .bk__rules {
+    stroke-width: 0.75;
+  }
+  .bk__line {
+    stroke-width: 1;
+  }
+  .bk__board {
+    stroke-width: 2.5;
+  }
+  .bk__ground,
+  .bk__cover {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .bk__ribbon {
+    fill: var(--ultramarine);
+    stroke: var(--bg);
+    stroke-width: 1;
+    paint-order: stroke;
+    vector-effect: non-scaling-stroke;
+  }
+  .bk__weave {
+    stroke: var(--bg);
+    stroke-width: 0.6;
+    opacity: 0.55;
+    vector-effect: non-scaling-stroke;
+  }
+  /* the details, over the stage's left side */
+  .bk__side {
+    position: relative;
+    z-index: 2;
+    width: var(--side);
+    padding-top: 2.2rem;
+    color: var(--ultramarine);
+    pointer-events: none;
+  }
+  .bk__side a {
+    pointer-events: auto;
+  }
+  /* every book's value for a line sits in the same cell; the line is as tall as the longest */
+  .bk__slot {
+    display: grid;
+  }
+  .bk__part {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+  .bk__part[data-state='off'] {
+    visibility: hidden;
+  }
+  /* a sweep down the column: --k counts the lines, from the top */
+  .bk__ln {
+    transition:
+      translate 0.6s var(--ease-out),
+      opacity 0.45s var(--ease-out);
+  }
+  [data-state='on'] > .bk__ln {
+    transition-delay: calc(240ms + var(--k) * 50ms);
+  }
+  [data-state='was'] > .bk__ln {
+    translate: 0 -0.45rem;
+    opacity: 0;
+    transition-duration: 0.22s;
+    transition-delay: calc((6 - var(--k)) * 22ms);
+  }
+  [data-state='off'] > .bk__ln {
+    translate: 0 0.7rem;
+    opacity: 0;
+    transition: none;
+  }
+  /* the title turns over letter by letter, as the crate's do */
+  .bk__t {
+    align-items: end;
+    margin: 0.7rem 0 0.4rem;
+    perspective: 600px;
+    font: italic 400 clamp(2.2rem, 3.6vw, 3.6rem) / 0.95 var(--font-display);
+  }
+  .bk__w {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 0.22em;
+  }
+  .bk__w:last-child {
+    margin-right: 0;
+  }
+  .bk__l {
+    display: inline-block;
+    backface-visibility: hidden;
+    transform-origin: 50% 50% -0.3em;
+    transform: rotateX(-90deg);
+    opacity: 0;
+    transition:
+      transform 0.5s var(--ease-out),
+      opacity 0.5s var(--ease-out);
+    /* long titles turn over no slower than a 24-letter one */
+    transition-delay: calc(120ms + min(var(--i), 24) * 26ms);
+  }
+  [data-state='on'] .bk__l {
+    transform: none;
+    opacity: 1;
+  }
+  [data-state='was'] .bk__l {
+    transform: rotateX(90deg);
+    transition-duration: 0.35s;
+    transition-delay: calc(min(var(--i), 24) * 12ms);
+  }
+  [data-state='off'] .bk__l {
+    transition: none;
+  }
+  .bk__k {
+    font: 0.72rem var(--font-din);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .bk__by {
+    margin: 0 0 1.1rem;
+    font: italic 1.2rem var(--font-body);
+  }
+  .bk__cat {
+    width: fit-content;
+    margin: -0.4rem 0 1.2rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--ultramarine);
+    font: 400 0.62rem/1 var(--font-din);
+    letter-spacing: 0.18em;
+  }
+  .bk__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.9rem;
+  }
+  /* in the terminal blocks' blue, ultramarine eased toward the lavender */
+  .bk__tag {
+    padding: 0.4rem 0.6rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    font: 400 0.58rem/1 var(--font-din);
+    letter-spacing: 0.16em;
+  }
+  .bk__none {
+    font: 400 0.62rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bk__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.4rem;
+    margin: 1.4rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+  .bk__facts dt {
+    font: 400 0.56rem/1.6 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bk__facts dd {
+    margin: 0.15rem 0 0;
+    font: 1rem/1.3 var(--font-body);
+    color: var(--ink);
+  }
+  .bk__tags {
+    margin: 1.2rem 0 0;
+  }
+  .bk__tags .bk__row {
+    gap: 0.4rem;
+  }
+  .bk__tags span {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid rgb(2 8 135 / 0.4);
+    font: 0.62rem var(--font-din);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .bk__links {
+    margin: 1.5rem 0 0;
+    font: 400 0.72rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .bk__links a {
+    text-decoration: none;
+  }
+  .bk__links a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  /* the one thing to do here: go and read it */
+  .bk__links .bk__go {
+    display: inline-flex;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: #3a3d9c;
+    color: var(--mist);
+    transition: background 0.25s;
+  }
+  .bk__links .bk__go:hover {
+    background: var(--ultramarine);
+    text-decoration: none;
+  }
+  .bk__hint {
+    position: absolute;
+    left: 0;
+    bottom: 0.9rem;
+    z-index: 2;
+    margin: 0;
+    pointer-events: none;
+    font: 400 0.6rem/1.4 var(--font-din);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  /* on a phone: the book across the top, the details under it */
+  @media (max-width: 760px) {
+    .bk__body {
+      min-height: 0;
+    }
+    .bk__stage {
+      --clear: 0.5rem;
+      position: relative;
+      inset: auto;
+      margin-inline: -4vw;
+      height: 100vw;
+    }
+    .bk__side {
+      width: auto;
+      padding-top: 1.4rem;
+    }
+    .bk__hint {
+      position: static;
+      margin-top: 1.4rem;
+    }
+  }
+  /* the keys mean nothing on a touch screen */
+  @media (hover: none) {
+    .bk__hint {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bk__book,
+    .bk__ln,
+    .bk__l {
+      transition: none;
+    }
+  }
+</style>
