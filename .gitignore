@@ -10,3 +10,4 @@ dist/
 # local to this machine
 .DS_Store
 .claude/
+CLAUDE.md

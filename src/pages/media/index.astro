@@ -1,25 +1,23 @@
 ---
 /**
  * Media, set after real catalogues: books and films as A24-style indexes
- * grouped by year, a few books as covers numbered like a collection, a few
+ * grouped by year, the books as one giant printed book, a few
  * films as discs, records as one giant record with Numero-style catalogue numbers. Every item is one Markdown
  * file in src/content/{books,records,films}; its body is the review, on its own page.
  */
 import Base from '@/layouts/Base.astro'
 import Index from '@/components/media/Index.astro'
 import Crate from '@/components/media/Crate.astro'
-import Posters from '@/components/media/Posters.astro'
+import Block from '@/components/media/Block.astro'
 import Discs from '@/components/media/Discs.astro'
 import { catalogueItems, pad } from '@/lib/catalogue'
 
 const [books, records, films] = await Promise.all([catalogueItems('books'), catalogueItems('records'), catalogueItems('films')])
 /** films keep their place in the collection as a number, wherever they are shown */
 const filmNo = new Map(films.map((f, i) => [f.id, i + 1]))
-const bookNo = new Map(books.map((b, i) => [b.id, i + 1]))
 /** the ones worth showing as covers: favourites, liked, or scored 90 and up */
 const picks = <T extends { favourite: boolean; liked: boolean; rating?: number }>(list: T[], n: number) =>
   list.filter((x) => x.favourite || x.liked || (x.rating ?? 0) >= 90).slice(0, n)
-const bookPicks = picks(books, 5)
 const filmPicks = picks(films, 10)
 const rooms = [
   { id: 'books', label: 'Books', n: books.length },
@@ -37,23 +35,17 @@ const rooms = [
     {rooms.map((r) => <a href={`#${r.id}`} data-room={r.id}>{r.label} <sup>{pad(r.n)}</sup></a>)}
   </nav>
   <div class="ax">
-    <section id="books" aria-label="books">
-      <header class="ax-top">
-        <span>I · BOOKS</span>
-        <span>{pad(books.length)}</span>
-      </header>
-      <Posters title="Selected" items={bookPicks} numbers={bookNo} unit="pages" />
+    <Block items={books}>
       <div class="ax-gap" />
       <Index
         title="All books"
         items={books}
-        selected={new Set(bookPicks.map((b) => b.id))}
         columns={[
           { label: 'WRITTEN BY', value: (b) => b.by },
           { label: 'GENRES', value: (b) => b.genres.join('\n'), chips: true },
         ]}
       />
-    </section>
+    </Block>
     <Crate items={records} />
     <section id="films" aria-label="films">
       <header class="ax-top">

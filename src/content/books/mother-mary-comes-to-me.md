@@ -8,7 +8,7 @@ genres:
   - non-fiction
   - family & relationships
 meta:
-  pages: '224'
+  pages: '352'
 links:
   Open Library: https://openlibrary.org/works/OL42542753W
 wikidata: none
