@@ -2,9 +2,9 @@
 /**
  * A few films as discs, after Ravi Klaassens' A24 library: a row of them on
  * a rising line, the one you are on in the middle, turned to you and lifted.
- * The discs are drawn by three.js (src/scripts/discs.ts), loaded only once
- * the row comes near; without WebGL, or with reduced motion, they lie flat in
- * a row. Under the disc, where A24 quotes critics: your score as stars, and a
+ * The discs are drawn by three.js (src/scripts/discs.ts), loaded once the page
+ * goes quiet or the row comes near; without WebGL, or with reduced motion, they
+ * lie flat in a row. Under the disc, where A24 quotes critics: your score as stars, and a
  * line of your own (`pull:` in the film's frontmatter). The scene says where
  * the disc ends (--below), so the words always start under it.
  */
@@ -39,6 +39,10 @@ const discs = items.map((f) => ({
 ---
 
 <div class="dk" style={`--n:${items.length}`}>
+  {/* before anything paints: if three.js is going to draw the discs, the flat row must never show */}
+  <script is:inline>
+    if (window.WebGL2RenderingContext && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.currentScript.parentElement.classList.add('is-coming')
+  </script>
   <header class="ax-top">
     <span>SELECTED</span>
     <span class="dk__nav">
@@ -169,6 +173,8 @@ const discs = items.map((f) => ({
 </div>
 
 <script>
+  import { whenIdle } from '@/scripts/after-intro'
+
   const canGL = () => {
     try {
       return !!document.createElement('canvas').getContext('webgl2')
@@ -345,25 +351,38 @@ const discs = items.map((f) => ({
     // a drag must not also count as a click on a disc
     stage.addEventListener('click', (e) => stage.classList.contains('is-dragging') && e.stopPropagation(), true)
 
-    if (still || !canGL()) return
-    // three.js only comes down once the row is near
+    if (still || !canGL()) return root.classList.remove('is-coming')
+    // three.js comes down once the page has gone quiet, or at once if the row is already near,
+    // so that it is usually ready before you reach it. The discs turn in when they come into view
     let gone = false
-    const io = new IntersectionObserver(
-      async ([e]) => {
-        if (!e.isIntersecting) return
-        io.disconnect()
+    let begun = false
+    const begin = async () => {
+      if (begun || gone) return
+      begun = true
+      io.disconnect()
+      try {
         const { mount } = await import('@/scripts/discs')
         if (gone) return
-        scene = await mount(stage, JSON.parse(root.querySelector('.dk__data')!.textContent!), {
-          pick: (j) => (j === a ? showOpen(!isOpen()) : step(j)),
-        })
-        if (gone) return scene.dispose()
+        const made = await mount(
+          stage,
+          JSON.parse(root.querySelector('.dk__data')!.textContent!),
+          {
+            pick: (j) => (j === a ? showOpen(!isOpen()) : step(j)),
+          },
+          Math.round(pos),
+        )
+        if (gone) return made.dispose()
+        scene = made
         root.classList.add('is-3d')
         scene.to(pos)
-      },
-      { rootMargin: '600px 0px' },
-    )
+      } finally {
+        // whatever happened, stop holding the page back: if three.js never came, the flat row shows
+        root.classList.remove('is-coming')
+      }
+    }
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && begin(), { rootMargin: '600px 0px' })
     io.observe(root)
+    whenIdle(begin, 2500)
     document.addEventListener(
       'astro:before-swap',
       () => {
@@ -499,6 +518,13 @@ const discs = items.map((f) => ({
     opacity: 0;
     pointer-events: none;
   }
+  /* while three.js is on its way the stage stays empty: no flat row, and no words, which
+     do not yet know where the disc ends */
+  .dk.is-coming .dk__flat,
+  .dk.is-coming .dk__under {
+    visibility: hidden;
+    opacity: 0;
+  }
   .dk__side {
     position: absolute;
     top: calc(var(--bar) + 1.2rem);
@@ -628,6 +654,7 @@ const discs = items.map((f) => ({
     display: grid;
     width: min(24rem, 86%);
     text-align: center;
+    transition: opacity 0.45s var(--ease-out);
   }
   .dk__say {
     grid-area: 1 / 1;
