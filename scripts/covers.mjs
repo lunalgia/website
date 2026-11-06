@@ -18,11 +18,27 @@
  *
  * Sources: Apple Books (books), Apple Music (records), IMDb posters (films),
  * with Open Library and Wikipedia as fallbacks. All are free and keyless.
+ *
+ * Disc art (films): art for the film's disc on the media page, saved as
+ * covers/<id>.disc.<ext> beside the cover, which it leaves alone. It wants a
+ * picture without lettering, since the disc sets its own title: a textless
+ * poster or a still. Those come from TMDB, which needs a free key
+ * (themoviedb.org/settings/api): put TMDB_TOKEN=<read access token> in .env.
+ *
+ *   npm run covers -- films/whiplash --disc --list     textless posters, then stills
+ *   npm run covers -- films/whiplash --disc --pick 4   use candidate 4
+ *   npm run covers -- films/whiplash --disc --url https://…/still.jpg   any image
+ *   add --focus 0.5,0.4 to choose what the square is cut around (shares of the
+ *   image's width and height), since the disc's hole covers its middle
  */
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import sharp from 'sharp'
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', 'src', 'content')
+try {
+  process.loadEnvFile(path.join(ROOT, '..', '..', '.env'))
+} catch {}
 const KINDS = ['books', 'records', 'films']
 const EXTS = ['jpg', 'jpeg', 'png', 'webp', 'avif']
 const UA = { 'User-Agent': 'lunalgia-covers/1.0 (personal site)' }
@@ -35,6 +51,7 @@ const flag = (name) => {
 const target = args.find((a) => !a.startsWith('--') && a.includes('/'))
 const only = args.find((a) => KINDS.includes(a))
 const store = flag('store') ?? 'gb'
+const disc = !!flag('disc')
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 async function get(url, tries = 3) {
@@ -53,7 +70,8 @@ async function readEntry(kind, id) {
   const text = await fs.readFile(path.join(ROOT, kind, `${id}.md`), 'utf8')
   const fm = text.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? ''
   const field = (k) => fm.match(new RegExp(`^${k}:\\s*['"]?(.*?)['"]?\\s*$`, 'm'))?.[1]?.replace(/''/g, "'")
-  return { kind, id, title: field('title') ?? id, by: field('by') ?? '', year: Number(field('year')) || undefined }
+  const imdb = text.match(/\btt\d{6,}\b/)?.[0]
+  return { kind, id, title: field('title') ?? id, by: field('by') ?? '', year: Number(field('year')) || undefined, imdb }
 }
 
 const norm = (s) => s.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N} ]/gu, '').trim()
@@ -105,22 +123,58 @@ async function candidates(e) {
   return out
 }
 
+/** disc art: TMDB's textless posters, then its stills, best rated first */
+async function discCandidates(e) {
+  const token = process.env.TMDB_TOKEN
+  if (!token) throw new Error('disc art comes from TMDB: put TMDB_TOKEN=<read access token> in .env (free at themoviedb.org/settings/api), or pass --url')
+  if (!e.imdb) throw new Error('no IMDb id in the entry to look the film up by')
+  const tmdb = async (p) => {
+    const res = await fetch(`https://api.tmdb.org/3${p}`, { headers: { Authorization: `Bearer ${token}`, accept: 'application/json' } })
+    if (!res.ok) throw new Error(`TMDB ${res.status} for ${p}`)
+    return res.json()
+  }
+  const found = (await tmdb(`/find/${e.imdb}?external_source=imdb_id`)).movie_results?.[0]
+  if (!found) throw new Error(`TMDB has no film for ${e.imdb}`)
+  const im = await tmdb(`/movie/${found.id}/images`)
+  const textless = (x) => x.iso_639_1 == null || x.iso_639_1 === 'xx'
+  const best = (list) => (list ?? []).filter(textless).sort((a, b) => b.vote_average - a.vote_average || b.width - a.width)
+  const url = (x) => `https://image.tmdb.org/t/p/original${x.file_path}`
+  return [
+    ...best(im.posters).map((x) => ({ label: `textless poster ${x.width}×${x.height}`, url: url(x) })),
+    ...best(im.backdrops).map((x) => ({ label: `still ${x.width}×${x.height}`, url: url(x) })),
+  ]
+}
+
+/** disc art is printed square: cut it around the focus, no larger than the disc can show */
+async function squared(buf) {
+  const [fx, fy] = String(flag('focus') ?? '0.5,0.5').split(',').map(Number)
+  const { width: w, height: h } = await sharp(buf).metadata()
+  const side = Math.min(w, h)
+  const left = Math.round(Math.max(0, Math.min(w - side, fx * w - side / 2)))
+  const top = Math.round(Math.max(0, Math.min(h - side, fy * h - side / 2)))
+  return sharp(buf).extract({ left, top, width: side, height: side }).resize({ width: Math.min(side, 1400) }).jpeg({ quality: 88 }).toBuffer()
+}
+
 async function save(e, url) {
   const res = await get(url)
   const type = res.headers.get('content-type') ?? ''
   if (!type.startsWith('image/')) throw new Error(`not an image (${type}): ${url}`)
-  const buf = Buffer.from(await res.arrayBuffer())
+  let buf = Buffer.from(await res.arrayBuffer())
   if (buf.length < 4000) throw new Error(`image too small (${buf.length} bytes), probably a placeholder`)
-  const ext = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg'
+  if (disc) buf = await squared(buf)
+  const ext = disc || !(type.includes('png') || type.includes('webp')) ? 'jpg' : type.includes('png') ? 'png' : 'webp'
   const dir = path.join(ROOT, e.kind, 'covers')
+  const name = disc ? `${e.id}.disc` : e.id
   await fs.mkdir(dir, { recursive: true })
-  for (const x of EXTS) await fs.rm(path.join(dir, `${e.id}.${x}`), { force: true })
-  await fs.writeFile(path.join(dir, `${e.id}.${ext}`), buf)
+  for (const x of EXTS) await fs.rm(path.join(dir, `${name}.${x}`), { force: true })
+  await fs.writeFile(path.join(dir, `${name}.${ext}`), buf)
   // an explicit cover: line would shadow the new file
-  const md = path.join(ROOT, e.kind, `${e.id}.md`)
-  const text = await fs.readFile(md, 'utf8')
-  await fs.writeFile(md, text.replace(/^cover:.*\n/m, ''))
-  console.log(`  saved ${e.kind}/covers/${e.id}.${ext} (${Math.round(buf.length / 1024)} kB)`)
+  if (!disc) {
+    const md = path.join(ROOT, e.kind, `${e.id}.md`)
+    const text = await fs.readFile(md, 'utf8')
+    await fs.writeFile(md, text.replace(/^cover:.*\n/m, ''))
+  }
+  console.log(`  saved ${e.kind}/covers/${name}.${ext} (${Math.round(buf.length / 1024)} kB)`)
 }
 
 async function hasCover(kind, id) {
@@ -132,7 +186,7 @@ async function run(e) {
   console.log(`${e.kind}/${e.id}: ${e.title}, ${e.by}`)
   const url = flag('url')
   if (url) return save(e, url)
-  const list = await candidates(e)
+  const list = disc ? await discCandidates(e) : await candidates(e)
   if (!list.length) return console.log('  no candidates found; try --store us, --isbn, or --url')
   if (flag('list')) return list.forEach((c, i) => console.log(`  ${i + 1}. ${c.label}\n     ${c.url}`))
   const pick = Number(flag('pick') ?? 1)
