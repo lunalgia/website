@@ -13,6 +13,7 @@ export const credits: CreditGroup[] = [
       { what: 'henry.codes', by: 'Henry Desroches', href: 'https://henry.codes', note: 'The framed title cards, the letter on the home page, labels sitting on hairline frames, and the writing kept as a garden.' },
       { what: 'gwern.net', by: 'Gwern Branwen', href: 'https://gwern.net', note: 'Link previews that open on hover, and sidenotes.' },
       { what: 'A24', href: 'https://a24films.com/films', note: 'The media page’s indexes: years set large once per group, hairline rows, the small filled tags.' },
+      { what: 'A24 library', by: 'Ravi Klaassens', href: 'https://a24.raviklaassens.com', note: 'The films as a row of discs: how they lie, move and settle, and the pen that circles the one in front, whose line is traced from it.' },
       { what: 'The Criterion Collection', href: 'https://www.criterion.com/shop/browse/list', note: 'Numbering the books and films like spines in a collection.' },
       { what: 'Numero Group', href: 'https://numerogroup.com', note: 'The records’ boxed catalogue numbers, and a sleeve shown with its record half out.' },
       { what: 'componentry.dev', href: 'https://componentry.dev', note: 'The flipping words, the hand-drawn marks, the line of posters and the picture field’s lens.' },
@@ -26,6 +27,7 @@ export const credits: CreditGroup[] = [
       { what: 'The Cobweb Dance', by: 'Charles Courtney Curran, 1908', license: 'public domain', note: 'Dithered, behind “Hello, I go by Lilian”.' },
       { what: 'The lily', note: 'Dithered from an old print, found in an online library.' },
       { what: 'The moon', by: 'NASA/GSFC/Arizona State University', license: 'public domain', href: 'https://commons.wikimedia.org/wiki/File:Moon_nearside_LRO_5000.jpg', note: 'The Lunar Reconnaissance Orbiter’s near side, broken and dithered for the scrollbar.' },
+      { what: 'The film discs', by: 'TMDB', href: 'https://www.themoviedb.org', note: 'Textless posters and stills, found through the TMDB API. This product uses the TMDB API but is not endorsed or certified by TMDB.' },
       { what: 'E. coli', by: 'David S. Goodsell', href: 'https://press.asimov.com', note: 'The cell on the bookmarks page, via Asimov Press.' },
     ],
   },
@@ -44,6 +46,7 @@ export const credits: CreditGroup[] = [
     entries: [
       { what: 'Astro', license: 'MIT', href: 'https://astro.build', note: 'The site is built with it.' },
       { what: 'GSAP', by: 'GreenSock', license: 'standard no-charge licence', href: 'https://gsap.com', note: 'The home page’s animation.' },
+      { what: 'three.js', license: 'MIT', href: 'https://threejs.org', note: 'The film discs.' },
       { what: 'Lenis', by: 'darkroom.engineering', license: 'MIT', href: 'https://lenis.darkroom.engineering', note: 'Smooth scrolling.' },
       { what: 'Temml', by: 'Ron Kok', license: 'MIT', href: 'https://temml.org', note: 'Mathematics, set as MathML.' },
       { what: 'tex-linebreak', by: 'Robert Knight', license: 'MIT', href: 'https://github.com/robertknight/tex-linebreak', note: 'Knuth–Plass line breaking for justified text.' },
