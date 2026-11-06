@@ -3,7 +3,7 @@
  * selections and the crate, built from the entries in src/content.
  */
 import { getImage } from 'astro:assets'
-import { coverOf, factsOf, getMedia, inkFor, linksOf, paragraphs, spineOf, words, type MediaKind } from '@/lib/media'
+import { coverOf, discArtOf, factsOf, getMedia, inkFor, linksOf, paragraphs, spineOf, words, type MediaKind } from '@/lib/media'
 
 export interface CatalogueItem {
   id: string
@@ -17,6 +17,10 @@ export interface CatalogueItem {
   img?: string
   /** a small cover, for hover previews */
   thumb?: string
+  /** art made for the disc (covers/<id>.disc.*), when there is some */
+  disc?: string
+  /** a line of your own, quoted under the disc */
+  pull?: string
   color: string
   ink: string
   facts: [string, string][]
@@ -46,6 +50,8 @@ export async function catalogueItems(kind: MediaKind): Promise<CatalogueItem[]> 
             getImage({ src, width: 360, format: 'webp', quality: 78 }),
           ])
         : [null, null]
+      const art = discArtOf(e, kind)
+      const disc = art ? await getImage({ src: art, width: 1200, format: 'webp', quality: 84 }) : null
       const color = await spineOf(e, kind)
       const size = parseInt(String(d.meta?.pages ?? d.meta?.runtime ?? ''), 10)
       return {
@@ -59,6 +65,8 @@ export async function catalogueItems(kind: MediaKind): Promise<CatalogueItem[]> 
         liked: d.liked,
         img: img?.src,
         thumb: thumb?.src,
+        disc: disc?.src,
+        pull: d.pull,
         color,
         ink: inkFor(color),
         facts: factsOf(e).filter(([k]) => !/starring|written by|cinematography|music/i.test(k)).slice(0, 4),

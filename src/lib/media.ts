@@ -39,11 +39,19 @@ const COVER_FILES = import.meta.glob<ImageMetadata>('/src/content/*/covers/*.{jp
   import: 'default',
 })
 const coverFile = (kind: MediaKind, id: string) => {
-  const key = Object.keys(COVER_FILES).find((k) => k.startsWith(`/src/content/${kind}/covers/${id}.`))
+  const key = Object.keys(COVER_FILES).find((k) => k.startsWith(`/src/content/${kind}/covers/${id}.`) && !k.includes('.disc.'))
   return key ? { meta: COVER_FILES[key], file: path.join(process.cwd(), key) } : undefined
 }
 export const coverOf = (e: MediaEntry, kind: MediaKind): ImageMetadata | undefined =>
   e.data.cover ?? coverFile(kind, e.id)?.meta
+/**
+ * Films may also have art made for their disc: covers/<id>.disc.<ext>, a textless
+ * still or key art the title is set over. Without it the disc uses the cover.
+ */
+export const discArtOf = (e: MediaEntry, kind: MediaKind): ImageMetadata | undefined => {
+  const key = Object.keys(COVER_FILES).find((k) => k.startsWith(`/src/content/${kind}/covers/${e.id}.disc.`))
+  return key ? COVER_FILES[key] : undefined
+}
 
 /** a spine colour picked from the cover: a well-represented colour, favouring saturated ones */
 const pickColour = async (file: string) => {

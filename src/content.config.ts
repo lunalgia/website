@@ -86,6 +86,8 @@ const mediaSchema = ({ image }: { image: () => any }) =>
     /** lower comes first on the shelf; ties sort newest first */
     order: z.number().default(0),
     warning: z.string().optional(),
+    /** one short line of your own about it, quoted under its disc */
+    pull: z.string().optional(),
     draft: z.boolean().default(false),
   })
 
