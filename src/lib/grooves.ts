@@ -35,20 +35,10 @@ export const trackGaps = (title: string, tracks: number) => {
 /** the raised rim at the edge, and the lip of the label */
 export const rims = `${ring(498)}${ring(492)}${ring(204)}`
 
-/** the run-out: the groove spiralling in, wide apart, to the ring it locks into */
+/** the run-out: a clear band between two true circles, so nothing wobbles as the record turns */
 const FROM = INNER - 2
 const TO = 216
-const TURNS = 3
-const PITCH = (FROM - TO) / TURNS
-const spiral = (from: number, to: number, r: (turned: number) => number) => {
-  let d = ''
-  for (let i = from; i <= to; i += 2) {
-    const a = (i * Math.PI) / 180
-    d += `${i === from ? 'M' : 'L'}${(Math.cos(a) * r(i)).toFixed(1)} ${(Math.sin(a) * r(i)).toFixed(1)}`
-  }
-  return d
-}
-const inward = (turned: number) => FROM - (PITCH * turned) / 360
-export const runOut = spiral(0, 360 * TURNS, inward) + ring(TO)
-/** the line the matrix number is scratched along: the same spiral, just outside the turn inside it, so the number stays between the two */
-export const matrixLine = spiral(360, 560, (turned) => inward(turned) - PITCH + 2)
+export const runOut = ring(FROM) + ring(TO)
+/** the line the matrix number is scratched along, in the middle of the run-out */
+const MATRIX = 232
+export const matrixLine = `M${MATRIX} 0A${MATRIX} ${MATRIX} 0 1 1-${MATRIX} 0`
