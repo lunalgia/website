@@ -50,7 +50,7 @@ const links = linksOf(entry)
             )
           }
         </div>
-        <div class="rv__score"><Score rating={d.rating} favourite={d.favourite} liked={d.liked} /></div>
+        <div class="rv__score"><Score rating={d.rating} favourite={d.favourite} /></div>
         <dl class="rv__facts">
           {d.year && (<><dt>year</dt><dd>{d.year}</dd></>)}
           {d.date && (<><dt>{k.verb.toLowerCase()}</dt><dd>{whenLabel(d.date)}</dd></>)}

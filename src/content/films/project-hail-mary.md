@@ -3,6 +3,7 @@ title: Project Hail Mary
 by: Phil Lord and Christopher Miller
 year: 2026
 rating: 84
+pull: Incredible cinematography and score
 liked: true
 genres:
   - science fiction
