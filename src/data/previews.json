@@ -170,6 +170,60 @@
     "h": 360,
     "taken": "2026-10-26"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/16-measuring-runtime.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Measuring efficiency of programs",
+    "pages": 61,
+    "image": "/previews/2b025f69d9f5.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/17-sorting.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Sorting",
+    "pages": 75,
+    "image": "/previews/950eb77279e6.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/18-exploring-graphs.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Exploring graphs",
+    "pages": 68,
+    "image": "/previews/b8471052f1cd.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/19-stacks.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Data structures – Stacks",
+    "pages": 76,
+    "image": "/previews/176938b6de4b.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/20-queues.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Data structures – Queues",
+    "pages": 44,
+    "image": "/previews/3fb83848ade1.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/21-trees.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Data structures – Binary trees",
+    "pages": 76,
+    "image": "/previews/cc5cc2e714ef.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-07"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 solutions.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming: Quiz 1 Solutions",
@@ -214,6 +268,15 @@
     "w": 640,
     "h": 905,
     "taken": "2026-10-26"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Reading/Mathematical Literature in Telugu - an overview.pdf": {
+    "kind": "pdf",
+    "title": "Mathematical Literature in Telugu - an overview",
+    "pages": 16,
+    "image": "/previews/e836005016e5.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-07"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Tests/Midsem.pdf": {
     "kind": "pdf",
@@ -818,6 +881,24 @@
     "h": 905,
     "taken": "2026-10-26"
   },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Tests/Test 2 notes.pdf": {
+    "kind": "pdf",
+    "title": "Algebra 1: Test 2 Notes",
+    "pages": 73,
+    "image": "/previews/3679e359abb8.webp",
+    "w": 640,
+    "h": 792,
+    "taken": "2026-11-07"
+  },
+  "/uni/Math/Year 1/Sem 1/Algebra 1/Tests/Test 2.pdf": {
+    "kind": "pdf",
+    "title": "Test 2",
+    "pages": 2,
+    "image": "/previews/9622411e3b9a.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-07"
+  },
   "/uni/Math/Year 1/Sem 1/Algebra 1/Tutorials/Tutorial 1.pdf": {
     "kind": "pdf",
     "title": "Tutorial sheet 1",
@@ -943,6 +1024,24 @@
     "w": 640,
     "h": 836,
     "taken": "2026-10-05"
+  },
+  "/uni/Math/Year 1/Sem 1/Analysis 1/Quizzes/Quiz 1.pdf": {
+    "kind": "pdf",
+    "title": "Analysis 1: Quiz 1",
+    "pages": 1,
+    "image": "/previews/588ee3628f15.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-07"
+  },
+  "/uni/Math/Year 1/Sem 1/Analysis 1/Quizzes/Quiz 2.pdf": {
+    "kind": "pdf",
+    "title": "Analysis 1: Quiz 2",
+    "pages": 1,
+    "image": "/previews/873f8d500959.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-07"
   },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Tests/Midsem (corrected).pdf": {
     "kind": "pdf",
@@ -2302,6 +2401,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-26"
+  },
+  "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Assignments/Assignment 5.pdf": {
+    "kind": "pdf",
+    "title": "CM1_2026_Prob5",
+    "pages": 3,
+    "image": "/previews/148479d061b0.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-07"
   },
   "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
