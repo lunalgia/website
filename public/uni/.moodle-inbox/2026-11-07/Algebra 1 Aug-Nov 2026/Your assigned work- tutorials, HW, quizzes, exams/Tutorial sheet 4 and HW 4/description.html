@@ -1,0 +1,148 @@
+<div id="yui_3_18_1_1_1788429683879_197" class="activity-header" data-for="page-activity-header">
+<div id="yui_3_18_1_1_1788429683879_196" class="activity-information" data-region="activity-information" data-activityname="Tutorial set 3 and HW 3">
+<div id="yui_3_18_1_1_1788429683879_195" class="activity-details" data-region="activity-details">
+<div id="intro" class="activity-description">
+<div id="yui_3_18_1_1_1788429683879_194" class="box py-3 generalbox boxaligncenter">
+<div id="yui_3_18_1_1_1788429683879_193" class="no-overflow">
+<p><span style="text-decoration: underline;"><a href="https://moodle.cmi.ac.in/webservice/pluginfile.php/40035/mod_assign/intro/Tutorial%204.pdf?time=1789276591404" target="_blank" rel="noopener">Tutorial sheet 4 pdf version</a></span> (typeset by Gemini - inform me if you find any errors)</p>
+<p><a href="https://moodle.cmi.ac.in/webservice/pluginfile.php/40035/mod_assign/intro/Simple%20exercise%20to%20understand%20change%20of%20basis.pdf" target="_blank" rel="noopener"><span style="text-decoration: underline;">Simple exercise to understand change of basis in terms of unit conversion</span></a></p>
+<p><strong>Submit the following 5 problems from the list below</strong>. These will help in preparing for Tuesday's test, so the deadline is the end of Monday Sep 14.</p>
+<p>2: One of the four proofs, written in your own words<br>5: Only the computation<br>6(c)<br>7(a)<br>11(a) and (c)</p>
+<p>Most of these are computational. Be sure to justify all computations. You are allowed to get help from a computer to do row reduction (if you really need to, but in such simple cases better to use a computer only for verification). <em> The setting up of the problem and the interpretation must be all your own. Otherwise the whole exercise is pointless.</em></p>
+<hr>
+<p><strong>1. Basic language. </strong>Recall the definition of an abstract vector space. Many terms seen in R^n carry over to this setting: subspace, linear combination, span, linear (in)dependence, basis, dimension. </p>
+<ul>
+<li>Prove the basic observations made in class about span, linear dependence/independence and equivalent ways to think of a basis. Mull over them till they become second nature.</li>
+</ul>
+<p>We will talk about multisets (sets with repetitions allowed) of vectors. Let S be a multiset in V.</p>
+<p>(a) If v is in S and v is a linear combination of the other vectors in S, then span(S) = span(S - {v}). Converse?</p>
+<p>(b) If S is independent and v is not in span(S) then S union {v} is independent. Converse?</p>
+<p>Let f be a linear map from V to W. State if (c) and (d) are True or False. If false, is there a condition on f under which the statement becomes true?</p>
+<p>(c) "If S is linearly independent, then f(S) is linearly independent". Converse?</p>
+<p>(d) "If S spans V then f(S) spans W" Converse?</p>
+<p>(e) Show that the following are equivalent conditions for a subset B of V. </p>
+<div class="no-overflow">1. B is a linearly independent spanning set, i.e., a basis for V by definition.</div>
+<div class="no-overflow">2. B is a maximal (in terms of set containment) linearly independent set.</div>
+<div class="no-overflow">3. B is a minimal (in terms of set containment) set that spans V.</div>
+<div class="no-overflow">4. Each vector in V is a unique linear combination of elements of B.</div>
+<hr>
+<p><strong>2. Towards invariance of dimension</strong></p>
+<p>Show that if S is a <em>finite</em> spanning set S in a vector space V, then for any linearly independent set I, the cardinality of I is at most the cardinality of S. Give four proofs, first two by contradiction.</p>
+<p>(a) Assume |I| &gt; |S|. Express the vectors in I as linear combinations of vectors in S. Express these equations using a wide matrix A by defining a new notion of multiplying a matrix of numbers by a row of abstract vectors. Show appropriate associativity for this new operation and use the fact that Ax = 0 has a nontrivial solution for a wide matrix A.</p>
+<p>(b) Assume |I| &gt; |S| and again express the vectors in I as linear combinations of vectors in S. This is a tall system of equations. Imitate row operations on this tall system to get the last equation as 0 = some linear combination of vectors in I. Why must the RHS of this equation be a nontrivial combination?</p>
+<p>(c) Proof by reduction to R^n. One way is to use the notion of isomorphism, the fact that having a finite basis for V gives an isomorphism of V with R^n.</p>
+<p>(d) Look up the statement of the very clever Steinitz exchange lemma. Try to prove it on your own. Uncover the proof one line at a time and repeat.</p>
+<hr>
+<p><strong>3.</strong> <strong>Payoff. </strong>Deduce several consequences of the previous problem for a finite dimensional vector space.</p>
+<p>(a) Invariance of dimension (A small but necessary point: we proved that any finite basis of R^n has exactly n elements. What if there is an infinite basis? We need to consider this case too, to assert that the dimension of R^n is n. Can you answer this objection?)</p>
+<p>(b) Growing strategy to get a basis: Any linearly independent set can be enlarged to get a basis. (Recall that the cutting down strategy by starting with a given finite spanning set is more basic. This is how we showed the <em>existence</em> of a finite basis for any finite dimensional vector space.)</p>
+<p>Note a variation stated in Artin: "If I is linearly independent in V and S spans V, then one can add vectors <em>from S</em> to I to build a basis of V." This is easy to prove on its own. Compare the two proofs. Does one give a stronger statement than the other?</p>
+<p>(c) The dimension of a proper subspace W of V  is always less than the dimension of V.</p>
+<hr>
+<p><strong>4. Algebra of linear maps and its translation into matrix operations</strong></p>
+<p>Imagine that you do not know any operations involving matrices, not even matrix vector multiplication. But you have defined abstract vector spaces and proved the existence of a basis. This gives a dictionary between V of dimension n and R^n, once one has fixed a basis for V, by using the coordinate map. </p>
+<p>Also recall our commutative square where a linear map f: V to W is "translated into a matrix" by using a basis for V and one for W. </p>
+<p>(a) Show that function application f(v) translates into matrix-vector multiplication, so you can <em>define </em>matrix-vector multiplication this way. (This part and the next are souped up versions of 8(a) and (b) on tutorial set 3.)</p>
+<p>(b) Show how composition of two linear maps translates into multiplication, of matrices, so you can <em>define </em>matrix multiplication this way. Deduce associativity of matrix multiplication.</p>
+<p>(c) We can also scale matrices and add matrices of same size. Moreover matrix multiplication distributes of addition of matrices. What does all this translate to via our dictionary about linear maps? See that what it says is more conceptually and fundamentally understood about linear maps, and then translated to matrices, just like associativity of matrix multiplication.</p>
+<p>More precisely, given vector spaces V and W, let L(V,W) be the set of all linear maps from V to W. Show how to make L(V,W) into a vector space and show that this vector space is isomorphic to the vector space of matrices of a certain size. (Hint: choose bases.) Under your isomorphism, which linear map corresponds to the matrix unit E_ij?</p>
+<hr>
+<p><strong>5.</strong> <strong>Computational hook</strong>: Let A be the matrix with row 1 = [1,2,3], row 2 = [0,1,4] and row 3 = [5,6,0]. Show that A is invertible, write A as a product of elementary matrices and find the inverse of A.</p>
+<p><strong>Theory</strong>: Now let $A$ be any <em>square</em> matrix. Show that the following conditions are equivalent:</p>
+<p>(a) $A$ is invertible, i.e., there exists a matrix $A'$ such that $AA' = A'A = I$.<br>(b) The function $f(x) = Ax$ is a bijection.<br>(c) $A$ has a left inverse $L$, i.e., there exists a matrix $L$ such that $LA = I$.<br>(d) $A$ has a right inverse $R$, i.e., there exists a matrix $R$ such that $AR = I$.<br>(e) $\text{RREF}(A) = I$, the identity matrix.<br>(f) $A$ is a product of elementary matrices.</p>
+<hr>
+<p><strong>6.</strong> <strong>Faux Generality?</strong>  </p>
+<p>Let $A$ be an $r \times c$ matrix. Throughout this problem, $I$ denotes the identity matrix of the appropriate size that makes the given equation syntactically correct. The problems below, as stated in terms of matrices, are somewhat disguised. The meaning may become more transparent if you think in terms of the associated linear map.</p>
+<p>(a) We could call $A$ ``invertible'' if it has a left inverse $L$ and a right inverse $R$. Show that for such an ``invertible'' matrix, one must have $L = R$, and this common inverse is unique. (This small argument is formal and not specific to linear algebra.)</p>
+<p>(b) Now suppose $A$ has a (necessarily unique) two-sided inverse $A'$, i.e., $AA' = I$ and $A'A = I$. Note that $A'$ must be a $c \times r$ matrix. Show that if $A$ is invertible in this sense, then we must have $r = c$, so $A$ must be a square matrix after all for it to be invertible.</p>
+<p>Let's pursue this line of thinking to see if we get anywhere.</p>
+<p>(c)  <strong>Computational hook</strong>: Let $A = \begin{pmatrix} 2 &amp; 3 &amp; 1 \\ 1 &amp; 2 &amp; 3 \end{pmatrix}$. Show that A has infinitely many right inverses. Find them all. Now give a matrix B having infinitely many right inverses and find them all.</p>
+<p>(d) <strong>Theory</strong>: Characterize non-square matrices that have a left inverse. Show that such a matrix must have infinitely many left inverses. Provide an explicit numerical example illustrating both statements. Do the same for right inverses (characterization, infinitely many right inverses, and an example).</p>
+<p><em>Maybe not so faux after all! (Added: Look also at Artin's Problem M.8 in chapter 1.)</em></p>
+<hr><strong>7.</strong> <strong>About the change of coordinates formula within one vector space</strong>.</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">Suppose we are given an old ordered basis B and a new ordered basis B' for a vector space V. Recall that the change of basis matrix P from B to B' is built column by column. The i-th column is the coordinate vector of the i-th NEW basis vector in terms of the old basis B. We saw that in hypervector notation, we have B' = BP. Using this we deduced the following change of coodinates formula:    [v]_B = P[v]_B'     OR     [v]_B' = (P inverse) [v]_B</div>
+<div id="yui_3_18_1_1_1788429683879_193" class="no-overflow"></div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">
+<div class="no-overflow"><strong>Computational hook</strong>: Do as much as you need. <br><br></div>
+<div id="yui_3_18_1_1_1788429683879_193" class="no-overflow"></div>
+<div id="yui_3_18_1_1_1788429683879_193" class="no-overflow"></div>
+<div class="no-overflow">(a) Let v1 = [1, 2, 1]^T       v2 =  [ 0,1,2 ]^T    v_3 = [2 0 1]^T . Show that B = {v1, v2, v3} is a basis of R^3. <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">What is the change of basis matrix P when old basis is the standard basis and the new basis is B? </span><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">Find w such that [w]_B = [4,5,5]. </span><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">Find [v<span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="[x]_B" data-index-in-node="28">]_B</span> for v <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">= [4,5,5]. </span></span></div>
+<div class="no-overflow"> </div>
+<div class="no-overflow"><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">(b) </span>Consider the polynomial <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="p(t) = 1 + 2t + t^2" data-index-in-node="24">$p(t) = 1 + 2t + t^2$</span>, which represents a simple trajectory or curve segment on <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="t \in [0, 1]" data-index-in-node="102">$t \in [0, 1]$</span>. Find its coordinate vector <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="[p]_B" data-index-in-node="27">$[p]_B$</span> with respect to the Bernstein basis <span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="B = \{b_0(t), b_1(t), b_2(t)\}" data-index-in-node="69">$B = \{b_0(t), b_1(t), b_2(t)\}$</span> where:</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">
+<ul style="padding-inline-start: 32px; font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-path-to-node="8">
+<li style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;">
+<p data-path-to-node="8,0,0" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;"><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="b_0(t) = (1-t)^2 = 1 - 2t + t^2" data-index-in-node="0">$b_0(t) = (1-t)^2 = 1 - 2t + t^2$</span></p>
+</li>
+<li style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;">
+<p data-path-to-node="8,1,0" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;"><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="b_1(t) = 2t(1-t) = 2t - 2t^2" data-index-in-node="0">$b_1(t) = 2t(1-t) = 2t - 2t^2$</span></p>
+</li>
+<li style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;">
+<p data-path-to-node="8,2,0" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;"><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="b_2(t) = t^2" data-index-in-node="0">$b_2(t) = t^2$</span></p>
+</li>
+</ul>
+</div>
+<div class="no-overflow"><span class="math-inline" style="font-family: Google Sans Text, sans-serif !important; line-height: 1.15 !important; margin-top: 0px !important;" data-math="x = \begin{pmatrix} 4 \\ 5 \\ 5 \end{pmatrix}" data-index-in-node="38">Search "Bernstein polynomials" or "Bézier curves" to understand the significance for vector graphics.</span></div>
+</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow"><strong>Theory: </strong>Return to the general situation in the first paragraph.</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(c) Justify why P must be invertible. This was discussed very briefly in class. </div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(d) Two alternative viewpoints about proving the change of basis formulas emerged in discussion after class, both of which avoid the hypervector notation: (i) First, just read off a formula from the equations expressing B' in terms of B. (ii) Think of our commutative square where a linear map f: V to W is "translated into a matrix" by using a basis for V and one for W. Now operationalize this square for the identity map from V to V.</div>
+<div class="no-overflow"><hr><strong>8. Universal property of a basis. </strong>Let's see a fifth way to think of a basis by connecting it to linear maps, (in)arguably the more fundamental notion.</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(a) Suppose B is subset of V. Show (easily) that if B is a basis of V, then for any vector space W, any function f from the set B to W can be uniquely extended to a linear map L from V to W. (Be sure to show that the forced formula actually defines a linear function.)</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">Despite the ease, this property -- called the "universal property" of a basis -- is worth saying because <em>this is how we will frequently exploit a basis</em>.</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(b) (Optional) Show that the property in part (a) characterizes those subsets of V that are bases of V. This is largely (but not entirely) an exercise in language, in that first you have to formulate what is to be proved. Do you find the verbiage in the formulation worthwhile? No answer is wrong as long as it your authentic answer. Hold on to it and see what you think after two years.</div>
+<div class="no-overflow"><hr></div>
+<div class="no-overflow"><strong>9. A "vector space" without a basis?</strong> (This is not part of the course.)</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">Circle back to the definition of a vector space, but now suppose that only integers Z are allowed as scalars. (Such a system with scalar set other than R has a name -- and if we use Z as scalar set, the definition boils down to a name we have already seen -- but never mind. Name dropping is not the point.) </div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(a) Suppose V = the set of rational numbers. See that all axioms hold under ordinary operations. Show that this V cannot have a basis for a rather easy reason. What fails?</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(b) What happens if we take V = the set of real numbers? V = set of ordered pairs of integers?</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">Ask me if you want to play with "vector spaces" with other systems of scalars.</div>
+<div class="no-overflow"><hr></div>
+<div class="no-overflow"><strong>10. Other perspectives on the rank-nullity theorem</strong></div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(a) Remember the one line key to our proof of the abstract rank-nullity: "extend a basis of the kernel of f". Can you find a proof that directly uses a given basis of the image of f?<br><br>(b) Remember that we already proved the rank-nullity theorem earlier for linear map from R^c to R^r, necessarily given by f(x) = Ax for an r x c matrix A, by counting pivots and free variables in REF(A). Give a proof of the general abstract theorem by reducing to that earlier concrete situation via our 
+<p>commutative square dictionary. </p>
+<p>(c) Articulate a unified understanding by melding together several ingredients: First, using the bases in our proof in the class, write a simple matrix for f. Now recall your solution to tutorial 3 problem 9, which allowed row <em>and</em> column operations on a matrix and asked for a reduced form. Remember how row/column operations can be thought of in terms of matrix multiplication. Lastly, remember the change of basis formula (Q inverse) A P.</p>
+<div class="no-overflow"><hr></div>
+<div class="no-overflow"><strong>11. Matrices, change of basis, geometry. </strong></div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">Write formulas for the following functions from R^2 to R^2. Be sure to justify! </div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(a) A linear function f  that takes [1,2]^T to [3,4]^T and [2,5]^T to [10,13]^T.</div>
+<div class="no-overflow">(b) Counterclockwise rotation by angle $\theta$.</div>
+<div class="no-overflow">(c) Reflection in the line y = kx for a real number k. Do this in two ways: first, directly working with the standard basis. Second, start with a more convenient basis and then change it to the standard basis. Maybe it helps to name an angle?</div>
+<div class="no-overflow">(d) Composition of two maps of from parts (b) and (c). There are three possibilities to work out. <br><br>After working out the solution to (d), see problem B2 from the 2025 CMI entrance exam and its posted solution. Which solution do you prefer?</div>
+<div class="no-overflow">
+<div class="no-overflow"><hr></div>
+<div class="no-overflow"><strong>12. Some problems on determinants</strong></div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(a) Prove (and fix in your mind) the usual formula for the inverse of a 2 x 2 matrix A when det(A) is an invertible scalar. (Note: the generalization of this formula for an n x n matrix was mentioned in class, though this is not part of the syllabus. Artin does this in section 1.6. His Cofactor matrix Cof(A) is what we called the Adjoint matrix adj(A) in class. ) </div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">
+<div class="no-overflow">(b) Artin's Section 1.4: Do 1,2,4 in your head (1d should be instantaneous). The matrix in 3 is called the Cartan matrix of type A.</div>
+<div class="no-overflow"> </div>
+<div class="no-overflow">(c) Artin's Chapter 1 Miscellaneous: 7</div>
+</div>
+</div>
+<div class="no-overflow">
+<div class="no-overflow"> </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>

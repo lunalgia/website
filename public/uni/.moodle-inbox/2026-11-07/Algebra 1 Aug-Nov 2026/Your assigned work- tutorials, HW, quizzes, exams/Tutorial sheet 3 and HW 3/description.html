@@ -1,0 +1,51 @@
+<p><span style="text-decoration: underline;"><a href="https://moodle.cmi.ac.in/webservice/pluginfile.php/39772/mod_assign/intro/Tutorial%203.pdf?time=1789279866850" target="_blank" rel="noopener">Tutorial sheet 3 pdf version</a></span> (typeset by Gemini - inform me if you find any errors)</p>
+<p>HW 3 to submit</p>
+<ul>
+<li>Upload precise solutions of problems 2(a), 9(b), 10(a) from tutorial sheet 3 below.</li>
+<li>Optional: 1, 2(b), 4(b), 6, 7. If you are not fully confident about any of these, write a full solution!</li>
+</ul>
+<p><strong>Tutorial sheet 3</strong></p>
+<p>1-10 are final. A pdf document (maybe with minor tuneup) may be posted later.</p>
+<p>For the quiz you will need to know and be able to use all the words used in these problems. </p>
+<p>1. Suppose a matrix R is in REF. </p>
+<p>(a) Show that its nonzero rows are independent, and therefore form a basis for the row space of R.<br><br>(b) Show that pivot columns of R are independent. Show that they also span the column space of R (and hence form its basis). It maybe easier to see what happens if R is in RREF.<br><br>A way to make the two results in part (a) and (b) parallel is to say, respectively, pivot rows and pivot columns. (Note that nonzero columns are NOT independent, unless every column is a pivot column.)</p>
+<p>2. (a) Let A = the coefficient matrix in Tutorial 2 problem 2(a). Find with justification a basis for the following spaces: Nul(A), Row(A), Col(A).</p>
+<p>(b) Having solved Problem 1 and part (a), you should be able to do part (a) for any matrix A. Explain and justify your procedure for each subspace. Can you find multiple bases for each subspace?</p>
+<p>3. Let $A$ be an $r \times c$ matrix. </p>
+<p>(a) Here is problem 6 from tutorial 2: Show that doing an elementary row operation on a $A$ results in a matrix $EA$, where $E$ is a suitable matrix, called an {\bf elementary matrix}. Describe all three types of elementary matrices. Show that $E$ itself can be obtained using an elementary row operation on a very simple matrix.</p>
+<p>Here is the answer. “Result of an elementary row operation on a matrix A is EA, where E is the matrix obtained by doing the same elementary row operation to the r x r identity matrix.” Prove the answer.</p>
+<p>(b) Let B be a matrix obtained from A by doing some row operations. Show that if columns of A are linearly (in)dependent, then so are the columns of B. In fact “the set of dependence relations is the same”. Interpret and prove the statement in quotes. </p>
+<p>4. (a) Do the last part of Tutorial 2 problem 5: characterizing injectivity/surjectivity of f(x)= Ax  in terms of row vectors of the matrix A. Can you do this without using the transpose of the matrix A?</p>
+<p>(b) If you used the transpose of A to find a basis for Col(A) in problem 2, now find another method that uses only row operations on A itself. </p>
+<p>5. Let A be a matrix. Show that there are bases of B_R, B_C and B_N, respectively of Row(A), Col(A) and Nul(A) such that the following hold.</p>
+<p>(a)  B_R and B_C have the same cardinality.</p>
+<p>(b) The cardinalities of the B_N and B_C add to the number of columns of A.</p>
+<p>The question is worded this way in terms of bases rather than dimension because we have not proved the invariance of dimension yet. Stated in terms of dimensions, these results are two high points of “Linear algebra 0”. (a) says Row rank = Column rank and (b) says that dimensions of kernel and image of a linear map add up to the dimension of the domain. This is a basic counting result capturing uniformity of fibers of a linear map.</p>
+<div title="Page 2">
+<div>
+<div>
+<p>6. Recall our 2 × 5 table of equivalences associated to a matrix A from Tutorial 2. When A is square, it gets nicer! Justify why all 10 statements in the table become equivalent when the matrix A is square. It is important to fix this in your mind and to have it on tap to recall and use at will.</p>
+<div title="Page 2">
+<div>
+<div>
+<p>7. Let A be an r × c matrix with the associated function f(x) = Ax. Show that any two of the following three statements implies the third. (Do you see an analogy with a function between two finite sets?!)</p>
+<p>(i) A is a square matrix, i.e., r = c.<br>(ii) Ax = 0 has only the trivial solution, i.e., f is injective. <br>(iii) Ax = b has a solution for every vector b, i.e., f is surjective. </p>
+<p>8. <strong>Discover</strong> matrix multiplication as follows.</p>
+<p>(a) Suppose we do not know the matrix vector multiplication, but we do define a linear map f: R^a to R^b and agree that it is a worthwhile notion to explore. Show that this definition forces the <strong>definition</strong> of matrix vector multiplication when trying to find a formula for a given linear map. You have already done part of this in problem 4 of Tutorial sheet 2. Revisit the reasoning.</p>
+<p>(b) Now suppose f: R^a to R^b and g: R^b to R^c are linear maps, given by formulas f(x) = Px and g(y) = Qy, by part (a) combined with problem 4 of Tutorial sheet 2. We saw that their composition gf is also linear. Quickly revise why. Therefore gf(y) = My for some matrix M, again by problem 4 of Tutorial sheet 2. Build matrix M in terms of P and Q from first principles. We <strong>define</strong> the product QP to be M.</p>
+<p>(c) Show that  transpose(QP) = transpose(P)transpose(Q)</p>
+<p>9. (a) Take all statements on row operations and transpose to formulate a parallel theory of elementary column operations. </p>
+<p>(b) We write A ~ B if one can go from A to B by a combination of row and column operations. Find nice representative for equivalence classes, similar to RREF for row equivalence. The answer is very simple!</p>
+<p><strong>(c) and (d) below are NOT part of the course</strong>, so I suggest that you stay away from them unless you cannot resist the lure. They are doable but with effort. Tell me if you get anywhere. </p>
+<p>(c) Variation 1: do part (b) for matrices with integers entries, where we allow only reversible row and column operations (so now scaling is allowed only by 1 and -1). </p>
+<p>(d) Variation 2: do part (b) for matrices with real entries, but now the only operations allowed correspond to left or right multiplication by <strong><em>upper triangular matrices. </em></strong>(It is perfectly good to restrict to square invertible matrices. Just try 2 x 2 matrices first?)</p>
+<p>10. Prove the following in any given vector space V using only vector space axioms. Have fun with these logical exercises, but don’t get too enamored. This is not math, just some games. </p>
+<p>(a) 0 vector is unique. <br>(b) Additive inverse of any given vector is unique. <br>(c) 0.v = 0. <br>(d) a.0 = 0. <br>(e) (-1).v = the additive inverse of v, denoted -v.<br>(The dot at the end of c,d,e is the full stop, not scalar multiplication!)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p></p>
+<p></p>
