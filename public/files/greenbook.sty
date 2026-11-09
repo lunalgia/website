@@ -1,0 +1,2169 @@
+%% ======================================================================
+%%  greenbook.sty  v2.0  (2026/10/19)
+%%
+%%  A book style for the memoir class: hanging section numbers, chapter
+%%  heads under a band of colour, boxed theorems with their names in the
+%%  margin, notes and footnotes in the margin, a coloured cover, and a grid
+%%  table of contents (the one of artbook.sty, in the colours of this
+%%  package).
+%%
+%%      \documentclass[a4paper,10pt,openany]{memoir}
+%%      \usepackage[<options>]{greenbook}
+%%
+%%  Needs LuaLaTeX (or XeLaTeX) and the memoir class.  The package does not
+%%  load memoir; it stops with an error when the class is something else.
+%%  The full manual is greenbook-doc.pdf; the keys are listed in section 1
+%%  below.
+%%
+%%  Sections of this file
+%%     0. Checks                     8. Theorem boxes (tcolorbox)
+%%     1. Options and keys           9. Grid table of contents
+%%     2. Math and text fonts       10. Classic table of contents
+%%     3. Page layout               11. Part pages: mini contents
+%%     4. Sections and chapters     12. Exercises (option `exercises')
+%%     5. Parts and the cover       13. Small environments
+%%     6. Page styles               14. Other packages, \ell
+%%     7. Links, notes, captions
+%% ======================================================================
+\NeedsTeXFormat{LaTeX2e}[2022-06-01]
+\ProvidesPackage{greenbook}[2026/10/19 v2.0 greenbook book style for memoir]
+
+%% ----------------------------------------------------------------------
+%%  0. Checks
+%% ----------------------------------------------------------------------
+\@ifclassloaded{memoir}{}{%
+  \PackageError{greenbook}{greenbook needs the memoir class}%
+    {Load it with \string\documentclass[a4paper,10pt,openany]{memoir}\MessageBreak
+     before \string\usepackage{greenbook}.  Nothing of greenbook is loaded.}%
+  \expandafter\endinput}
+
+\RequirePackage{iftex}
+\ifPDFTeX
+  \PackageError{greenbook}{greenbook needs LuaLaTeX or XeLaTeX}%
+    {It sets its fonts with fontspec, which pdfLaTeX cannot use.}%
+\fi
+
+%% ----------------------------------------------------------------------
+%%  1. Options and keys
+%%
+%%  Load-time keys (in \usepackage[...]{greenbook} only):
+%%     fonts      = original | garamond | libertinus | pagella | lm
+%%     math       = auto | mtpro2 | newtx | unicode | cm
+%%     mainfont, sansfont, monofont, chapterfont, chapnumfont, mathfont
+%%                = a font name, tried before the fonts of the preset
+%%     layout     = true | false     the page layout of greenbook
+%%     cover      = true | false     \maketitle makes the coloured cover
+%%     toc        = grid | classic   which table of contents
+%%     footnotes  = margin | normal
+%%     exercises  (true | false)     xsim exercises and solutions
+%%     macros     (true | false)     load greenbook-macros.sty
+%%     ell        (true | false)     an l in math prints \ell
+%%  Keys for \greenbooksetup{...} (also allowed as package options):
+%%     breakable  = true | false     may theorem boxes break across pages
+%%     split      = closed | open | marked    how a broken box looks
+%%     needspace  = <number>         lines that must fit before a box starts
+%%     labelsep   = <length>         frame to margin label
+%%     parttoc    = true | false     chapter list on part pages
+%%     partextend = <length>         part titles and their rules start this far
+%%                                   left of the contents grid (12mm)
+%%     partskip   = <length>         more space above a part title (3mm)
+%%     indentafterbox = true | false  indent the paragraph after a box (false)
+%%     toclabel, tocsectionlabel, tocchapterlabel, tocfooter,
+%%     tocsplit, tocsubsplit, tocpagewidth, tocpad, tocchapterpad, tocrule,
+%%     tocrulegap, toctoppad, tocbottompad, tocplainpad, toctopspace,
+%%     tocfootgap                    the grid table of contents (section 9)
+%% ----------------------------------------------------------------------
+\ExplSyntaxOn
+\bool_new:N \g__gb_breakable_bool
+\bool_new:N \g__gb_parttoc_bool
+\bool_new:N \g__gb_marginbar_bool
+\keys_define:nn { greenbook }
+  {
+    fonts .choices:nn       = { original, garamond, libertinus, pagella, lm }
+                              { \tl_set_eq:NN \l__gb_preset_tl \l_keys_choice_tl },
+    fonts .initial:n        = original,
+    fonts .usage:n          = load,
+    math .choices:nn        = { auto, mtpro2, newtx, unicode, cm }
+                              { \tl_set_eq:NN \l__gb_math_tl \l_keys_choice_tl },
+    math .initial:n         = auto,
+    math .usage:n           = load,
+    mainfont .tl_set:N      = \l__gb_main_tl,       mainfont .usage:n    = load,
+    sansfont .tl_set:N      = \l__gb_sans_tl,       sansfont .usage:n    = load,
+    monofont .tl_set:N      = \l__gb_mono_tl,       monofont .usage:n    = load,
+    chapterfont .tl_set:N   = \l__gb_chapter_tl,    chapterfont .usage:n = load,
+    chapnumfont .tl_set:N   = \l__gb_chapnum_tl,    chapnumfont .usage:n = load,
+    mathfont .tl_set:N      = \l__gb_mathfont_tl,   mathfont .usage:n    = load,
+    layout .bool_set:N      = \l__gb_layout_bool,   layout .initial:n    = true,
+    layout .usage:n         = load,
+    cover .bool_set:N       = \l__gb_cover_bool,    cover .initial:n     = true,
+    cover .usage:n          = load,
+    toc .choices:nn         = { grid, classic }
+                              { \tl_set_eq:NN \l__gb_toc_tl \l_keys_choice_tl },
+    toc .initial:n          = grid,
+    toc .usage:n            = load,
+    footnotes .choices:nn   = { margin, normal }
+                              { \tl_set_eq:NN \l__gb_footnotes_tl \l_keys_choice_tl },
+    footnotes .initial:n    = margin,
+    footnotes .usage:n      = load,
+    exercises .bool_set:N   = \l__gb_exercises_bool, exercises .usage:n = load,
+    macros .bool_set:N      = \l__gb_macros_bool,    macros .usage:n    = load,
+    ell .bool_set:N         = \l__gb_ell_bool,       ell .usage:n       = load,
+    % ---- may be changed anywhere with \greenbooksetup
+    breakable .bool_gset:N  = \g__gb_breakable_bool,
+    breakable .initial:n    = true,
+    split .choices:nn       = { closed, open, marked }
+                              { \tl_gset_eq:NN \gb@splitstyle \l_keys_choice_tl },
+    split .initial:n        = marked,
+    needspace .tl_gset:N    = \gb@needlines,        needspace .initial:n = 4,
+    labelsep .tl_gset:N     = \gb@labelsep,         labelsep .initial:n  = 7pt,
+    parttoc .bool_gset:N    = \g__gb_parttoc_bool,  parttoc .initial:n   = false,
+    indentafterbox .bool_gset:N = \g__gb_indentafterbox_bool,
+    indentafterbox .initial:n = false,
+    toclabel .tl_gset:N     = \gb@opt@toclabel,     toclabel .initial:n  = ,
+    tocsectionlabel .tl_gset:N = \gb@opt@secword,   tocsectionlabel .initial:n = Section,
+    tocchapterlabel .tl_gset:N = \gb@opt@chapword,  tocchapterlabel .initial:n = Chapter,
+    tocfooter .tl_gset:N    = \gb@opt@tocfooter,    tocfooter .initial:n = \gb@doctitle,
+    tocsplit .tl_gset:N     = \gb@opt@split,        tocsplit .initial:n  = 0.5\gb@tocw,
+    tocsubsplit .tl_gset:N  = \gb@opt@subsplit,     tocsubsplit .initial:n = 0.25\gb@tocw,
+    tocpagewidth .tl_gset:N = \gb@opt@pagewidth,    tocpagewidth .initial:n = 10mm,
+    tocpad .tl_gset:N       = \gb@opt@pad,          tocpad .initial:n    = 2mm,
+    tocchapterpad .tl_gset:N = \gb@opt@chpad,       tocchapterpad .initial:n = 4mm,
+    tocrule .tl_gset:N      = \gb@opt@rule,         tocrule .initial:n   = 0.5pt,
+    tocrulegap .tl_gset:N   = \gb@opt@rulegap,      tocrulegap .initial:n = 0.8mm,
+    toctoppad .tl_gset:N    = \gb@opt@toppad,       toctoppad .initial:n = 2.6mm,
+    tocbottompad .tl_gset:N = \gb@opt@botpad,       tocbottompad .initial:n = 2.2mm,
+    tocplainpad .tl_gset:N  = \gb@opt@plainpad,     tocplainpad .initial:n = 2.6mm,
+    toctopspace .tl_gset:N  = \gb@opt@topspace,     toctopspace .initial:n = 8mm,
+    tocfootgap .tl_gset:N   = \gb@opt@footgap,      tocfootgap .initial:n = 5mm,
+    tocwidth .tl_gset:N     = \gb@opt@tocwidth,
+    tocwidth .initial:n     = \textwidth+\marginparsep+\marginparwidth,
+    tocpartcolor .tl_gset:N = \gb@opt@tocpartcolor, tocpartcolor .initial:n = gbaccent!85,
+    marginbar .bool_gset:N  = \g__gb_marginbar_bool, marginbar .initial:n = true,
+    marginbarwidth .tl_gset:N = \gb@opt@barwidth,   marginbarwidth .initial:n = 7mm,
+    tocchaptershift .tl_gset:N = \gb@opt@chapshift, tocchaptershift .initial:n = 1.5mm,
+    partshift .tl_gset:N    = \gb@opt@partshift,    partshift .initial:n = -1.2mm,
+    partgap .tl_gset:N      = \gb@opt@partgap,      partgap .initial:n = 3mm,
+    partskip .tl_gset:N     = \gb@opt@partskip,     partskip .initial:n = 3mm,
+    partextend .tl_gset:N   = \gb@opt@partextend,  partextend .initial:n = 12mm,
+    toclabelraise .tl_gset:N = \gb@opt@toclabelraise, toclabelraise .initial:n = 5mm,
+    captions .choices:nn    = { margin, below }
+                              { \tl_gset_eq:NN \gb@opt@captions \l_keys_choice_tl },
+    captions .initial:n     = margin,
+    accent .code:n          = { \tl_gset:Nn \gb@opt@accent {#1}
+                                \cs_if_exist:NT \colorlet { \colorlet{gbaccent}{#1} } },
+    accent .initial:n       = slategreen,
+  }
+%% ----------------------------------------------------------------------
+%%  Fonts of the parts of the page.  Two levels:
+%%    headingfont, labelfont, displayfont, numberfont
+%%        the four families the parts are set in (sans headings, small
+%%        letter-spaced labels, chapter titles, chapter numbers); change
+%%        one and every part that uses it follows, at the same sizes
+%%    <part>font and <part>size, for each part listed below
+%%        the family / series / shape of that part, and its size
+%% ----------------------------------------------------------------------
+\keys_define:nn { greenbook }
+  {
+    headingfont .tl_gset:N = \gb@family@heading,
+    headingfont .initial:n = \normalfont\sffamily,
+    labelfont .tl_gset:N   = \gb@family@label,
+    labelfont .initial:n   = {\normalfont\ttfamily
+                             \gbfontelse{DINdong}[LetterSpace=8]{\addfontfeature{LetterSpace=10}}},
+    displayfont .tl_gset:N = \gb@family@display,
+    displayfont .initial:n = \normalfont\chapterfont,
+    numberfont .tl_gset:N  = \gb@family@number,
+    numberfont .initial:n  = \normalfont\chapternumfont,
+  }
+\cs_new_protected:Npn \__gb_role:nnnn #1#2#3#4
+  { % #1 = key stem, #2 = internal name, #3 = family, #4 = size
+    \keys_define:nn { greenbook }
+      {
+        #1font .tl_gset:c = { gb@f@#2 },
+        #1font .initial:n = {#3},
+        #1size .tl_gset:c = { gb@s@#2 },
+        #1size .initial:n = {#4},
+      }
+    \cs_gset_nopar:cpn { gb@font@#2 } { \use:c { gb@f@#2 } \use:c { gb@s@#2 } }
+  }
+\__gb_role:nnnn {chaptertitle} {chaptitle} {\gb@family@display} {\fontsize{36pt}{44pt}\selectfont}
+\__gb_role:nnnn {chapternumber} {chapnum} {\gb@family@number} {\fontsize{144pt}{150pt}\selectfont}
+\__gb_role:nnnn {section} {section} {\gbfontelse{Jost~Light}{\gb@family@heading}} {\Large}
+\__gb_role:nnnn {subsection} {subsection} {\gbfontelse{Jost~Light}{\gb@family@heading}} {\large}
+\__gb_role:nnnn {secnumber} {secnum} {\gbfontelse{DINdong}{\use:c{gb@f@section}}} {}
+\__gb_role:nnnn {partname} {partname} {\normalfont} {\LARGE}
+\__gb_role:nnnn {parttitle} {parttitle} {\normalfont\itshape} {\Huge}
+\__gb_role:nnnn {header} {header} {\normalfont\itshape} {}
+\__gb_role:nnnn {headerpage} {headerpage} {\normalfont\bfseries} {}
+\__gb_role:nnnn {thmlabel} {thmlabel} {\gbfontelse{Jost~Medium}{\gb@family@heading\bfseries}} {}
+\__gb_role:nnnn {thmnote} {thmnote} {\gbfontelse{Jost~Medium}{\gb@family@heading\bfseries}} {}
+\__gb_role:nnnn {tab} {tab} {\gbfontelse{Jost~Medium}{\gb@family@heading\bfseries}} {}
+\__gb_role:nnnn {examplenote} {examplenote} {\normalfont\bfseries} {}
+\__gb_role:nnnn {remarkhead} {remarkhead} {\gbfontelse{Jost~Medium}{\gb@family@heading\bfseries}} {}
+\__gb_role:nnnn {captionlabel} {captionlabel} {\gbfontelse{Jost~Medium}{\gb@family@heading}} {\footnotesize}
+\__gb_role:nnnn {caption} {caption} {\normalfont} {\footnotesize}
+\__gb_role:nnnn {note} {note} {\normalfont} {\small}
+\__gb_role:nnnn {toclabel} {toclabel} {\gb@family@label} {\fontsize{7pt}{8pt}\selectfont}
+\__gb_role:nnnn {tocnumber} {tocnumber} {\use:c{gb@f@toclabel}} {\fontsize{6pt}{8pt}\selectfont}
+\__gb_role:nnnn {tocpart} {tocpart} {\gbfontelse{PP~Mori~Semibold}[Scale=0.95]{\gb@family@heading\bfseries}} {\fontsize{20pt}{22pt}\selectfont}
+\__gb_role:nnnn {toctitle} {toctitle} {\normalfont\rmfamily} {\fontsize{9pt}{11pt}\selectfont}
+\__gb_role:nnnn {tocpage} {tocpage} {\normalfont\rmfamily} {\fontsize{9pt}{11pt}\selectfont}
+\__gb_role:nnnn {marginbar} {marginbar} {\gb@family@label} {\fontsize{7pt}{8pt}\selectfont}
+\__gb_role:nnnn {cover} {cover} {\gb@family@display} {\fontsize{48pt}{52pt}\selectfont}
+\ProcessKeyOptions [ greenbook ]
+\NewDocumentCommand \greenbooksetup { m } { \keys_set:nn { greenbook } {#1} }
+% \gbfont{<family>}[<features>]: a font switch to any installed font, for
+% the font keys, e.g. \greenbooksetup{headingfont={\gbfont{PP Mori}}}.  The
+% size comes from the size keys; [Scale=...] or [Scale=MatchLowercase] in
+% <features> adjusts a font whose letters are larger or smaller than usual.
+% A font that is not installed is reported once and the current font is
+% kept (fontspec alone would stop the run when the font is first used).
+\cs_new_protected:Npn \__gb_fontspec:nnn #1#2#3
+  { \fontspec{#1}[#2#3] }
+\NewDocumentCommand \gbfont { m O{} }
+  {
+    \cs_if_exist:cF { g__gb_font_ #1 _bool }
+      {
+        \bool_new:c { g__gb_font_ #1 _bool }
+        \tl_gclear_new:c { g__gb_font_ #1 _bold_tl }
+        \IfFontExistsTF {#1}
+          {
+            \bool_gset_true:c { g__gb_font_ #1 _bool }
+            % a family without a "Bold" face (PP Mori, Inter Display, ...):
+            % \bfseries takes its Semibold, SemiBold or Medium face
+            \IfFontExistsTF { #1~Bold } { }
+              {
+                \clist_map_inline:nn { Semibold, SemiBold, Medium, Black }
+                  {
+                    \tl_if_empty:cT { g__gb_font_ #1 _bold_tl }
+                      {
+                        \IfFontExistsTF { #1~##1 }
+                          { \tl_gset:cn { g__gb_font_ #1 _bold_tl } { BoldFont = {#1~##1}, } }
+                          { }
+                      }
+                  }
+              }
+          }
+          {
+            \PackageWarning{greenbook}
+              { Font~`#1'~is~not~installed~(or~not~under~this~name);\MessageBreak
+                \string\gbfont\space keeps~the~current~font.\MessageBreak
+                Check~the~name~with:~luaotfload-tool~--find="#1" }
+          }
+      }
+    \bool_if:cT { g__gb_font_ #1 _bool }
+      { \exp_args:Nnx \__gb_fontspec:nnn {#1} { \tl_use:c { g__gb_font_ #1 _bold_tl } } {#2} }
+  }
+% \gbfontelse{<family>}[<features>]{<fallback>}: \gbfont when the font is
+% installed, otherwise <fallback> (and no warning).  The defaults of the
+% font keys use it, so greenbook looks the same without the fonts.
+\NewDocumentCommand \gbfontelse { m O{} m }
+  { \IfFontExistsTF {#1} { \gbfont {#1} [#2] } {#3} }
+\cs_new:Npn \gb@ifbreakable { \bool_if:NTF \g__gb_breakable_bool }
+\cs_new:Npn \gb@ifparttoc  { \bool_if:NTF \g__gb_parttoc_bool }
+\cs_new:Npn \gb@ifmarginbar { \bool_if:NTF \g__gb_marginbar_bool }
+\ExplSyntaxOff
+
+%% ----------------------------------------------------------------------
+%%  2. Math and text fonts
+%%
+%%  Each font is the first of a list that is installed: the font given by
+%%  its key, then the fonts of the preset, then fonts that come with every
+%%  TeX Live.  The log says which font was taken ("greenbook: main font").
+%%  The math setup is chosen the same way, before fontspec is loaded:
+%%     mtpro2   MathTime Pro 2 lite (the original look; not in TeX Live)
+%%     newtx    newtxmath
+%%     unicode  unicode-math with an OpenType math font
+%%     cm       Latin Modern / Computer Modern math
+%% ----------------------------------------------------------------------
+\ExplSyntaxOn
+\tl_new:N \g_gb_mathmode_tl        % the math setup that was chosen
+\tl_new:N \g_gb_mathfont_tl        % its OpenType font (unicode only)
+\bool_new:N \l__gb_found_bool
+
+% math choices per preset: items are  {mtpro2}  {newtx}  {cm}  or
+% {unicode}{<font name>}{<file the font is in>}
+\cs_generate_variant:Nn \str_case:nnF { V }
+\cs_generate_variant:Nn \str_case:nn { V }
+\cs_generate_variant:Nn \prop_item:Nn { NV }
+\prop_const_from_keyval:Nn \c__gb_mathchain_prop
+  {
+    original   = {{{mtpro2}{}{}}{{unicode}{Garamond-Math}{Garamond-Math.otf}}
+                 {{newtx}{}{}}{{unicode}{Latin~Modern~Math}{latinmodern-math.otf}}},
+    garamond   = {{{unicode}{Garamond-Math}{Garamond-Math.otf}}{{newtx}{}{}}
+                 {{unicode}{Latin~Modern~Math}{latinmodern-math.otf}}},
+    libertinus = {{{unicode}{Libertinus~Math}{LibertinusMath-Regular.otf}}
+                 {{unicode}{Latin~Modern~Math}{latinmodern-math.otf}}},
+    pagella    = {{{unicode}{TeX~Gyre~Pagella~Math}{texgyrepagella-math.otf}}
+                 {{unicode}{Latin~Modern~Math}{latinmodern-math.otf}}},
+    lm         = {{{unicode}{Latin~Modern~Math}{latinmodern-math.otf}}{{cm}{}{}}},
+  }
+
+% is an OpenType font file installed?  (kpathsea under LuaTeX; XeTeX only
+% sees the files that TeX itself can find)
+\sys_if_engine_luatex:TF
+  {
+    \prg_new_protected_conditional:Npnn \__gb_fontfile_if_exist:n #1 { T }
+      {
+        \tl_set:Ne \l__gb_tmp_tl
+          { \lua_now:e { tex.sprint(kpse.find_file("\lua_escape:e{#1}","opentype~fonts")~or~"") } }
+        \tl_if_empty:NTF \l__gb_tmp_tl { \prg_return_false: } { \prg_return_true: }
+      }
+  }
+  {
+    \prg_new_protected_conditional:Npnn \__gb_fontfile_if_exist:n #1 { T }
+      { \file_if_exist:nTF {#1} { \prg_return_true: } { \prg_return_false: } }
+  }
+\cs_new_protected:Npn \__gb_math_try:nnn #1#2#3
+  {
+    \bool_if:NF \l__gb_found_bool
+      {
+        \str_case:nn {#1}
+          {
+            {mtpro2}  { \file_if_exist:nT { mtpro2.sty }
+                          { \bool_set_true:N \l__gb_found_bool } }
+            {newtx}   { \file_if_exist:nT { newtxmath.sty }
+                          { \bool_set_true:N \l__gb_found_bool } }
+            {cm}      { \bool_set_true:N \l__gb_found_bool }
+            {unicode} { \__gb_fontfile_if_exist:nT {#3}
+                          { \bool_set_true:N \l__gb_found_bool } }
+          }
+        \bool_if:NT \l__gb_found_bool
+          {
+            \tl_gset:Nn \g_gb_mathmode_tl {#1}
+            \tl_gset:Nn \g_gb_mathfont_tl {#2}
+          }
+      }
+  }
+\cs_new_protected:Npn \__gb_math_choose:
+  {
+    \bool_set_false:N \l__gb_found_bool
+    \tl_set:Nx \l__gb_chain_tl { \prop_item:NV \c__gb_mathchain_prop \l__gb_preset_tl }
+    \str_case:VnF \l__gb_math_tl
+      {
+        {auto}    { \tl_if_empty:NF \l__gb_mathfont_tl
+                      { \tl_gset:Nn \g_gb_mathmode_tl {unicode}
+                        \tl_gset_eq:NN \g_gb_mathfont_tl \l__gb_mathfont_tl
+                        \bool_set_true:N \l__gb_found_bool }
+                    \tl_map_inline:Nn \l__gb_chain_tl { \__gb_math_try:nnn ##1 } }
+        {unicode} { \tl_if_empty:NTF \l__gb_mathfont_tl
+                      { \tl_map_inline:Nn \l__gb_chain_tl
+                          { \__gb_math_unicode_only:nnn ##1 } }
+                      { \tl_gset:Nn \g_gb_mathmode_tl {unicode}
+                        \tl_gset_eq:NN \g_gb_mathfont_tl \l__gb_mathfont_tl
+                        \bool_set_true:N \l__gb_found_bool } }
+      }
+      { \exp_args:NV \__gb_math_try:nnn \l__gb_math_tl {} {} }
+    \bool_if:NF \l__gb_found_bool
+      {
+        \PackageWarningNoLine{greenbook}
+          {math~=~\l__gb_math_tl\space is~not~installed;~using~Latin~Modern}
+        \tl_gset:Nn \g_gb_mathmode_tl {unicode}
+        \tl_gset:Nn \g_gb_mathfont_tl {Latin~Modern~Math}
+      }
+    \PackageInfo{greenbook}{math:~\g_gb_mathmode_tl\space\g_gb_mathfont_tl}
+  }
+\cs_new_protected:Npn \__gb_math_unicode_only:nnn #1#2#3
+  { \str_if_eq:nnT {#1} {unicode} { \__gb_math_try:nnn {#1}{#2}{#3} } }
+\__gb_math_choose:
+
+% ---- text fonts: lists of {{name}{fontspec options}}
+\prop_const_from_keyval:Nn \c__gb_main_prop
+  {
+    original   = {{{Sabon}{}}{{EB~Garamond}{}}},
+    garamond   = {{{EB~Garamond}{}}},
+    libertinus = {{{Libertinus~Serif}{}}},
+    pagella    = {{{TeX~Gyre~Pagella}{}}},
+    lm         = {},
+  }
+\prop_const_from_keyval:Nn \c__gb_sans_prop
+  {
+    original   = {{{Jost~Light}{BoldFont={Jost~Medium}}}{{Jost}{}}},
+    garamond   = {{{Jost~Light}{BoldFont={Jost~Medium}}}{{Jost}{}}},
+    libertinus = {{{Libertinus~Sans}{}}},
+    pagella    = {{{TeX~Gyre~Heros}{Scale=MatchLowercase}}},
+    lm         = {},
+  }
+\prop_const_from_keyval:Nn \c__gb_mono_prop
+  {
+    original   = {{{JetBrains~Mono}{Scale=MatchLowercase}}{{JetBrainsMono}{Scale=MatchLowercase}}{{JetBrainsMono~Nerd~Font}{Scale=MatchLowercase}}},
+    garamond   = {{{JetBrains~Mono}{Scale=MatchLowercase}}{{JetBrainsMono}{Scale=MatchLowercase}}{{JetBrainsMono~Nerd~Font}{Scale=MatchLowercase}}},
+    libertinus = {{{Libertinus~Mono}{Scale=MatchLowercase}}},
+    pagella    = {},
+    lm         = {},
+  }
+\prop_const_from_keyval:Nn \c__gb_chapter_prop
+  {
+    original   = {{{EB~Garamond}{}}},
+    garamond   = {{{EB~Garamond}{}}},
+    libertinus = {{{Libertinus~Serif}{}}},
+    pagella    = {{{TeX~Gyre~Pagella}{}}},
+    lm         = {},
+  }
+\prop_const_from_keyval:Nn \c__gb_chapnum_prop
+  {
+    original   = {{{Riesling}{}}},
+    garamond   = {{{Riesling}{}}},
+    libertinus = {},
+    pagella    = {},
+    lm         = {},
+  }
+% the last resort of every list
+\tl_const:Nn \c__gb_main_last_tl    { {{TeX~Gyre~Pagella}{}} {{Latin~Modern~Roman}{}} }
+\tl_const:Nn \c__gb_sans_last_tl    { {{TeX~Gyre~Heros}{Scale=MatchLowercase}} {{Latin~Modern~Sans}{}} }
+\tl_const:Nn \c__gb_mono_last_tl    { {{DejaVu~Sans~Mono}{Scale=MatchLowercase}} {{Latin~Modern~Mono}{}} }
+
+% #1 = what (for the log), #2 = function {name}{options}, #3 = user font,
+% #4 = list from the preset, #5 = last resort (empty: none, keep the default)
+\cs_new_protected:Npn \__gb_pick:nNnnn #1#2#3#4#5
+  {
+    \bool_set_false:N \l__gb_found_bool
+    \tl_set:Nn \l__gb_list_tl {#4 #5}
+    \tl_if_empty:nF {#3} { \tl_put_left:Nn \l__gb_list_tl { {{#3}{}} } }
+    \tl_map_inline:Nn \l__gb_list_tl
+      { \bool_if:NF \l__gb_found_bool { \__gb_pick_try:nNnn {#1} #2 ##1 } }
+    \bool_if:NF \l__gb_found_bool
+      { \PackageInfo{greenbook}{#1:~none~of~the~fonts~is~installed;~default~kept} }
+  }
+\cs_new_protected:Npn \__gb_pick_try:nNnn #1#2#3#4
+  {
+    \IfFontExistsTF {#3}
+      {
+        #2 {#3} {#4}
+        \bool_set_true:N \l__gb_found_bool
+        \PackageInfo{greenbook}{#1:~#3}
+      }
+      { \PackageInfo{greenbook}{#1:~#3~is~not~installed} }
+  }
+\cs_generate_variant:Nn \__gb_pick:nNnnn { nNVee }
+\ExplSyntaxOff
+
+% ---- load the math packages (legacy fonts must come before fontspec;
+%      amsthm before newtxmath, which also defines \openbox)
+\RequirePackage{amsmath}
+\RequirePackage{mathtools}
+\RequirePackage{amsthm}
+\ExplSyntaxOn
+\str_case:Vn \g_gb_mathmode_tl
+  {
+    {mtpro2}
+      {
+        \RequirePackage{amssymb}
+        \RequirePackage[lite,zswash,subscriptcorrection]{mtpro2}
+        % MathTime's wide accents are fragile; theorem notes go to files
+        \cs_set_eq:NN \gb@widetilde \widetilde
+        \DeclareRobustCommand{\widetilde}{\gb@widetilde}
+        \cs_set_eq:NN \gb@widehat \widehat
+        \DeclareRobustCommand{\widehat}{\gb@widehat}
+        \DeclareMathSizes{9}{9}{6}{4}
+        % mtpro2 makes \{ and \} math-only; in text they print braces again
+        \DeclareRobustCommand{\{}{\mode_if_math:TF{\lbrace}{\textbraceleft}}
+        \DeclareRobustCommand{\}}{\mode_if_math:TF{\rbrace}{\textbraceright}}
+        % the \times of Computer Modern
+        \DeclareFontFamily{U}{cmsy}{}
+        \DeclareFontShape{U}{cmsy}{m}{n}
+          { <-8>cmsy7 <8-9>cmsy8 <9-10>cmsy9 <10->cmsy10 }{}
+        \DeclareSymbolFont{Xcmsy}{U}{cmsy}{m}{n}
+        \DeclareMathSymbol{\times}{\mathord}{Xcmsy}{2}
+        % script letters, blackboard, fraktur
+        \RequirePackage[cal=boondoxo,calscaled=.94,bb=dsfontserif,
+          frak=esstix,frakscaled=.97,scr=dutchcal]{mathalpha}
+        \RequirePackage{bm}
+        \RequirePackage{fontspec}
+      }
+    {newtx}
+      {
+        \RequirePackage{amssymb}
+        \RequirePackage{newtxmath}
+        \RequirePackage{bm}
+        \RequirePackage{fontspec}
+      }
+    {cm}
+      {
+        \RequirePackage{amssymb}
+        \RequirePackage{bm}
+        \RequirePackage{fontspec}
+      }
+    {unicode}
+      {
+        \RequirePackage{fontspec}
+        \RequirePackage{unicode-math}
+        \exp_args:NV \setmathfont \g_gb_mathfont_tl
+        % \bm of the other setups: bold italic letters
+        \ProvideDocumentCommand \bm { m } { \symbfit{#1} }
+        % names of amssymb that unicode-math spells differently
+        \AtBeginDocument
+          {
+            \providecommand \blacksquare { \mdlgblksquare }
+            \providecommand \square { \mdlgwhtsquare }
+          }
+      }
+  }
+% ---- text fonts
+\cs_new_protected:Npn \__gb_set_main:nn #1#2 { \setmainfont{#1}[Ligatures=TeX,#2] }
+\cs_new_protected:Npn \__gb_set_sans:nn #1#2 { \setsansfont{#1}[Ligatures=TeX,#2] }
+\cs_new_protected:Npn \__gb_set_mono:nn #1#2 { \setmonofont{#1}[#2] }
+\cs_new_protected:Npn \__gb_set_chapter:nn #1#2 { \setfontfamily\chapterfont{#1}[Ligatures=TeX,#2] }
+\cs_new_protected:Npn \__gb_set_chapnum:nn #1#2 { \setfontfamily\chapternumfont{#1}[#2] }
+\__gb_pick:nNVee {main~font}  \__gb_set_main:nn \l__gb_main_tl
+  { \prop_item:NV \c__gb_main_prop \l__gb_preset_tl } { \c__gb_main_last_tl }
+\__gb_pick:nNVee {sans~font}  \__gb_set_sans:nn \l__gb_sans_tl
+  { \prop_item:NV \c__gb_sans_prop \l__gb_preset_tl } { \c__gb_sans_last_tl }
+\__gb_pick:nNVee {mono~font}  \__gb_set_mono:nn \l__gb_mono_tl
+  { \prop_item:NV \c__gb_mono_prop \l__gb_preset_tl } { \c__gb_mono_last_tl }
+% chapter titles: EB Garamond, else the main font
+\cs_set_eq:NN \chapterfont \rmfamily
+\__gb_pick:nNVee {chapter~font} \__gb_set_chapter:nn \l__gb_chapter_tl
+  { \prop_item:NV \c__gb_chapter_prop \l__gb_preset_tl } { }
+% chapter numbers: Riesling, else the chapter font in italic
+\cs_set:Npn \chapternumfont { \chapterfont\itshape }
+\__gb_pick:nNVee {chapter~number~font} \__gb_set_chapnum:nn \l__gb_chapnum_tl
+  { \prop_item:NV \c__gb_chapnum_prop \l__gb_preset_tl } { }
+
+% operators (\sin, \lim) in the text font, with the legacy math fonts
+\str_if_eq:VnF \g_gb_mathmode_tl {unicode}
+  {
+    \DeclareSymbolFont{operators}{TU}{\rmdefault}{m}{n}
+    \SetSymbolFont{operators}{bold}{TU}{\rmdefault}{b}{n}
+  }
+\ExplSyntaxOff
+
+% MathTime Pro 2: radicals with the right depth
+\@ifpackageloaded{mtpro2}{%
+  \RequirePackage{etoolbox}%
+  \patchcmd{\PEX@}{\ifdim\dp\Pbox@>\dp\z@}{\ifdim\ht\Pbox@>\dp\z@}{}{}%
+  \patchcmd{\PEX@}{\dp\Pbox@>\dp\z@}{\ht\Pbox@>\dp\z@}{}{}%
+  \patchcmd{\SQEX@}{\dp\Sbox@>\dp0}{\ht\Sbox@>\dp0}{}{}%
+}{}
+
+% sizes (memoir's are too small for this layout)
+\renewcommand{\large}{\fontsize{13}{20}\selectfont}
+\renewcommand{\Large}{\fontsize{15}{20}\selectfont}
+\renewcommand{\LARGE}{\fontsize{22}{40}\selectfont}
+\renewcommand{\huge}{\fontsize{30}{60}\selectfont}
+\renewcommand{\Huge}{\fontsize{40}{60}\selectfont}
+\renewcommand{\HUGE}{\fontsize{144}{150}\selectfont}
+\newcommand{\chapnamefontsize}{\fontsize{36}{44}\selectfont}
+\renewcommand{\footnotesize}{\fontsize{9pt}{12pt}\selectfont}
+
+\setSingleSpace{1.1}
+\SingleSpacing
+
+%% ----------------------------------------------------------------------
+%%  3. Page layout  (layout=false leaves memoir's layout alone)
+%%
+%%  The design is one-sided: every page has the narrow margin on the left
+%%  and the wide margin, which holds notes, footnotes and theorem labels,
+%%  on the right.  twoside is therefore switched off.
+%% ----------------------------------------------------------------------
+\RequirePackage{geometry}
+\RequirePackage[dvipsnames]{xcolor}
+\RequirePackage{ragged2e}
+
+\definecolor{slategreen}{HTML}{354F52}
+\definecolor{hkgreen}{HTML}{52796F}
+\definecolor{lightslategreen}{HTML}{CADBDC}
+\definecolor{lightslategreenborder}{HTML}{354F52}
+\definecolor{gbpaper}{HTML}{F5F6F4}% off-white: example boxes, text on the accent
+\definecolor{goodpurple}{HTML}{420024}
+\colorlet{gbaccent}{\gb@opt@accent}% key `accent'
+\colorlet{gbbarink}{gbpaper}% text on the margin bar
+
+% definition, nonexample, caution (section 8, 13): kept close to the hue of
+% the hand-picked colours they replace, but brought down to the saturation
+% of slategreen/hkgreen/lightslategreen (roughly 20%), so that a warm box
+% reads as part of the same family instead of jumping out of it
+\colorlet{gbdefpaper}{lightslategreen!28}
+\definecolor{gbcaution}{HTML}{7C6850}
+\definecolor{gbcautionpaper}{HTML}{F1EDE9}
+\definecolor{gbplum}{HTML}{764C63}
+\definecolor{gbplumpaper}{HTML}{F1E9EE}
+
+\ExplSyntaxOn
+\bool_if:NT \l__gb_layout_bool
+  {
+    \setstocksize{260mm}{210mm}
+    \settrimmedsize{0.9\stockheight}{0.9\stockwidth}{*}
+    \setlrmarginsandblock{4.5cm}{1.6cm}{*}
+    \setulmarginsandblock{1.8cm}{0cm}{*}
+    \setmarginnotes{0.5cm}{4.5cm}{0.2cm}
+    \setheadfoot{10mm}{0pt}% the foot is empty (1.x: -10mm)
+    \checkandfixthelayout[fixed]
+    % every page like an even page: narrow margin left, wide margin right
+    \setlength{\oddsidemargin}{\evensidemargin}
+    % The text reaches the foot of the trimmed page (lower margin 0), so
+    % memoir's check needs a foot skip of 0.  The footers are empty, but
+    % memoir sets each one with a strut and warns when the foot skip is
+    % smaller than that: give the foot its height after the check.
+    \setlength{\footskip}{12pt}
+  }
+\ExplSyntaxOff
+\@twosidefalse
+\@mparswitchfalse
+\raggedbottom
+% \newgeometry (used by \spart, and around the table of contents) keeps the
+% twoside setting of the class, and would swap the margins of even pages:
+% with `asymmetric' every page gets the margins it is given
+\let\gb@newgeometry\newgeometry
+\renewcommand*\newgeometry[1]{\gb@newgeometry{asymmetric,#1}}
+
+%% ----------------------------------------------------------------------
+%%  4. Sections and chapters
+%%
+%%  Every chapter head (numbered, \chapter*, front and back matter) has the
+%%  same parts:
+%%
+%%    ===================================================  band at the top
+%%                                                          of the paper
+%%    Title of the chapter, set as wide as        ____
+%%    the text and the margin allow                 /     number in the
+%%    ___________________________________________ /___    margin, standing
+%%                                                         on the rule
+%%  An unnumbered head has no number; its title may then use the full width.
+%%  Everything is placed in boxes of the width of the text, so nothing is
+%%  reported as overfull.
+%% ----------------------------------------------------------------------
+\setcounter{secnumdepth}{2}
+
+% the text and the margin column together (where heads and rules end)
+\newcommand*\gb@fullwidth{\dimexpr\linewidth+\marginparsep+\marginparwidth\relax}
+
+% section numbers hang in the left margin
+\setsechook{\hangsecnum}
+\renewcommand{\hangsecnum}{%
+  \def\@seccntformat##1{%
+    \makebox[0pt][r]{\gb@font@secnum\color{gray}\csname the##1\endcsname\hspace{.6em}}}}
+
+% a section title stands above a hairline
+\colorlet{gbheading}{slategreen!80!black}
+% (the colour is set inside a group, so that it ends with the title)
+\newcommand*\ruledsec[1]{%
+  {\gb@font@section\color{gbheading}#1\par}%
+  \nobreak\vskip 5pt
+  \hrule width\linewidth height .1pt}
+\setsecheadstyle{\ruledsec}
+\setbeforesecskip{-6ex \@plus -1ex \@minus -.4ex}
+\setaftersecskip{2.4ex \@plus .2ex}
+\newcommand*\gb@subsechead[1]{{\gb@font@subsection\color{gbheading}#1\par}}
+\setsubsecheadstyle{\gb@subsechead}
+\setbeforesubsecskip{-4.5ex \@plus -1ex \@minus -.3ex}
+\setaftersubsecskip{2.2ex \@plus .2ex}
+
+% ---- chapter heads
+\newlength\gb@bandheight   \setlength\gb@bandheight{9pt}
+\newlength\gb@chapnumgap   \setlength\gb@chapnumgap{1em}
+\newlength\gb@chaprulegap  \setlength\gb@chaprulegap{6pt}
+\newlength{\chnumsep}% (greenbook 1.x; no longer used)
+\let\gb@chapnum\@empty
+
+% the band: a zero-height box whose rule is raised to the top of the paper
+\newcommand*\gb@chapband{%
+  \par\nointerlineskip
+  \hbox to\linewidth{%
+    \hskip-\dimexpr1in+\hoffset+\oddsidemargin+1cm\relax
+    \smash{\raise\dimexpr1in+\voffset+\topmargin+\headheight+\headsep
+                     +\topskip-\gb@bandheight\relax
+      \hbox{\color{gbaccent}%
+        \vrule width\dimexpr\stockwidth+2cm\relax height\gb@bandheight depth\z@}}%
+    \hss}%
+  \nointerlineskip}
+
+% title, number and rule.  #1 = title
+\newcommand*\gb@chaphead[1]{%
+  \setbox\z@\hbox{{\chapnumfont\gb@chapnum}}% (inner group: the colour ends in the box)
+  \dimen@=\dimexpr\gb@fullwidth-\wd\z@\relax
+  \ifdim\wd\z@>\z@ \advance\dimen@-\gb@chapnumgap \fi
+  \dimen@ii=\dp\z@
+  \noindent
+  \hbox to\linewidth{%
+    \rlap{\parbox[b]{\dimen@}{\chaptitlefont\RaggedRight
+      \hyphenpenalty\@M \exhyphenpenalty\@M #1\par}}%
+    \hskip\dimexpr\gb@fullwidth-\wd\z@\relax \box\z@
+    \hss}\par
+  \nointerlineskip
+  \vskip\ifdim\dimen@ii>\gb@chaprulegap\dimen@ii\else\gb@chaprulegap\fi
+  \hbox to\linewidth{{\color{gbaccent}\vrule width\gb@fullwidth height 2pt}\hss}}
+
+\makechapterstyle{greenbook}{%
+  \renewcommand*{\chapnumfont}{\gb@font@chapnum\color{gbaccent}}%
+  \renewcommand*{\chaptitlefont}{\gb@font@chaptitle\color{black}}%
+  \setlength{\beforechapskip}{0pt}%
+  \setlength{\afterchapskip}{30pt}%
+  \renewcommand*{\chapterheadstart}{\gb@chapband}%
+  \renewcommand*{\printchaptername}{}%
+  \renewcommand*{\chapternamenum}{}%
+  \renewcommand*{\printchapternum}{\def\gb@chapnum{\thechapter}}%
+  \renewcommand*{\afterchapternum}{}%
+  \renewcommand*{\printchapternonum}{\let\gb@chapnum\@empty}%
+  \renewcommand*{\printchaptertitle}[1]{\gb@chaphead{##1}}%
+  \renewcommand*{\afterchaptertitle}{\par\nobreak\vskip\afterchapskip}%
+}
+\makechapterstyle{custom}{\chapterstyle{greenbook}}% the name in greenbook 1.x
+\chapterstyle{greenbook}
+
+%% ----------------------------------------------------------------------
+%%  5. Parts and the cover
+%% ----------------------------------------------------------------------
+\RequirePackage{pgfornament}
+
+\renewcommand*{\thepart}{\arabic{part}}
+\renewcommand*{\partnamefont}{\gb@font@partname}
+\renewcommand*{\partnumfont}{\gb@font@partname}
+\renewcommand*{\printpartname}{\partnamefont Part}
+\renewcommand*{\partnamenum}{~}
+\renewcommand*{\printpartnum}{\partnumfont\thepart}
+\renewcommand*{\parttitlefont}{\gb@font@parttitle}
+% the ornament, centred on the text block (wider than it)
+\newcommand*\gb@ornament{%
+  \hbox to\linewidth{\hss\pgfornament[color=gbaccent,width=15cm]{87}\hss}}
+\renewcommand{\midpartskip}{\par\vskip 4mm\noindent\gb@ornament\par\vskip 12mm}
+\renewcommand{\beforepartskip}{\vspace*{\fill}}
+\renewcommand{\afterpartskip}{\vspace*{\fill}}
+\renewcommand*{\printparttitle}[1]{{\parttitlefont #1\par}\gb@partminitoc}
+
+% Part pages are centred on the paper: \part (and \part*, \part[short])
+% sets its page with margins of equal weight, then goes back to the layout
+% of the book.  \spart{title} is kept from greenbook 1.x, as \part{title}.
+\NewCommandCopy\gb@mempart\part
+\RenewDocumentCommand\part{s o m}{%
+  \newgeometry{right=2cm,left=3.7cm}%
+  \IfBooleanTF{#1}{\gb@mempart*{#3}}%
+    {\IfNoValueTF{#2}{\gb@mempart{#3}}{\gb@mempart[#2]{#3}}}%
+  \restoregeometry}
+\newcommand{\spart}[1]{\part{#1}}
+
+% ---- the cover (\maketitle), after the part pages of artbook.sty: a page in
+% the accent colour, a small logo, the title large, and author and date at
+% the foot between two rules.  \subtitle{...} adds a line under the title.
+% cover=false keeps memoir's \maketitle.
+\colorlet{gbcoverink}{gbpaper}
+\providecommand*\subtitle[1]{\gdef\gb@subtitle{#1}}
+\let\gb@subtitle\@empty
+\newcommand*\gb@logo{%
+  \begingroup
+    \@tempdima=13mm \@tempdimb=1.7mm \@tempdimc=3.8mm
+    \hbox to\@tempdima{%
+      \rlap{\color{gbcoverink}\vrule width\@tempdima height\@tempdima depth\z@}%
+      \rlap{\hskip\@tempdimb\raise\@tempdimb\hbox{\color{gbaccent}%
+        \vrule width\dimexpr\@tempdima-2\@tempdimb\relax
+               height\dimexpr\@tempdima-2\@tempdimb\relax depth\z@}}%
+      \rlap{\hskip\@tempdimc\raise\@tempdimc\hbox{\color{gbcoverink}%
+        \vrule width\dimexpr\@tempdima-2\@tempdimc\relax
+               height\dimexpr\@tempdima-2\@tempdimc\relax depth\z@}}%
+      \hss}%
+  \endgroup}
+\newcommand*\gb@cover{%
+  \clearpage
+  \thispagestyle{empty}%
+  \pagecolor{gbaccent}%
+  \begingroup
+    \let\thanks\@gobble \def\and{\\}%
+    \parindent\z@ \parskip\z@ \raggedright \color{gbcoverink}%
+    \vbox to\textheight{%
+      \gb@logo\par
+      \vskip 10mm
+      {\gb@font@cover \thetitle\par}%
+      \ifx\gb@subtitle\@empty\else
+        \vskip 5mm {\normalfont\itshape\fontsize{17pt}{21pt}\selectfont\gb@subtitle\par}%
+      \fi
+      \vfill
+      \hbox{\vbox{\hsize=.5\textwidth
+        \hrule height 1.5pt \vskip 5mm
+        {\normalfont\sffamily\fontsize{15pt}{19pt}\selectfont \theauthor\par}%
+        \ifx\thedate\@empty\else
+          \vskip 2mm {\normalfont\rmfamily\itshape\large \thedate\par}\fi
+        \vskip 5mm \hrule height 1.5pt}}}%
+  \endgroup
+  % inside titlingpage the environment ends the page (with its own page
+  % style); the colour is switched off once the page is out
+  \ifx\@currenvir\gb@titlingenv
+    \AddToHookNext{shipout/after}{\nopagecolor}%
+  \else
+    \clearpage\nopagecolor
+  \fi}
+\def\gb@titlingenv{mem@titlingpage}
+\ExplSyntaxOn
+\bool_if:NT \l__gb_cover_bool { \cs_set_eq:NN \maketitle \gb@cover }
+\ExplSyntaxOff
+
+%% ----------------------------------------------------------------------
+%%  6. Page styles
+%% ----------------------------------------------------------------------
+% chapter and part pages: no footer
+\copypagestyle{chapter}{plain}
+\makeoddfoot{chapter}{}{}{}
+\makeevenfoot{chapter}{}{}{}
+\copypagestyle{part}{plain}
+\makeoddfoot{part}{}{}{}
+\makeevenfoot{part}{}{}{}
+
+\nouppercaseheads
+
+% The running head, the same on every page, at the left of the text:
+%     6  |  2.1. The Physical Quantities
+% It shows the section, or the chapter before the first section.
+\newcommand*\gb@headmark{%
+  \protected@edef\gb@tmpmark{\rightmark}%
+  \ifx\gb@tmpmark\@empty\leftmark\else\rightmark\fi}
+\newcommand*\gb@runninghead{%
+  \gb@marginbar
+  \gb@ifmarginbar{}{{\gb@font@headerpage\thepage}\quad{\color{gray}|}\quad}%
+  {\gb@font@header\gb@headmark}}
+
+% The margin bar (marginbar = true), after artbook.sty: a strip of the
+% accent colour down the right edge of the paper, `marginbarwidth' wide,
+% with the page number at its top and the title of the chapter running
+% down it.  It is drawn from the running head, so it is on every page with
+% the fullwidth page style (not on chapter, part and contents pages).
+\gdef\gb@chaptertitle{}
+\let\gb@memchaptermark\chaptermark
+\renewcommand*\chaptermark[1]{\gdef\gb@chaptertitle{#1}%
+  % the title of each numbered chapter, for the headings of the solutions
+  % (a \chapter* with a short title also calls \chaptermark: it does not
+  % replace the title of the chapter before it)
+  \ifcsname gb@chaptitle@\arabic{chapter}\endcsname\else
+    % (memoir passes \f@rhdr, which changes with the next chapter: expand it)
+    \expandafter\protected@xdef\csname gb@chaptitle@\arabic{chapter}\endcsname{#1}%
+  \fi
+  \gb@memchaptermark{#1}}
+\newbox\gb@barbox
+\newcommand*\gb@marginbar{%
+  \gb@ifmarginbar{%
+    \begingroup
+    \dimen@=\dimexpr1in+\voffset+\topmargin+\headheight\relax % paper top
+    \dimen@ii=\dimexpr\stockwidth-1in-\hoffset-\oddsidemargin
+                     -\gb@opt@barwidth\relax                     % bar left
+    % the bar: it runs a paper height past the top and the foot of the page
+    % and 5mm past its right edge, so that it covers the page to its edges
+    % whatever the trims and the rounding (the viewer clips it to the page)
+    \rlap{\hskip\dimen@ii\smash{\raise\dimen@\hbox{{\color{gbaccent}%
+      \vrule width\dimexpr\gb@opt@barwidth+5mm\relax
+        height\stockheight depth2\stockheight}}}}%
+    % the page number, level with the running head
+    \setbox\gb@barbox\hbox{{\gb@font@marginbar\color{gbbarink}\thepage}}%
+    \rlap{\hskip\dimexpr\dimen@ii+(\gb@opt@barwidth-\wd\gb@barbox)/2\relax
+      \box\gb@barbox}%
+    % the title of the chapter (or of the document), reading downwards
+    \setbox\gb@barbox\hbox{{\gb@font@marginbar\color{gbbarink}%
+      \ifx\gb@chaptertitle\@empty\MakeUppercase{\gb@doctitle}%
+      \else\MakeUppercase{\gb@chaptertitle}\fi}}%
+    \setbox\gb@barbox\hbox{\rotatebox[origin=c]{-90}{\box\gb@barbox}}%
+    \rlap{\hskip\dimexpr\dimen@ii+(\gb@opt@barwidth-\wd\gb@barbox)/2\relax
+      \smash{\lower\dimexpr6mm+\ht\gb@barbox\relax\box\gb@barbox}}%
+    \endgroup}{}}
+\makepagestyle{fullwidth}
+\makeevenhead{fullwidth}{\gb@runninghead}{}{}
+\makeoddhead{fullwidth}{\gb@runninghead}{}{}
+\pagestyle{fullwidth}
+
+% remember the page style, so that the table of contents can restore it
+\def\gb@curpagestyle{fullwidth}
+\let\gb@pagestyle\pagestyle
+\renewcommand*{\pagestyle}[1]{\gdef\gb@curpagestyle{#1}\gb@pagestyle{#1}}
+
+%% ----------------------------------------------------------------------
+%%  7. Links, notes, captions
+%% ----------------------------------------------------------------------
+\RequirePackage{graphicx}
+\RequirePackage{calc}
+\RequirePackage{marginnote}
+% [H]: a float set where it stands (before hyperref, as float asks).
+% float replaces memoir's \newfloat with its own; memoir's is put back, and
+% float's stays available as \floatnewfloat
+\let\gb@memnewfloat\newfloat
+\RequirePackage{float}
+\let\floatnewfloat\newfloat
+\let\newfloat\gb@memnewfloat
+\RequirePackage[linktoc=page,hyperfootnotes=false]{hyperref}
+\hypersetup{colorlinks=true, linkcolor=hkgreen, citecolor=hkgreen, urlcolor=hkgreen}
+\renewcommand{\UrlFont}{\ttfamily\small}
+
+% ---- notes in the margin
+% \marginpar, \marginnote and the footnotes share one style: `notefont',
+% ragged right (with hyphenation), no indent.
+\newcommand*\gb@notestyle{%
+  \gb@font@note \RaggedRight \parindent\z@ \parskip\z@ \color{black}}
+\renewcommand*{\marginfont}{\gb@notestyle}% of the marginnote package
+\g@addto@macro\@marginparreset{\gb@notestyle}
+
+% footnotes = margin: \footnote[offset]{text} is a numbered margin note; the
+% number is a superscript in the text and at the start of the note
+% true in a paragraph of the main text (where \marginpar works)
+\newif\ifgb@inbox
+\newcommand\gb@ifouterpar[2]{%
+  \ifgb@inbox #2\else\if@minipage #2\else\ifinner #2\else
+    \ifhmode #1\else #2\fi\fi\fi\fi}
+\newif\ifgb@marginfoot
+\ExplSyntaxOn
+\str_if_eq:VnT \l__gb_footnotes_tl {margin} { \gb@marginfoottrue }
+\ExplSyntaxOff
+\ifgb@marginfoot
+  % In running text the note is a \marginpar, so notes on the same line are
+  % stacked; inside boxes, or with an offset, it is a \marginnote.
+  \RenewDocumentCommand\footnote{o+m}{%
+    \refstepcounter{footnote}%
+    \textsuperscript{\thefootnote}%
+    \IfNoValueTF{#1}
+      {\gb@ifouterpar{\marginpar{\gb@fntext{#2}}}{\marginnote{\gb@fntext{#2}}}}%
+      {\marginnote{\gb@fntext{#2}}[#1]}}
+  \newcommand\gb@fntext[1]{\textsuperscript{\thefootnote}\,#1}
+\fi
+
+% ---- margin floats hang from the line they are given at
+% memoir's marginfigure and margintable are a minipage centred on the line
+% they are given at, so their upper half rose above it (into a box label
+% or a note above).  Here their top stands at that line.
+\renewenvironment{mem@margin@float}[2][-1.2ex]%
+  {\FloatBlock
+  \begin{lrbox}{\mem@margin@floatbox}%
+  \begin{minipage}[t]{\marginparwidth}%
+    \def\@captype{#2}%
+    \hbox{}\vspace*{#1}%
+    \@nameuse{margin#2adjustment}%
+    \@nameuse{margin#2captionadjustment}%
+    \noindent}
+  {\end{minipage}%
+  \end{lrbox}%
+  \marginfloatmarginmacro{\usebox{\mem@margin@floatbox}}}
+
+% ---- the margin is shared: labels of boxes, notes, margin floats
+% Things in the margin: \marginpar (and so the footnotes of the running
+% text and the margin floats), \marginnote (the footnotes in boxes), and
+% the labels of the framed boxes, which the boxes draw.  LaTeX stacks the
+% \marginpar's, but knows nothing of the other two, so:
+%  * each of them is numbered in the order of the text, and its place on
+%    the page is written to the .aux file;
+%  * on the next run, each one is moved down until it is clear of all the
+%    earlier ones on its page: a \marginnote by its offset, a \marginpar by
+%    space at its top, and a label by space before its box (the box moves
+%    with it).  The places are taken as they were without that move, so a
+%    move does not undo itself; since nothing depends on later things, a
+%    few runs settle every page (latexmk runs them);
+%  * before a box with a label an empty \marginpar as high as the label is
+%    set, so LaTeX moves a later \marginpar below the label at once.
+\RequirePackage{zref-savepos,zref-abspage,etoolbox}
+\newcount\gb@mino   % the things in the margin, in the order of the text
+\newdimen\gb@mishift
+\def\gb@miclear{5pt}% the least space between two of them
+% from the .aux file: #1 = number, #2 = kind (p, n, l), #3 = page,
+% #4 = the move it had
+\def\gb@mi#1#2#3#4{%
+  \expandafter\gdef\csname gb@mi@k@#1\endcsname{#2}%
+  \expandafter\gdef\csname gb@mi@s@#1\endcsname{#4}%
+  \@ifundefined{gb@pg@items@#3}{\expandafter\gdef\csname gb@pg@items@#3\endcsname{}}{}%
+  \expandafter\g@addto@macro\csname gb@pg@items@#3\endcsname{\do{#1}}%
+  \expandafter\gdef\csname gb@mi@p@#1\endcsname{#3}}
+\newcommand*\gb@zy[1]{\zref@extractdefault{#1}{posy}{0}sp}
+% top and bottom of thing #1 as placed on the last run, into \@tempdima,
+% \@tempdimb.  A note: a line above its first baseline, and its end.  A
+% label: the place where its box was opened, less the skip above the box
+% and the first line.
+\def\gb@labelhead{\dimexpr15pt+\gb@labelbase\relax}
+\newcommand*\gb@miextent[1]{%
+  \if l\csname gb@mi@k@#1\endcsname
+    \@tempdima=\dimexpr\gb@zy{gbmit#1}-\gb@labelhead+8pt\relax
+    \@tempdimb=\dimexpr\@tempdima-12pt\relax
+  \else
+    \@tempdima=\dimexpr\gb@zy{gbmit#1}+\gb@miht{#1}\relax
+    \@tempdimb=\dimexpr\gb@zy{gbmit#1}-\gb@midp{#1}\relax
+  \fi}
+% height and depth of a note (from its first baseline), from the .aux file
+\def\gb@miext#1#2#3{%
+  \expandafter\gdef\csname gb@mi@h@#1\endcsname{#2}%
+  \expandafter\gdef\csname gb@mi@d@#1\endcsname{#3}}
+\def\gb@miht#1{\ifcsname gb@mi@h@#1\endcsname\csname gb@mi@h@#1\endcsname\else 9pt\fi}
+\def\gb@midp#1{\ifcsname gb@mi@d@#1\endcsname\csname gb@mi@d@#1\endcsname\else 0pt\fi}
+% the move that thing \gb@mino needs: \gb@mishift
+\newcommand*\gb@findshift{%
+  \global\gb@mishift\z@
+  \edef\gb@minow{\the\gb@mino}%
+  \@ifundefined{gb@mi@p@\gb@minow}{}{%
+    \edef\gb@mipage{\csname gb@mi@p@\gb@minow\endcsname}%
+    % this one, without its last move
+    \gb@miextent{\gb@minow}%
+    \dimen@=\csname gb@mi@s@\gb@minow\endcsname\relax
+    \advance\@tempdima\dimen@ \advance\@tempdimb\dimen@
+    \edef\gb@mytop{\the\@tempdima}\edef\gb@mybot{\the\@tempdimb}%
+    % (a few passes: a move can bring it onto a thing further down)
+    \@tempcnta\z@
+    % (a \marginpar is kept clear of earlier \marginpar's and labels by
+    % LaTeX itself: only the notes count for it)
+    \edef\gb@mykind{\csname gb@mi@k@\gb@minow\endcsname}%
+    \def\do##1{\ifnum##1<\gb@minow\relax
+      \if p\gb@mykind
+        \if n\csname gb@mi@k@##1\endcsname \@tempswatrue \else \@tempswafalse \fi
+      \else \@tempswatrue \fi
+      \if@tempswa
+        \gb@miextent{##1}%
+        \ifdim\dimexpr\@tempdima+\gb@miclear\relax>\dimexpr\gb@mybot-\gb@mishift\relax
+          \ifdim\dimexpr\@tempdimb-\gb@miclear\relax<\dimexpr\gb@mytop-\gb@mishift\relax
+            \global\gb@mishift\dimexpr\gb@mytop-\@tempdimb+\gb@miclear\relax
+            \let\gb@moved\relax
+          \fi
+        \fi
+      \fi\fi}%
+    \loop
+      \let\gb@moved\@empty
+      \csname gb@pg@items@\gb@mipage\endcsname
+      \advance\@tempcnta\@ne
+    \ifnum\ifx\gb@moved\relax\@tempcnta\else 99\fi<6 \repeat
+    % A note or a float that would run below the text is moved up instead,
+    % as far as the earlier things on the page let it.
+    \if l\gb@mykind\else
+      \ifdim\dimexpr\gb@mybot-\gb@mishift\relax<\gb@textfoot
+        \dimen@=\dimexpr\gb@mybot-\gb@textfoot\relax % the most it may move
+        \@tempdimc=\maxdimen % the lowest bottom of the earlier things
+        \def\do##1{\ifnum##1<\gb@minow\relax
+          \gb@miextent{##1}%
+          \ifdim\@tempdimb<\@tempdimc \@tempdimc=\@tempdimb \fi\fi}%
+        \csname gb@pg@items@\gb@mipage\endcsname
+        \ifdim\@tempdimc<\maxdimen
+          \advance\@tempdimc-\gb@miclear
+          % (it must stay below them)
+          \ifdim\dimen@<\dimexpr\gb@mytop-\@tempdimc\relax
+            \dimen@=\dimexpr\gb@mytop-\@tempdimc\relax \fi
+        \fi
+        \ifdim\dimen@<\gb@mishift \global\gb@mishift\dimen@ \fi
+      \fi
+    \fi
+  }}
+% the foot of the text block, as \zposy measures it (from the foot of the
+% stock)
+\def\gb@textfoot{\dimexpr\stockheight-1in-\voffset-\topmargin-\headheight
+  -\headsep-\textheight\relax}
+% number the next thing, find its move, write it out
+\newcommand*\gb@minext[1]{% #1 = kind
+  \global\advance\gb@mino\@ne
+  \gb@findshift
+  % A move changes how full the page is, and so (through the glue) the
+  % places of the things above it, a little: a move that would be up to 3pt
+  % smaller than the last one keeps the last one, so the runs settle.
+  \@ifundefined{gb@mi@s@\the\gb@mino}{}{%
+    \dimen@=\csname gb@mi@s@\the\gb@mino\endcsname\relax
+    \ifdim\gb@mishift<\dimen@
+      \ifdim\dimexpr\dimen@-\gb@mishift\relax<3pt \global\gb@mishift\dimen@ \fi
+    \fi}%
+  \edef\gb@mithis{\the\gb@mino}%
+  \protected@write\@auxout{}{\string\gb@mi{\gb@mithis}{#1}{\noexpand\the\noexpand\c@abspage}{\the\gb@mishift}}}
+% A note is set in a box first, so that its height and depth are known;
+% its place is that of its first baseline.
+\newbox\gb@mibx
+\newcommand\gb@mibox[1]{%
+  \setbox\gb@mibx\vtop{\hsize\marginparwidth \@parboxrestore \@marginparreset
+    #1\par}%
+  \protected@write\@auxout{}{\string\gb@miext{\gb@mithis}{\the\ht\gb@mibx}{\the\dp\gb@mibx}}%
+  \leavevmode\expandafter\zsavepos\expandafter{gbmit\gb@mithis}\box\gb@mibx}
+
+% \marginpar: its move is added where LaTeX places it on the page (in
+% \@addmarginpar, which takes the marginpars in the order of the text, so
+% the moves wait in a queue)
+% (an l3 sequence: a list of braced items lost the braces of its last item
+% when the first one was taken off, so a third \marginpar on a page read a
+% shift without its unit)
+\ExplSyntaxOn
+\seq_new:N \g__gb_mpqueue_seq
+\tl_new:N \l__gb_mpitem_tl
+\cs_new_protected:Npn \gb@mpenqueue #1 { \seq_gput_right:Nx \g__gb_mpqueue_seq {#1} }
+\cs_new_protected:Npn \gb@mpnextshift
+  {
+    \seq_gpop_left:NNTF \g__gb_mpqueue_seq \l__gb_mpitem_tl
+      { \@tempdimb = \l__gb_mpitem_tl \relax }
+      { \@tempdimb = \c_zero_dim }
+  }
+\ExplSyntaxOff
+\patchcmd\@addmarginpar
+  {\global\@mparbottom\@pageht}
+  {\gb@mpnextshift \advance\@tempdima\@tempdimb
+   \global\@mparbottom\@pageht}
+  {}{\PackageWarning{greenbook}{Could not patch \string\@addmarginpar}}
+\NewCommandCopy\gb@latexmarginpar\marginpar
+\RenewDocumentCommand\marginpar{o +m}{%
+  \gb@minext{p}%
+  \gb@mpenqueue{\the\gb@mishift}%
+  \IfNoValueTF{#1}
+    {\gb@latexmarginpar{\gb@mpwrap{#2}}}
+    {\gb@latexmarginpar[\gb@mpwrap{#1}]{\gb@mpwrap{#2}}}}
+\newcommand\gb@mpwrap[1]{\gb@mibox{#1}}
+% \marginnote: moved down by its offset
+\let\gb@mnorig\@mn@@@marginnote
+\long\def\@mn@@@marginnote[#1]#2[#3]{%
+  \gb@minext{n}%
+  \gb@mnorig[{#1}]{\gb@mibox{#2}}[{\dimexpr#3+\gb@mishift\relax}]}
+% a label: moved down by space before its box
+\newcommand*\gb@marginguard{%
+  \ifgb@inbox\else\if@minipage\else\ifinner\else\ifvmode
+    \gb@minext{l}%
+    \ifdim\gb@mishift>\z@ \vspace*{\gb@mishift}\fi
+    \expandafter\zsavepos\expandafter{gbmit\gb@mithis}%
+    \gb@mpenqueue{0pt}%
+    \gb@latexmarginpar{\vrule width\z@ height\z@
+      depth\dimexpr\gb@labelhead+4pt\relax}%
+  \fi\fi\fi\fi}
+\def\gb@kindtheorem{theorem}\def\gb@kindquestion{question}
+
+% ---- captions
+% captions = margin: the caption of a figure or table stands in the margin,
+% its last line level with the foot of the float (a caption given before
+% the content stands level with its top).  captions = below: memoir's.
+\captionnamefont{\gb@font@captionlabel}
+\captiontitlefont{\gb@font@caption}
+\captiondelim{.\ }
+\newcount\gb@capmode % 0 = in a float, 1 = wide float, 2 = wide, in the text
+\newcommand*\gb@capbox[2]{%
+  \setbox\@tempboxa\vbox{{\hsize\marginparwidth \gb@notestyle
+    {\gb@font@captionlabel #1.}\ {\gb@font@caption #2}\par}}}
+\newcommand*\gb@capshift{\hskip\dimexpr\textwidth+\marginparsep-\@totalleftmargin\relax}
+% (the caption package replaces this mechanism; greenbook-macros no longer
+% loads subcaption for that reason; use memoir's \subbottom for subfigures.
+% float is loaded for [H]; its \restylefloat would replace it too)
+\let\gb@memmakecaption\@makecaption
+\long\def\@makecaption#1#2{%
+  \gb@ifmargincaptions
+    \gb@capbox{#1}{#2}%
+    \par
+    \ifdim\prevdepth>-99\p@ \@tempswatrue \else \@tempswafalse \fi
+    \nointerlineskip
+    \ifcase\gb@capmode
+      \if@tempswa               % after the content: hang upwards
+        \hbox to\linewidth{\gb@capshift\vbox to\z@{\vss\box\@tempboxa}\hss}%
+      \else                     % before the content: hang downwards
+        \hbox to\linewidth{\gb@capshift\vbox to\z@{\box\@tempboxa\vss}\hss}%
+      \fi
+    \or                         % wide float: below, taking its height
+      \vskip\abovecaptionskip
+      \hbox to\linewidth{\gb@capshift\box\@tempboxa\hss}%
+    \else                       % wide figure in the text: beside what follows
+      % (a box of no height or depth: the text after the figure is not moved)
+      \hbox to\linewidth{\gb@capshift
+        \vbox to\z@{\vskip\abovecaptionskip\box\@tempboxa\vss}\hss}%
+    \fi
+    \nointerlineskip
+  \else
+    \gb@memmakecaption{#1}{#2}%
+  \fi}
+\ExplSyntaxOn
+\cs_new:Npn \gb@ifmargincaptions { \str_if_eq:VnTF \gb@opt@captions {margin} {\iftrue} {\iffalse} }
+\ExplSyntaxOff
+
+% \captionof{figure}[short]{text}: a numbered caption outside a float, under
+% what precedes it (as the caption package has it); \captionof*{figure}{text}
+% the same without a number (memoir's \legend).  Both stay in place, so they
+% work in minipages and boxes.  Defined only if no other package did.
+\AtBeginDocument{%
+  \ProvideDocumentCommand\captionof{s m o +m}{%
+    \par\begingroup
+      \def\@captype{#2}\let\@makecaption\gb@memmakecaption
+      \IfBooleanTF{#1}{\legend{#4}}%
+        {\IfNoValueTF{#3}{\caption{#4}}{\caption[#3]{#4}}}%
+    \endgroup}}
+
+% side captions (memoir's sidecaption environment), ragged right
+\setsidecappos{t}
+\sidecapmargin{right}
+\setsidecaps{\marginparsep}{\marginparwidth}
+\renewcommand*{\sidecapstyle}{\captionstyle{\RaggedRight}}
+\AddToHook{env/sidecaption/begin}{\let\@makecaption\gb@memmakecaption}
+% margin floats (memoir's marginfigure and margintable) are already in the
+% margin: their captions go under them, as wide as the margin, in the
+% style of the notes
+\newcommand*\gb@marginfloatcaptions{%
+  \let\@makecaption\gb@memmakecaption
+  \captionstyle{\RaggedRight}%
+  \@ifundefined{subcaptionstyle}{}{\subcaptionstyle{\RaggedRight}}}
+\AddToHook{env/marginfigure/begin}{\gb@marginfloatcaptions}
+\AddToHook{env/margintable/begin}{\gb@marginfloatcaptions}
+
+%% ----------------------------------------------------------------------
+%%  8. Theorem boxes
+%%
+%%  The boxes are tcolorboxes, opened by the theorem styles of thmtools
+%%  (key `gbbox' of \declaretheoremstyle / \declaretheorem):
+%%     hangingtheo   framed box, name and number in the margin
+%%     hangingques   the same, italic body
+%%     thmexample    tinted box, rule on the left and on top, a tab
+%%     thmremark     tinted box, rule on top and at the bottom, small text
+%%  Breaking:
+%%     \greenbooksetup{breakable=false}   no box breaks (from here on)
+%%     \greenbooksetup{split=closed}      every part a closed box
+%%     \greenbooksetup{split=open}        open edges where it breaks
+%%     \greenbooksetup{split=marked}      open, a dashed edge, and the name
+%%                                        in the margin again: "... cont."
+%%     \gbkeep \begin{theorem} ...        this box does not break
+%%     \gbbreak \begin{theorem} ...       this box may break
+%%  A breakable box only starts on a page with room for `needspace' lines.
+%% ----------------------------------------------------------------------
+\RequirePackage{tikz}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins,breakable,hooks}
+\RequirePackage{needspace}
+\RequirePackage{amsthm}
+\RequirePackage{thmtools}
+% thmtools replaces \@addtoreset with a version that leaves \theH<counter>
+% alone, so a counter reset by the chapter has link targets such as
+% definition.1 in every chapter and links land in the wrong chapter.  Put the
+% parent back, as the kernel's \@addtoreset does.
+\let\gb@thmt@addtoreset\@addtoreset
+\renewcommand*\@addtoreset[2]{%
+  \gb@thmt@addtoreset{#1}{#2}%
+  \@ifundefined{theH#2}{}{%
+    \expandafter\xdef\csname theH#1\endcsname{%
+      \expandafter\noexpand\csname theH#2\endcsname.%
+      \noexpand\the\noexpand\value{#1}}}}
+
+% thmtools reads a note as (#3), up to its first ")": a note such as
+% $\mathcal{P}_m(\mathbb{F})$ was cut after the "F".  In \NOTE the note is
+% followed by \egroup: read up to the ")" just before it.
+\def\thmt@embrace#1#2(#3)\egroup{#1#3#2\egroup}
+
+% the box of the next theorem: 0 = as set, 1 = keep, 2 = may break
+\newcount\gb@nextbreak
+\newcommand*\gbkeep{\global\gb@nextbreak\@ne}
+\newcommand*\gbbreak{\global\gb@nextbreak\tw@}
+\newif\ifgb@thisbreak
+
+% name and number of the box being typeset (for the margin label)
+\gdef\gb@curlabel{}
+\newcommand*\gb@setlabel[2]{\protected@xdef\gb@curlabel{#1\ifx\relax#2\relax\else\ #2\fi}}
+
+\newcommand*\gb@labelfont{\gb@font@thmlabel\color{black}}
+\newcommand*\gb@contfont{\normalfont\rmfamily\itshape\footnotesize\color{gray!70!black}}
+
+% #1 = kind (theorem, question, example, remark)
+\newcommand*\gb@openbox[1]{%
+  \ifcase\gb@nextbreak
+    \gb@ifbreakable{\gb@thisbreaktrue}{\gb@thisbreakfalse}%
+  \or \gb@thisbreakfalse
+  \else \gb@thisbreaktrue
+  \fi
+  \global\gb@nextbreak\z@
+  \par
+  \ifgb@thisbreak \Needspace*{\gb@needlines\baselineskip}\fi
+  \def\gb@tmpa{#1}%
+  \ifx\gb@tmpa\gb@kindtheorem \gb@marginguard
+  \else\ifx\gb@tmpa\gb@kindquestion \gb@marginguard \fi\fi
+  \let\gb@savedlabel\gb@curlabel
+  \gb@inboxtrue
+  \begin{tcolorbox}[gb/#1,gb/@split]}
+\newcommand*\gb@closebox{%
+  \end{tcolorbox}%
+  \global\let\gb@curlabel\gb@savedlabel}
+
+% the key of thmtools
+\define@key{thmdef}{gbbox}{%
+  \thmt@trytwice{}{%
+    \addtotheorempreheadhook[\thmt@envname]{\gb@openbox{#1}}%
+    \addtotheorempostfoothook[\thmt@envname]{\gb@closebox}}}
+
+% A label in the margin.  #1 = its baseline, below the top of the frame.
+\newcommand*\gb@marginlabel[2]{%
+  \node[anchor=base west,inner sep=0pt,outer sep=0pt,align=left]
+    at ([xshift=\gb@labelsep,yshift=-#1]frame.north east) {#2};}
+\def\gb@labelbase{16.3pt}% first line of a box
+\def\gb@contbase{13.5pt}%  first line after a break
+\tcbset{
+  gb/base/.style={enhanced, parbox=false, boxsep=0pt,
+    gb/@closed/.style={}},
+  % the frame of a theorem: name in the margin, level with the first line
+  gb/theorem/.style={gb/base,
+    colback=white, colframe=black, boxrule=0.8pt, arc=4pt,
+    left=10pt, right=10pt, top=8pt, bottom=8pt,
+    before skip=15pt plus 3pt minus 2pt, after skip=12pt plus 3pt minus 2pt,
+    overlay unbroken and first app={%
+      \gb@marginlabel{\gb@labelbase}{\gb@labelfont\gb@curlabel}}},
+  gb/question/.style={gb/theorem},
+  % example: tinted, rules on the left and on top, a tab on the top rule
+  % example: tinted, slightly rounded, rules of the accent colour along the
+  % top and the left side (the frame, with only these two sides) and the tab
+  % in the top left corner
+  gb/example/.style={gb/base,
+    colback=gbpaper, colframe=gbaccent, arc=1.5pt,
+    boxrule=0pt, toprule=1.2pt, leftrule=1.2pt,
+    left=10pt, right=10pt, top=2.4pt, bottom=11pt,
+    before skip=16pt plus 2pt minus 1pt, after skip=14pt plus 2pt minus 1pt,
+    % paragraphs and displays in an example get a little more air
+    before upper={\setlength\parskip{.4\baselineskip plus 1pt}%
+      \setlength\abovedisplayskip{8pt plus 2pt minus 2pt}%
+      \setlength\belowdisplayskip{8pt plus 2pt minus 2pt}%
+      \setlength\lineskiplimit{1.5pt}\setlength\lineskip{3pt plus 1pt}},
+    overlay unbroken and first app={\gb@drawtab}},
+  % remark: tinted, rules on top and at the bottom
+  gb/remark/.style={gb/base,
+    colback=gbpaper, frame hidden, arc=0pt,
+    left=12pt, right=12pt, top=7pt, bottom=9pt,
+    before skip=12pt plus 2pt minus 1pt, after skip=12pt plus 2pt minus 1pt,
+    fontupper=\small,
+    overlay unbroken and first app={\gb@hline{north}{black}{.8pt}},
+    overlay unbroken and last app={\gb@hline{south}{black}{.8pt}},
+    gb/@closed/.style={overlay middle and last app={\gb@hline{north}{black}{.8pt}},
+      overlay first and middle app={\gb@hline{south}{black}{.8pt}}}},
+  gb/@split/.code={\ifgb@thisbreak \pgfkeysalso{gb/split/\gb@splitstyle}%
+    \else \pgfkeysalso{unbreakable}\fi},
+  % the ways a box can break
+  gb/split/closed/.style={breakable, pad at break*=6pt,
+    skin first=enhanced, skin middle=enhanced, skin last=enhanced, gb/@closed},
+  gb/split/open/.style={breakable, skin=enhanced jigsaw, pad at break*=6pt},
+  gb/split/marked/.style={gb/split/open,
+    overlay first app={\gb@cutline{south}},
+    overlay middle app={\gb@cutline{south}\gb@cutline{north}\gb@contlabel},
+    overlay last app={\gb@cutline{north}\gb@contlabel}},
+}
+% a rule along the top (north) or bottom (south) edge, inside the box:
+% #2 = colour, #3 = width
+\newcommand*\gb@hline[3]{%
+  \draw[#2,line width=#3]
+    ([yshift=\csname gb@sign@#1\endcsname.5*#3]frame.#1 west)--
+    ([yshift=\csname gb@sign@#1\endcsname.5*#3]frame.#1 east);}
+\def\gb@sign@north{-}
+\def\gb@sign@south{}
+% the dashed edge of a broken box, and the label on its later parts
+\newcommand*\gb@cutline[1]{%
+  \draw[gray!60,line width=.4pt,dash pattern=on 2pt off 2pt]
+    (frame.#1 west)--(frame.#1 east);}
+\newcommand*\gb@contlabel{%
+  \gb@marginlabel{\gb@contbase}%
+    {\gb@labelfont\color{gray}\gb@curlabel\\[1pt]\gb@contfont continued}}
+
+% the heads: the label goes to the margin (drawn by the box), the note
+% stays in the box, on a line of its own
+\newlength{\spaceblength}
+\settowidth{\spaceblength}{\bfseries\ }
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt,
+  headindent=0pt,
+  headfont=\gb@font@thmlabel,
+  notefont=\gb@font@thmnote,
+  notebraces={}{\\[\parskip]},
+  bodyfont=\normalfont,
+  headpunct={},
+  postheadspace=0pt,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\hskip-\spaceblength\NOTE},
+  gbbox=theorem,
+]{hangingtheo}
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt,
+  headindent=0pt,
+  headfont=\gb@font@thmlabel,
+  notefont=\gb@font@thmnote,
+  notebraces={}{\\[\parskip]},
+  bodyfont=\normalfont\itshape,
+  headpunct={},
+  postheadspace=0pt,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\hskip-\spaceblength\NOTE},
+  gbbox=question,
+]{hangingques}
+
+% The tab of an example is part of the frame: a block of the accent colour in
+% the corner where the top and the left rule meet, with the name and number
+% in it.  The box draws it; the head only leaves room for it on the first
+% line, where the title follows.
+\newlength\gb@tabw
+\newcommand*\gb@tabfont{\gb@font@tab}
+% the tab text starts where the text of the box starts (left padding 8pt)
+\def\gb@tabxsep{8pt}\def\gb@tabheight{17pt}\def\gb@tabbase{12pt}
+\newcommand*\gb@tabspace{%
+  \settowidth\gb@tabw{\gb@tabfont\gb@curlabel}\global\gb@tabw=\gb@tabw
+  \hspace*{\dimexpr\gb@tabw+\gb@tabxsep+7pt\relax}}
+% \gb@drawtabin{<colour>}: the tab in a given fill colour.  \gb@drawtab is
+% the accent-coloured tab of gbbox=example, kept as it was for compatibility.
+\newcommand*\gb@drawtabin[1]{%
+  % the top left corner follows the rounded corner of the box
+  \fill[#1] ([yshift=-\gb@tabheight]frame.north west)
+    -- ([yshift=-1.5pt]frame.north west)
+    arc[start angle=180,end angle=90,radius=1.5pt]
+    -- ([xshift=\gb@tabw+2*\gb@tabxsep]frame.north west)
+    -- ++(0pt,-\gb@tabheight+1.5pt) arc[start angle=0,end angle=-90,radius=1.5pt]
+    -- cycle;
+  \node[anchor=base west,inner sep=0pt,text=gbpaper]
+    at ([xshift=\gb@tabxsep,yshift=-\gb@tabbase]frame.north west)
+    {\gb@tabfont\gb@curlabel};}
+\newcommand*\gb@drawtab{\gb@drawtabin{gbaccent}}
+% a long title wraps beside the tab instead of colliding with the first line
+% of the body; \gb@startbody puts the body on a line of its own after the
+% head, for a box whose headpunct is empty (gbbox=example does not use this
+% by default, so that old documents keep headpunct={\\[12pt]} unchanged)
+\newcommand*\gb@exnote[1]{%
+  \parbox[t]{\dimexpr\linewidth-\gb@tabw-2\dimexpr\gb@tabxsep\relax-7pt\relax}%
+    {\raggedright#1\strut}}
+\newcommand*\gb@startbody{\leavevmode\par\vspace{1pt}\@afterindentfalse\@afterheading}
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt,
+  headindent=0pt,
+  headfont=\gb@font@tab,
+  notefont=\gb@font@examplenote\color{black},
+  notebraces={}{},
+  headpunct={\\[12pt]},
+  postheadspace=0pt,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\gb@tabspace\NOTE},
+  gbbox=example,
+]{thmexample}
+% nonexample: the same box as example, in a second tab colour (gbplum); the
+% head's body starts on its own line, and a long title wraps beside the tab
+\tcbset{
+  gb/nonexample/.style={gb/example, colback=gbplumpaper, colframe=gbplum,
+    overlay unbroken and first app={\gb@drawtabin{gbplum}}},
+}
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt,
+  headindent=0pt,
+  headfont=\gb@font@tab,
+  notefont=\gb@font@examplenote\color{black},
+  notebraces={}{},
+  headpunct={},
+  postheadspace=0pt,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\gb@tabspace\gb@exnote{\NOTE}},
+  gbbox=nonexample,
+]{thmnonexample}
+
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt,
+  headindent=0pt,
+  headfont=\gb@font@remarkhead,
+  bodyfont=\small,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\NAME\ \NUMBER\NOTE},
+  gbbox=remark,
+]{thmremark}
+
+% definition: tinted instead of the plain framed box of hangingtheo, so that
+% it reads apart from theorem/lemma at a glance
+\tcbset{
+  gb/definition/.style={gb/theorem, colback=gbdefpaper, colframe=slategreen,
+    boxrule=0.6pt},
+}
+\declaretheoremstyle[
+  spaceabove=0pt, spacebelow=0pt, headindent=0pt,
+  headfont=\gb@font@thmlabel, notefont=\gb@font@thmnote,
+  notebraces={}{\\[\parskip]}, bodyfont=\normalfont, headpunct={},
+  postheadspace=0pt,
+  headformat={\gb@setlabel{\NAME}{\NUMBER}\hskip-\spaceblength\NOTE},
+  gbbox=definition,
+]{hangingdef}
+\declaretheorem[style=hangingdef,  name=Definition, numberwithin=chapter]{definition}
+\declaretheorem[style=thmexample,  name=Example,    numberwithin=chapter]{example}
+\declaretheorem[style=thmnonexample, name=Non-example, sibling=example]{nonexample}
+% headpunct is empty above (a long title wraps beside the tab via
+% \gb@exnote), so the body needs this hook to start on its own line
+\addtotheorempostheadhook[nonexample]{\gb@startbody}
+\declaretheorem[style=hangingtheo, name=Theorem,    numberwithin=chapter]{theorem}
+\declaretheorem[style=hangingtheo, name=Lemma,      sibling=theorem]{lemma}
+\declaretheorem[style=plain,       name=Proposition, sibling=theorem]{proposition}
+\declaretheorem[style=plain,       name=Corollary,  sibling=theorem]{corollary}
+\declaretheorem[style=thmremark,   name=Remark,     numberwithin=section]{remark}
+\declaretheorem[style=hangingques, name=Question,   numbered=no]{question}
+\declaretheorem[style=hangingtheo, name=Theorem,    numbered=no]{theorem*}
+\declaretheorem[style=hangingtheo, name=Lemma,      numbered=no]{lemma*}
+\declaretheorem[style=plain,       name=Proposition, numbered=no]{proposition*}
+\declaretheorem[style=plain,       name=Corollary,  numbered=no]{corollary*}
+\declaretheorem[style=plain,       name=Claim,      numbered=no]{claim}
+
+% the summary box after a chapter head (never breaks)
+\newtcolorbox{overview}[1][]{enhanced, unbreakable, parbox=false,
+  width=180mm, colback=lightslategreen, colframe=lightslategreenborder,
+  boxrule=1pt, arc=5pt, left=10pt, right=10pt, top=11pt, bottom=9pt,
+  before skip=7pt, after skip=7pt, #1}
+
+% indentafterbox = false: the paragraph after a box (a theorem, an example,
+% a remark, the overview, a solution, the exercises) starts flush left, as
+% after a heading, whether or not a blank line follows the box.  (The hook
+% runs after the group of the environment, so \everypar holds.)
+\newcommand*\gb@afterbox{%
+  \ifgb@indentafterbox\else\everypar{{\setbox\z@\lastbox}\everypar{}}\fi}
+\ExplSyntaxOn
+\cs_new:Npn \ifgb@indentafterbox
+  { \bool_if:NTF \g__gb_indentafterbox_bool \iftrue \iffalse }
+\clist_map_inline:nn
+  { definition, example, nonexample, theorem, lemma, proposition, corollary,
+    remark, question, theorem*, lemma*, proposition*, corollary*, claim,
+    overview, soln, exc }
+  { \AddToHook{env/#1/after}{\gb@afterbox} }
+\ExplSyntaxOff
+
+%% ----------------------------------------------------------------------
+%%  9. Grid table of contents  (toc = grid; the design of artbook.sty)
+%%
+%%    PART TITLE (large, accent) ......................... TABLE OF CONTENTS
+%%    ------------------------------------------------------------------------
+%%                   | 1  CHAPTER TITLE | SECTION 1A                    |  2
+%%                   |                  | Title of the section          |
+%%    ------------------------------------------------------------------------
+%%  Three vertical lines: the chapter column, the main divider (between
+%%  chapters and sections) and the page column.  Only the main divider
+%%  breaks the horizontal rules.  The grid spans the text and the margin
+%%  (key `tocwidth').  A chapter without sections gets a row of its own.
+%%  Subsections are not listed.
+%% ----------------------------------------------------------------------
+\newlength\gb@tocw     \newlength\gb@split    \newlength\gb@subsplit  \newlength\gb@pagew
+\newlength\gb@pad      \newlength\gb@chpad     \newlength\gb@rule
+\newlength\gb@toppad   \newlength\gb@botpad    \newlength\gb@plainpad
+\newlength\gb@titlew   \newlength\gb@gap       \newlength\gb@pdx
+\newdimen\gb@pos  \newdimen\gb@cur  \newdimen\gb@cutl  \newdimen\gb@cutr
+\newdimen\gb@ruleleft
+\newif\ifgb@sub        % the current part has chapters: draw the chapter column
+\newif\ifgb@first      % first row of the contents: print the label
+\newif\ifgb@hasnum     % the current row has a number line
+\newif\ifgb@keep       % previous row opened a part: no page break after it
+\newif\ifgb@chappend   % a chapter whose row has not been printed yet
+\newbox\gb@titlebox \newbox\gb@pagebox
+\newbox\gb@partbox \newbox\gb@rowbox
+\newdimen\gb@sincepart % height of the rows since the last part title
+\newdimen\gb@partbelow % how far that title reaches below its rule
+\newif\ifgb@lastsub    % the last row drew the chapter column
+\newcount\gb@partno    % parts met in the contents
+\let\gb@part\@empty \let\gb@chap\@empty \let\gb@chappage\@empty
+
+% the title of the document, for the foot of the contents (expandable)
+\providecommand*\thetitle{}
+\let\gb@titletext\@empty
+\AtBeginDocument{\begingroup
+  \let\thanks\@gobble \def\\{ }\let\newline\\%
+  \protected@xdef\gb@titletext{\thetitle}\endgroup}
+\newcommand*\gb@doctitle{\ifx\gb@titletext\@empty\jobname\else\gb@titletext\fi}
+
+\newcommand*\gb@toclabelfont{\gb@font@toclabel}
+\newcommand*\gb@tocpartfont{\gb@font@tocpart}
+\newcommand*\gb@toctitlefont{\gb@font@toctitle}
+\newcommand*\gb@tocpagefont{\gb@font@tocpage\color{gbaccent}}
+\newcommand*\gb@toclabel[1]{{\gb@toclabelfont\MakeUppercase{#1}}}
+
+\newcommand*\gb@tocsetlengths{%
+  \global\gb@tocw     =\dimexpr\gb@opt@tocwidth\relax
+  \global\gb@split    =\gb@opt@split\relax
+  \global\gb@subsplit =\gb@opt@subsplit\relax
+  \global\gb@pagew    =\gb@opt@pagewidth\relax
+  \global\gb@pad      =\gb@opt@pad\relax
+  \global\gb@chpad    =\gb@opt@chpad\relax
+  \global\gb@rule     =\gb@opt@rule\relax
+  \global\gb@toppad   =\gb@opt@toppad\relax
+  \global\gb@botpad   =\gb@opt@botpad\relax
+  \global\gb@plainpad =\gb@opt@plainpad\relax
+  \global\gb@gap      =\gb@opt@rulegap\relax
+  \global\gb@titlew   =\dimexpr\gb@tocw-\gb@split-3\gb@pad-\gb@rule-\gb@pagew\relax
+  \global\gb@pdx      =\dimexpr\gb@split+2\gb@pad+\gb@titlew\relax}
+
+\newcommand*\gb@hbar[1]{\vrule width#1 height\gb@rule depth\z@}
+\newcommand*\gb@vbar{\vrule width\gb@rule}
+\newcommand*\gb@strut[2]{\vrule width\z@ height#1 depth#2\relax}
+
+% A rule from x=#2 to x=#3 in an \hbox of width #1, with a white gap on both
+% sides of each vertical line in the list #4 (each \gb@rule wide).
+\def\gb@dseg#1#2{%
+  \ifdim#2>#1\relax
+    \hskip\dimexpr#1-\gb@pos\relax
+    \gb@hbar{\dimexpr#2-#1\relax}%
+    \gb@pos=#2\relax
+  \fi}
+\newcommand*\gb@gaprule[4]{%
+  \hbox to#1{%
+    \gb@pos=\z@ \gb@cur=#2\relax
+    \@for\gb@v:=#4\do{%
+      \gb@cutl=\dimexpr\gb@v-\gb@gap\relax
+      \gb@cutr=\dimexpr\gb@v+\gb@rule+\gb@gap\relax
+      \ifdim\gb@cutr>\gb@cur\relax
+        \ifdim\gb@cutl>#3\relax \gb@dseg{\gb@cur}{#3}%
+        \else \gb@dseg{\gb@cur}{\gb@cutl}\fi
+        \gb@cur=\gb@cutr\relax
+      \fi}%
+    \gb@dseg{\gb@cur}{#3}%
+    \hfil}}
+
+\newcommand*\gb@nolinks{\let\hyper@linkstart\@gobbletwo \let\hyper@linkend\@empty}
+\newcommand*\gb@numlabel[1]{#1\hskip 1mm\relax}
+
+% what the lines of the .toc do inside the grid
+\newcommand*\gb@tocentries{%
+  \def\l@book##1##2{}%
+  \def\l@part##1##2{%
+    \gb@flushchap
+    \gdef\gb@part{##1}\global\let\gb@chap\@empty \global\let\gb@curchap\@empty
+    \global\gb@subfalse
+    \global\advance\gb@partno\@ne
+    \expandafter\gdef\csname gb@mini@\the\gb@partno\endcsname{}}%
+  \def\l@chapter##1##2{%
+    \gb@flushchap
+    \gdef\gb@chap{##1}\gdef\gb@curchap{##1}\xdef\gb@chappage{\gb@savepage{##2}}%
+    \global\gb@chappendtrue \global\gb@subtrue
+    \xdef\gb@tmp{\noexpand\gb@miniitem{\unexpanded{##1}}{\gb@savepage{##2}}}%
+    \expandafter\g@addto@macro\csname gb@mini@\the\gb@partno\expandafter\endcsname
+      \expandafter{\gb@tmp}}%
+  \let\l@appendix\l@chapter
+  \def\l@section##1##2{\global\gb@chappendfalse \gb@row{##1}{##2}}%
+  \def\l@subsection##1##2{}%
+  \def\l@subsubsection##1##2{}%
+  \def\l@paragraph##1##2{}%
+  \def\l@subparagraph##1##2{}}
+
+% A page number from the .toc, kept for later: hyperref's link in it names
+% its target by \Hy@tocdestname, which is only set while the line is read.
+\def\gb@savepage#1{%
+  \ifdefined\Hy@tocdestname
+    \noexpand\def\noexpand\Hy@tocdestname{\Hy@tocdestname}\fi
+  \unexpanded{#1}}
+
+% A chapter without sections gets a row of its own, as artbook's: its label
+% in the chapter column, its title in the title cell, and the chapter
+% column runs on below it like that of any other chapter.  Before the first
+% part (the front matter) the row has no chapter column: the title of the
+% first part hangs in that space.
+\newcommand*\gb@flushchap{%
+  \ifgb@chappend
+    \global\gb@chappendfalse
+    \let\gb@tmptitle\gb@chap
+    \ifnum\gb@partno=\z@ \global\let\gb@chap\@empty \global\gb@subfalse \fi
+    \expandafter\gb@row\expandafter{\gb@tmptitle}{\gb@chappage}%
+  \fi}
+
+% the part title hangs above the first row of the part; the first row of
+% the contents carries the label on the right
+% the title of a part, set in \gb@partbox (its baseline is its last line)
+% The title ends before the labels at the right of the space it hangs in:
+% the label of the contents above the first rule, and the label of the
+% chapter below the rule.  A title that does not fit breaks into lines that
+% stack upwards (and \gb@partspace makes room for them).
+\RequirePackage{varwidth}
+\newcommand*\gb@partreserve{%
+  \@tempdima=\z@
+  \ifgb@first
+    \setbox\z@\hbox{\gb@toclabel{\gb@opt@toclabel}}%
+    \@tempdima=\wd\z@
+  \fi
+  \ifgb@sub\ifx\gb@chap\@empty\else
+    % (the label as it is set in its column, broken into lines: as wide as
+    % its longest line)
+    \@tempdimb=\dimexpr\gb@split-\gb@subsplit-\gb@rule-2\gb@chpad\relax
+    \setbox\z@\hbox{\begin{varwidth}{\@tempdimb}%
+      \gb@toclabelfont \raggedleft \parindent=\z@
+      \let\chapternumberline\gb@numlabel \let\numberline\gb@numlabel \gb@nolinks
+      \MakeUppercase{\gb@chap}\end{varwidth}}%
+    \@tempdimb=\wd\z@
+    % The title stands a little below the rule, the label of the chapter
+    % further below it.  The space for the title ends before the label only
+    % when the title, set on one line, would touch the label: when it is too
+    % long for the line, or when a word over the label reaches down to it.
+    \gb@labelclash
+    \ifgb@clash
+      % (the chapter label ends \gb@chpad before the divider, the contents
+      % label \gb@pad before it)
+      \advance\@tempdimb\dimexpr\gb@chpad-\gb@pad\relax
+      \ifdim\@tempdimb>\@tempdima \@tempdima=\@tempdimb \fi
+    \fi
+  \fi\fi}
+% Does the title of the part, on one line, touch the label of the chapter
+% (as wide as \@tempdimb)?  \@tempdima is the space taken by the label of the
+% contents, if any.
+\newif\ifgb@clash
+\ExplSyntaxOn
+\seq_new:N \l__gb_partwords_seq
+\box_new:N \l__gb_partword_box
+\dim_new:N \l__gb_partx_dim
+\dim_new:N \l__gb_labelx_dim
+\dim_new:N \l__gb_labeltop_dim
+\cs_new_protected:Npn \gb@labelclash
+  {
+    \gb@clashfalse
+    \group_begin:
+      \gb@tocpartfont
+      \cs_set_eq:NN \partnumberline \use_none:n
+      \cs_set_eq:NN \numberline \use_none:n
+      \gb@nolinks
+      % x of the label, from the left end of the title
+      \dim_set:Nn \l__gb_labelx_dim
+        { \gb@split - \gb@chpad - \@tempdimb + \gb@opt@partextend - \gb@opt@partgap }
+      % how far below the rule the capitals of the label begin
+      \hbox_set:Nn \l__gb_partword_box { \gb@toclabelfont H }
+      \dim_set:Nn \l__gb_labeltop_dim
+        { \gb@opt@toppad + \gb@opt@chapshift - \box_ht:N \l__gb_partword_box - 0.5pt }
+      % the whole title on one line
+      \hbox_set:Nn \l__gb_partword_box { \gb@part }
+      \dim_compare:nNnTF
+        { \box_wd:N \l__gb_partword_box } >
+        { \gb@split - 2\gb@pad - \@tempdima - \gb@opt@partgap + \gb@opt@partextend }
+        { \group_insert_after:N \gb@clashtrue }
+        {
+          \exp_args:NNnV \seq_set_split:Nnn \l__gb_partwords_seq { ~ } \gb@part
+          \hbox_set:Nn \l__gb_partword_box { ~ }
+          \dim_set:Nn \l__gb_partx_dim { - \box_wd:N \l__gb_partword_box }
+          \seq_map_inline:Nn \l__gb_partwords_seq
+            {
+              \hbox_set:Nn \l__gb_partword_box { ~ }
+              \dim_add:Nn \l__gb_partx_dim { \box_wd:N \l__gb_partword_box }
+              \hbox_set:Nn \l__gb_partword_box { ##1 }
+              \dim_add:Nn \l__gb_partx_dim { \box_wd:N \l__gb_partword_box }
+              \bool_lazy_and:nnT
+                { \dim_compare_p:nNn { \l__gb_partx_dim } > { \l__gb_labelx_dim } }
+                { \dim_compare_p:nNn
+                    { \box_dp:N \l__gb_partword_box - \gb@opt@partshift }
+                    > { \l__gb_labeltop_dim } }
+                { \group_insert_after:N \gb@clashtrue }
+            }
+        }
+    \group_end:
+  }
+\ExplSyntaxOff
+\newdimen\gb@partw
+\newcommand*\gb@setpartbox{%
+  \gb@partreserve
+  \gb@partw=\dimexpr\gb@split-2\gb@pad-\@tempdima-\gb@opt@partgap+\gb@opt@partextend\relax
+  \setbox\gb@partbox\hbox{%
+    \parbox[b]{\gb@partw}{\raggedright \hyphenpenalty\@M \exhyphenpenalty\@M
+      \color{\gb@opt@tocpartcolor}\gb@tocpartfont
+      \let\partnumberline\@gobble \let\numberline\@gobble \gb@nolinks
+      \gb@part\par}}}
+
+% The title of a part hangs over the rows of the part before it.  When
+% those rows are lower than the title (a part with one or two rows), the
+% chapter column is lengthened above the first row of the new part until
+% the title fits, with a gap of `partgap' under the title above it.  The
+% space is a leader, so it is dropped when the part starts a new page.
+\newcommand*\gb@partspace{%
+  \ifgb@first
+    % the first title hangs into the space above the first rule
+    \gb@cur=\dimexpr\ht\gb@partbox+\gb@opt@partshift-\gb@opt@topspace+1mm\relax
+    \ifdim\gb@cur>\z@ \vskip\gb@cur \nointerlineskip \fi
+  \else
+    \gb@cur=\dimexpr\ht\gb@partbox+\gb@opt@partshift+\gb@partbelow
+      +\gb@opt@partgap+\gb@opt@partskip-\gb@sincepart\relax
+    \ifdim\gb@cur>\z@
+      % (the chapter column and the page column, as in \gb@textbottom)
+      % (one box of exactly that height, so the lines meet the rows)
+      \cleaders\hbox to\gb@tocw{%
+        \ifgb@lastsub
+          \hskip\gb@subsplit \vrule width\gb@rule height\gb@cur depth\z@
+          \hskip\dimexpr\gb@pdx-\gb@subsplit-\gb@rule\relax
+        \else \hskip\gb@pdx \fi
+        \vrule width\gb@rule height\gb@cur depth\z@ \hfil}\vskip\gb@cur
+      \nointerlineskip
+    \fi
+  \fi
+  \global\gb@sincepart=\z@
+  \global\gb@partbelow=\dimexpr\dp\gb@partbox-\gb@opt@partshift\relax
+  \ifdim\gb@partbelow<\z@ \global\gb@partbelow=\z@ \fi}
+
+% the part title hangs above the first row of the part; the first row of
+% the contents carries the label on the right
+\newcommand*\gb@hanging{%
+  \hbox to\gb@tocw{%
+    \ifx\gb@part\@empty\else
+      % (a long title breaks into lines that stack upwards, left of the
+      % main divider)
+      \hskip-\dimexpr\gb@opt@partextend\relax
+      \raisebox{\gb@opt@partshift}[0pt][0pt]{\copy\gb@partbox}%
+      \hskip-\wd\gb@partbox \hskip\dimexpr\gb@opt@partextend\relax
+    \fi
+    \hfil
+    \ifgb@first
+      \raisebox{\gb@opt@toclabelraise}[0pt][0pt]{\gb@toclabel{\gb@opt@toclabel}}%
+      \hskip\dimexpr\gb@tocw-\gb@split+\gb@pad\relax
+    \fi}}
+
+% (the rule under a part title starts `partextend' left of the grid, in the
+% margin, where the title starts too)
+\newcommand*\gb@toprule{%
+  \ifx\gb@part\@empty
+    \gb@gaprule{\gb@tocw}{\gb@ruleleft}{\gb@tocw}{\gb@split}%
+  \else
+    \moveleft\dimexpr\gb@opt@partextend\relax
+    \gb@gaprule{\dimexpr\gb@tocw+\gb@opt@partextend\relax}{\z@}%
+      {\dimexpr\gb@tocw+\gb@opt@partextend\relax}{\the\dimexpr\gb@split+\gb@opt@partextend\relax}%
+  \fi}
+
+% left of the main divider: the chapter column and its label
+\newcommand*\gb@leftzone{%
+  \ifgb@sub
+    \hskip\gb@subsplit \gb@vbar
+    \ifx\gb@chap\@empty
+      \hskip\dimexpr\gb@split-\gb@subsplit-\gb@rule\relax
+    \else
+      \hskip\gb@chpad
+      % The label stands `tocchaptershift' below the SECTION label of the
+      % row, in every chapter, clear of a part title hanging above the row.
+      % (An empty first line keeps the box aligned with the title cell.)
+      % Its first line is empty and as high as the first line of the title
+      % cell (whose height depends on whether the row has a SECTION label),
+      % so the label is measured from the rule above the row in every row.
+      \vtop{\hsize=\dimexpr\gb@split-\gb@subsplit-\gb@rule-2\gb@chpad\relax
+        \hbox{\gb@strut{\gb@rowbase}{\z@}}%
+        \nointerlineskip
+        \vskip\dimexpr\gb@toppad+\gb@opt@chapshift-\gb@rowbase-5pt\relax
+        \gb@toclabelfont \raggedleft \parindent=\z@ \noindent
+        \let\chapternumberline\gb@numlabel \let\numberline\gb@numlabel \gb@nolinks
+        \gb@strut{5pt}{\z@}\MakeUppercase{\gb@chap}\par}%
+      \hskip\gb@chpad
+    \fi
+  \else
+    \hskip\gb@split
+  \fi}
+
+% the number line above a title: SECTION 1A, CHAPTER 4
+\newcommand*\gb@numline[2]{%
+  \global\gb@hasnumtrue
+  {\gb@font@tocnumber
+   \ifx\relax#1\relax\else\MakeUppercase{#1}\nobreakspace\fi #2}\newline}
+\newcommand*\gb@titlebody[1]{%
+  \vtop{\hsize=\gb@titlew \gb@toctitlefont \raggedright
+    \parindent=\z@ \noindent
+    \setbox\z@\hbox{H}%
+    \ifgb@hasnum \gb@strut{\gb@toppad}{\z@}%
+    \else \gb@strut{\dimexpr\ht\z@+\gb@plainpad\relax}{\z@}\fi
+    \def\numberline{\gb@numline{\gb@opt@secword}}%
+    \def\chapternumberline{\gb@numline{\gb@opt@chapword}}%
+    #1%
+    \ifgb@hasnum \gb@strut{\z@}{\gb@botpad}%
+    \else \gb@strut{\z@}{\gb@plainpad}\fi
+    \par}}
+\newlength\gb@rowbase % first baseline of the title cell, from the rule above
+\newcommand*\gb@buildtitle[1]{%
+  \global\gb@hasnumfalse
+  \setbox\gb@titlebox\gb@titlebody{#1}% finds out whether there is a number
+  \setbox\gb@titlebox\gb@titlebody{#1}%
+  \ifgb@hasnum \global\gb@rowbase=\gb@toppad
+  \else
+    \setbox\z@\hbox{\gb@toctitlefont H}%
+    \global\gb@rowbase=\dimexpr\ht\z@+\gb@plainpad\relax
+  \fi}
+
+\newcommand*\gb@pagecell[1]{%
+  \setbox\gb@pagebox\hbox{{\gb@tocpagefont #1}}% (inner group: the colour ends in the box)
+  \raise\dimexpr(\ht\gb@titlebox-\dp\gb@titlebox-\ht\gb@pagebox+\dp\gb@pagebox)/2\relax
+  \hbox to\gb@pagew{\box\gb@pagebox\hfil}}
+
+% Rows are numbered, and the page each one fell on is written to the .aux
+% file.  A row that starts a new page inside a chapter repeats the
+% chapter's label, so the chapter column does not start without a name.
+\newcount\gb@rowno
+\def\gb@setrowpage#1#2{\expandafter\xdef\csname gb@pg@#1\endcsname{#2}}
+\def\gb@writerow#1{\protected@write\@auxout{}{\string\gb@setrowpage{#1}{\thepage}}}
+\let\gb@curchap\@empty
+\newcommand*\gb@repeatlabel{%
+  \ifgb@sub\ifx\gb@chap\@empty
+    \@ifundefined{gb@pg@\the\gb@rowno}{}{%
+      \@ifundefined{gb@pg@\the\numexpr\gb@rowno-1\relax}{}{%
+        \edef\gb@a{\csname gb@pg@\the\gb@rowno\endcsname}%
+        \edef\gb@b{\csname gb@pg@\the\numexpr\gb@rowno-1\relax\endcsname}%
+        \ifx\gb@a\gb@b\else \global\let\gb@chap\gb@curchap \fi}}%
+  \fi\fi}
+\newcommand*\gb@row[2]{%
+  \par
+  \global\advance\gb@rowno\@ne
+  \gb@repeatlabel
+  \ifgb@first\else \ifgb@keep\penalty\@M\else\penalty\z@\fi \fi
+  \expandafter\gb@writerow\expandafter{\the\gb@rowno}% (after the break point)
+  \gb@mark
+  \nointerlineskip
+  \ifx\gb@part\@empty
+    \ifx\gb@chap\@empty \gb@ruleleft=\gb@split \else \gb@ruleleft=\gb@subsplit \fi
+  \else \gb@ruleleft=\z@ \fi
+  \gb@buildtitle{#1}%
+  \ifx\gb@part\@empty\else \gb@setpartbox \gb@partspace \fi
+  \gb@hanging \nointerlineskip
+  \gb@toprule \nointerlineskip
+  \setbox\gb@rowbox\hbox to\gb@tocw{%
+    \gb@leftzone
+    \hskip\gb@pad \copy\gb@titlebox
+    \hskip\gb@pad \gb@vbar \hskip\gb@pad
+    \gb@pagecell{#2}\hfil}%
+  \global\advance\gb@sincepart\dimexpr\ht\gb@rowbox+\dp\gb@rowbox+\gb@rule\relax
+  \ifgb@sub \global\gb@lastsubtrue \else \global\gb@lastsubfalse \fi
+  \box\gb@rowbox
+  \ifx\gb@part\@empty \global\gb@keepfalse \else \global\gb@keeptrue \fi
+  \global\let\gb@part\@empty \global\let\gb@chap\@empty
+  \global\gb@firstfalse}
+
+% Each row leaves a mark "AS" for the page builder: A = 1 when the chapter
+% column already runs above it, S = 1 when it runs below.  The header uses
+% A of the first row on the page, the filler at the foot S of the last one.
+\newcommand*\gb@mark{%
+  \ifgb@sub
+    \ifx\gb@part\@empty
+      \ifgb@first \def\gb@mk{01}\else \def\gb@mk{11}\fi
+    \else \def\gb@mk{01}\fi
+  \else \def\gb@mk{00}\fi
+  \expandafter\mark\expandafter{\gb@mk}}
+\def\gb@parsemark#1#2#3\relax{\def\gb@mkA{#1}\def\gb@mkS{#2}}
+
+% the vertical lines run on to the foot of the page
+\newcommand*\gb@textbottom{%
+  \expandafter\gb@parsemark\botmark 00\relax
+  \cleaders\hbox to\gb@tocw{%
+    \if 1\gb@mkS
+      \hskip\gb@subsplit \vrule width\gb@rule height 2pt depth\z@
+      \hskip\dimexpr\gb@pdx-\gb@subsplit-\gb@rule\relax
+    \else \hskip\gb@pdx \fi
+    \vrule width\gb@rule height 2pt depth\z@ \hfil}\vfill}
+
+% page style of the contents, drawn from the header: the dividers, the rule
+% at the foot of the text and, under it, the footer text and page number
+\newcommand*\gb@tocheader{%
+  % the main divider, from the top of the paper to just below the footer text
+  \rlap{\smash{\hbox{\hskip\gb@split
+    \vrule width\gb@rule height\dimexpr1in+\voffset+\topmargin+\headheight\relax
+           depth\dimexpr\headsep+\textheight+\gb@opt@footgap+1.5mm\relax}}}%
+  \rlap{\smash{\lower\dimexpr\headsep+\textheight\relax
+    \gb@gaprule{\gb@tocw}{\z@}{\gb@tocw}{\gb@split}}}%
+  \rlap{\smash{\lower\dimexpr\headsep+\textheight+\gb@opt@footgap\relax
+    \hbox to\gb@tocw{%
+      \hbox to\gb@split{\hss\gb@toclabel{\gb@opt@tocfooter}\hskip\gb@pad}%
+      \hskip\gb@pad{\gb@toctitlefont\thepage}\hfil}}}%
+  \hfil}% (everything above has no width: fill the head box)
+\newcommand*\ps@gbtoc{%
+  \let\@mkboth\@gobbletwo
+  \def\@oddhead{\gb@tocheader}\let\@evenhead\@oddhead
+  \def\@oddfoot{}\let\@evenfoot\@oddfoot}
+
+\newcommand*\gb@gridtoc{%
+  \clearpage
+  \gb@tocsetlengths
+  \let\gb@tocsavedstyle\gb@curpagestyle
+  \gb@pagestyle{gbtoc}%
+  \@ifundefined{pdfbookmark}{}{\pdfbookmark[0]{\contentsname}{gb@contents}}%
+  \let\gb@oldtextbottom\@textbottom
+  \let\@textbottom\gb@textbottom
+  \begingroup
+    \parindent\z@ \parskip\z@ \topskip\z@
+    \hypersetup{hidelinks}%
+    \gb@tocentries
+    \global\gb@firsttrue \global\gb@subfalse \global\gb@keepfalse
+    \global\gb@chappendfalse
+    \global\let\gb@part\@empty \global\let\gb@chap\@empty
+    \global\gb@partno\z@ \global\gb@rowno\z@ \global\let\gb@curchap\@empty
+    \global\gb@sincepart\z@ \global\gb@partbelow\z@ \global\gb@lastsubfalse
+    \expandafter\gdef\csname gb@mini@0\endcsname{}%
+    \vspace*{\gb@opt@topspace}%
+    \@starttoc{toc}%
+    \gb@flushchap
+    % a rule under the last row, as between the rows; it closes the chapter
+    % column too when the last row has one.  The vertical lines run on
+    % below it to the foot of the page
+    \par\nointerlineskip
+    \ifgb@lastsub \gb@ruleleft=\gb@subsplit \else \gb@ruleleft=\gb@split \fi
+    \gb@gaprule{\gb@tocw}{\gb@ruleleft}{\gb@tocw}{\gb@split}%
+  \endgroup
+  \clearpage
+  \let\@textbottom\gb@oldtextbottom
+  \mark{{}{}}%
+  \expandafter\pagestyle\expandafter{\gb@tocsavedstyle}}
+
+%% ----------------------------------------------------------------------
+%%  10. Classic table of contents  (toc = classic; greenbook 1.x)
+%% ----------------------------------------------------------------------
+\RequirePackage{multicol}
+\newcommand*\gb@classictoc{%
+  \renewcommand{\partnumberline}[1]{\mbox{\centering\normalfont\itshape\rmfamily
+    Part~##1}\par\noindent\large}%
+  \renewcommand\cftpartafterpnum{\vskip1ex}%
+  \renewcommand{\printtoctitle}[1]{\hfill\huge\itshape\rmfamily ##1}%
+  \renewcommand{\cftdot}{}%
+  \renewcommand{\cftpartfont}{\bfseries\sffamily}%
+  \renewcommand{\cftchaptername}{\normalfont\sffamily Chapter }%
+  \renewcommand{\cftchapterfont}{\bfseries\sffamily}%
+  \renewcommand\cftsectionfont{\rmfamily}%
+  \renewcommand\cftsectionpagefont{\rmfamily\itshape\color{gbaccent}}%
+  \renewcommand{\cftsectionname}{\normalfont\sffamily}%
+  \cftsetindents{section}{2.82em}{2.5em}%
+  \setlength\columnsep{2em}%
+  \begin{multicols}{2}[\section*{\printtoctitle{\contentsname}}]%
+    \@starttoc{toc}%
+  \end{multicols}}
+
+\ExplSyntaxOn
+\str_if_eq:VnTF \l__gb_toc_tl {grid}
+  { \RenewDocumentCommand \tableofcontents { s } { \gb@gridtoc } }
+  { \RenewDocumentCommand \tableofcontents { s } { \begingroup\gb@classictoc\endgroup } }
+\ExplSyntaxOff
+
+%% ----------------------------------------------------------------------
+%%  11. Part pages: the chapters of the part  (parttoc = true)
+%%  The list is read from the .toc while the table of contents is typeset,
+%%  so it needs \tableofcontents before the first \part, and every \part
+%%  numbered.
+%% ----------------------------------------------------------------------
+% The list is a small version of the grid: hairlines between the rows, the
+% chapter label in the small label font on the left, the title, and the
+% page in a column on the right.
+\newlength\gb@miniw
+\newcommand*\gb@miniitem[2]{%
+  \begingroup
+    \def\gb@mininum{}%
+    \setbox\z@\hbox{\def\chapternumberline##1{\gdef\gb@mininum{##1}}%
+      \let\numberline\chapternumberline #1}%
+    \let\chapternumberline\@gobble \let\numberline\@gobble \gb@nolinks
+    \nointerlineskip
+    \hbox to\gb@miniw{\vrule width\gb@miniw height\dimexpr\gb@opt@rule\relax depth\z@}%
+    \nointerlineskip
+    \hbox to\gb@miniw{%
+      \gb@strut{\dimexpr\gb@opt@toppad+2mm\relax}{\dimexpr\gb@opt@botpad\relax}%
+      \hbox to 22mm{{\gb@toclabelfont
+        \ifx\gb@mininum\@empty\else
+          \MakeUppercase{\gb@opt@chapword}\nobreakspace\gb@mininum\fi}\hss}%
+      {\gb@toctitlefont #1}\hfil
+      \hbox to\dimexpr\gb@opt@pagewidth\relax{\hss{\gb@tocpagefont #2}}}%
+  \endgroup}
+\newcommand*\gb@partminitoc{%
+  \gb@ifparttoc{%
+    \@ifundefined{gb@mini@\the\c@part}{}{%
+      \expandafter\ifx\csname gb@mini@\the\c@part\endcsname\@empty\else
+        \par\vspace*{12mm}%
+        \begingroup
+          \setlength\gb@miniw{0.75\linewidth}%
+          \normalfont\normalsize\color{black}%
+          \hbox to\linewidth{\hss\vbox{\hsize\gb@miniw \parindent\z@
+            \csname gb@mini@\the\c@part\endcsname
+            \nointerlineskip
+            \hbox to\gb@miniw{\vrule width\gb@miniw height\dimexpr\gb@opt@rule\relax depth\z@}}%
+          \hss}\par
+        \endgroup
+      \fi}}{}}
+
+%% ----------------------------------------------------------------------
+%%  12. Exercises  (option `exercises'; xsim)
+%% ----------------------------------------------------------------------
+% exc: a group of exercises.  A hairline across the text that thickens over
+% its last 4 cm, "Exercises" under the thick part, a hairline at the end.
+% The heading and the start of the first exercise stay on one page.
+\newenvironment{exc}
+  {\par\addvspace{\bigskipamount}\Needspace*{9\baselineskip}%
+   \noindent\hbox to\linewidth{%
+     \vrule width\dimexpr\linewidth-4cm\relax height .3pt depth\z@
+     \vrule width 4cm height 1.2mm depth\z@}\par\nobreak
+   \vskip 4pt
+   \noindent\hbox to\linewidth{\hfil
+     \hbox to 3.8cm{\Large\bfseries Exercises\hss}}\par\nobreak
+   \vskip\medskipamount}
+  {\par\bigskip\hrule\par\addvspace{2\bigskipamount}}
+
+\ExplSyntaxOn
+\bool_if:NT \l__gb_exercises_bool { \RequirePackage{xsim} }
+\ExplSyntaxOff
+\@ifpackageloaded{xsim}{%
+  \DeclareExerciseEnvironmentTemplate{custom}{%
+    \par\vspace{3.25ex plus 1ex minus .2ex}%
+    \Needspace*{3\baselineskip}%
+    \noindent\normalsize
+    \textbf{\XSIMmixedcase{\GetExerciseName}\nobreakspace\GetExerciseProperty{counter}}%
+    \IfInsideSolutionF{%
+      \GetExercisePropertyT{subtitle}{ {\normalfont\itshape\PropertyValue}}}%
+    \IfInsideSolutionF{%
+      \GetExercisePropertyT{points}{%
+        \hfill[{\color{teal}\printgoal{\PropertyValue}}%
+          \GetExercisePropertyT{bonus-points}{~[+\printgoal{\PropertyValue}]}]}}%
+    \;%
+    \@afterindentfalse\@afterheading}
+  {}
+  \xsimsetup{
+    exercise/the-counter = \thesection.\arabic{exercise}. ,
+    exercise/template = custom ,
+    exercise/name = ,
+    solution/template = custom ,
+  }
+  % all solutions, headed chapter by chapter and section by section
+  % One section of the solutions for each chapter: the heading names the
+  % chapter, and the contents list it as a row of the solutions chapter,
+  % labelled CHAPTER <n> and titled with the title of that chapter.
+  \newcommand*\gb@solchapter[2]{%
+    \edef\gb@tmp{#2}%
+    \ifcsname gb@chaptitle@\gb@tmp\endcsname
+      \edef\gb@tmp{\expandafter\noexpand\csname gb@chaptitle@\gb@tmp\endcsname}%
+      \section*{\chaptername~#1\quad\gb@tmp}%
+      \@ifundefined{phantomsection}{}{\phantomsection}%
+      \addcontentsline{toc}{section}{\protect\chapternumberline{#1}\gb@tmp}%
+    \else
+      \section*{\chaptername~#1}%
+      \@ifundefined{phantomsection}{}{\phantomsection}%
+      \addcontentsline{toc}{section}{\protect\chapternumberline{#1}\chaptername~#1}%
+    \fi}
+  \newcommand{\printsolutionsbysection}{%
+    \def\gb@lastchapter{}\def\gb@lastsection{}%
+    \ForEachUsedExerciseByType{%
+      \edef\gb@thischapter{\ExercisePropertyGet{##1}{##2}{chapter-value}}%
+      \edef\gb@thissection{\ExercisePropertyGet{##1}{##2}{section-value}}%
+      \ifx\gb@lastchapter\gb@thischapter\else
+        \gb@solchapter{\ExercisePropertyGet{##1}{##2}{chapter}}%
+          {\ExercisePropertyGet{##1}{##2}{chapter-value}}%
+      \fi
+      \ifx\gb@lastsection\gb@thissection\else
+        \subsection*{\S\ExercisePropertyGet{##1}{##2}{section}}%
+      \fi
+      \XSIMprint{solution}{##1}{##2}%
+      \let\gb@lastchapter\gb@thischapter
+      \let\gb@lastsection\gb@thissection}}
+}{}
+
+%% ----------------------------------------------------------------------
+%%  13. Small environments
+%% ----------------------------------------------------------------------
+% fullwidth: text, a diagram or a table over the text and the margin
+\newlength{\fullwidthlen}% (greenbook 1.x; set when the environment starts)
+\newenvironment{fullwidth}
+  {\setlength\fullwidthlen{\dimexpr\marginparsep+\marginparwidth\relax}%
+   \begin{adjustwidth}{}{-\fullwidthlen}}
+  {\end{adjustwidth}}
+
+% widefigure: a figure over the text and the margin.
+%   \begin{widefigure}[<placement>] ... \caption{...} \end{widefigure}
+% floats like a figure; its caption stands below it, in the margin column.
+%   \begin{widefigure*} ... \caption{...} \end{widefigure*}
+% does not float: it is set where it stands, and its caption goes into the
+% margin beside the text that follows.  (With captions = below, both put
+% the caption under the figure, as wide as it.)
+% With [H] the figure stays where it is, so its caption goes beside the text
+% that follows (as in widefigure*) instead of taking its own height below it.
+\def\gb@H{H}
+\newenvironment{widefigure}[1][tbp]
+  {\begin{figure}[#1]\def\gb@tmp{#1}%
+   \ifx\gb@tmp\gb@H \gb@capmode\tw@ \else \gb@capmode\@ne \fi
+   \begin{fullwidth}}
+  {\end{fullwidth}\end{figure}}
+\newenvironment{widefigure*}
+  {\par\addvspace{\intextsep}\begingroup
+   \def\@captype{figure}\gb@capmode\tw@
+   \begin{fullwidth}\centering}
+  {\end{fullwidth}\endgroup\par\addvspace{\intextsep}}
+
+% \sidenote: the old name of \marginpar
+\providecommand{\sidenote}{\marginpar}
+
+% \prototype{...}: the prototypical example of a section, a tinted strip
+% with "Prototype" in the margin
+\newcommand{\prototype}[1]{\par
+  \begin{tcolorbox}[enhanced, unbreakable, parbox=false, boxsep=0pt,
+    colback=lightslategreen!40, frame hidden, arc=2pt,
+    left=10pt, right=10pt, top=6pt, bottom=6pt,
+    before skip=8pt plus 2pt, after skip=12pt plus 2pt,
+    overlay={\gb@marginlabel{12.5pt}{\gb@labelfont Prototype}}]#1\end{tcolorbox}}
+
+% caution: a trap, a rule on the left in gbcaution with "Caution" in the
+% margin; an optional note (e.g. a short label) is printed before the body
+\newenvironment{caution}[1][]
+  {\par\begin{tcolorbox}[enhanced, breakable, parbox=false, boxsep=0pt,
+     colback=gbcautionpaper, frame hidden, arc=0pt,
+     left=12pt, right=10pt, top=7pt, bottom=7pt,
+     before skip=12pt plus 2pt, after skip=12pt plus 2pt,
+     overlay unbroken and first={%
+       \fill[gbcaution] (frame.north west) rectangle ([xshift=2.4pt]frame.south west);
+       \gb@marginlabel{14pt}{\gb@labelfont\color{gbcaution}Caution}},
+     overlay middle and last={%
+       \fill[gbcaution] (frame.north west) rectangle ([xshift=2.4pt]frame.south west);}]%
+   \if\relax\detokenize{#1}\relax\else{\gb@font@thmnote #1}\par\fi}
+  {\end{tcolorbox}}
+
+%% ----------------------------------------------------------------------
+%%  14. Other packages, \ell
+%% ----------------------------------------------------------------------
+\RequirePackage{enumitem}
+\RequirePackage[nameinlink]{cleveref}
+\crefname{exercise}{exercise}{exercises}
+\crefname{nonexample}{non-example}{non-examples}
+\Crefname{nonexample}{Non-example}{Non-examples}
+\RequirePackage[activate={true,nocompatibility},factor=1100,stretch=10,shrink=10]{microtype}
+\microtypecontext{spacing=nonfrench}
+
+% ell = true: every l in math is printed as \ell (not inside \mathrm etc.)
+\begingroup\lccode`\~=`\l
+\lowercase{\endgroup
+  \def\gb@setupell{%
+    \global\Umathcharnumdef\gb@mathl=\Umathcodenum`l\relax
+    \global\mathcode`l="8000\relax
+    \gdef~{\ifnum\fam=\m@ne\ell\else\gb@mathl\fi}}}
+\ExplSyntaxOn
+\bool_if:NT \l__gb_ell_bool { \AtBeginDocument { \gb@setupell } }
+\bool_if:NT \l__gb_macros_bool { \RequirePackage{greenbook-macros} }
+\ExplSyntaxOff
+
+\endinput

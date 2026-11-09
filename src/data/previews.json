@@ -1,4 +1,13 @@
 {
+  "/files/axler.pdf": {
+    "kind": "pdf",
+    "title": "Linear Algebra Done Right",
+    "pages": 677,
+    "image": "/previews/deb919af5331.webp",
+    "w": 640,
+    "h": 792,
+    "taken": "2026-11-09"
+  },
   "/files/bl4s.pdf": {
     "kind": "pdf",
     "title": "2025 Beamline For Schools Experimental Proposal",
@@ -16,6 +25,15 @@
     "w": 640,
     "h": 905,
     "taken": "2026-10-04"
+  },
+  "/files/greenbook-doc.pdf": {
+    "kind": "pdf",
+    "title": "The greenbook package",
+    "pages": 43,
+    "image": "/previews/c7e8d60e47be.webp",
+    "w": 640,
+    "h": 792,
+    "taken": "2026-11-09"
   },
   "/uni/.moodle-inbox/2026-11-07/Algebra 1 Aug-Nov 2026/Course information and resources/About test 1 on Tue Sep 15 at at 3.30/test 1 solutions.pdf": {
     "kind": "pdf",

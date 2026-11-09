@@ -1,4 +1,7 @@
 {
   "public/files/cv.pdf": "~/Projects/Typesetting/CV/cv.pdf",
-  "public/files/bl4s.pdf": "~/Projects/Typesetting/bl4s/bl4s.pdf"
+  "public/files/bl4s.pdf": "~/Projects/Typesetting/bl4s/bl4s.pdf",
+  "public/files/axler.pdf": "~/Projects/Typesetting/axler-greenbook/main.pdf",
+  "public/files/greenbook.sty": "~/Projects/Typesetting/greenbook.sty",
+  "public/files/greenbook-doc.pdf": "~/Projects/Typesetting/greenbook-docs/greenbook-doc.pdf"
 }
