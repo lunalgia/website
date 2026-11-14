@@ -1,6 +1,7 @@
 #import "@preview/nova-pset:0.1.0": *
 #import "@preview/adaptive-dots:0.1.0": adaptive-dots, ldots, cdots
-#show math.equation: set text(font: "Libertinus Math")
+#import "@local/typst-math:0.1.0": setup, scr
+#show: setup
 #show: adaptive-dots
 #let class = "Algebra 1"
 #let assignment = "Homework 3"
@@ -169,9 +170,11 @@ We'll work with the transpose here instead. Note that the row space of the trans
   Recall our $2 times 5$ table of equivalences associated to a matrix $A$ from Tutorial 2. When $A$ is square, it gets nicer! Justify why all 10 statements in the table become equivalent when $A$ is square. It is important to fix this in your mind and to have it on tap to recall and use at will.
 ]
 
-#b() 
+#b()
 
+Note that by Tutorial 2, problem 5, the statements in the injective column are all equivalent to every column of the REF having a pivot, and the statements in the surjective column are all equivalent to every row of the REF having a pivot. So it suffices to show that these two are equivalent when $A$ is $n times n$.
 
+But each pivot lies in a different row and a different column. So every column has a pivot iff there are $n$ pivots iff every row has a pivot. Hence all 10 statements are equivalent.
 
 #Q()
 
@@ -187,7 +190,18 @@ We'll work with the transpose here instead. Note that the row space of the trans
   (iii) $A vb(x) = vb(b)$ has a solution for every vector $vb(b)$, i.e. $f$ is surjective.
 ]
 
-#b() 
+#b()
+
+Let $k$ be the number of pivots in a REF of $A$. Since each pivot lies in a different row and a different column, $k <= r$ and $k <= c$. As in problem 6, $f$ is injective iff $k = c$, and surjective iff $k = r$. Then,
+
+(i) and (ii) give $k = c = r$, so $f$ is surjective.
+
+(i) and (iii) give $k = r = c$, so $f$ is injective.
+
+(ii) and (iii) give $r = k = c$.
+
+This is like a function $g: X -> Y$ between finite sets, where any two of $|X| = |Y|$, $g$ injective and $g$ surjective imply the third, with $k$ playing the role of $|g(X)|$.
+
 #Q()
 
 #pagebreak()

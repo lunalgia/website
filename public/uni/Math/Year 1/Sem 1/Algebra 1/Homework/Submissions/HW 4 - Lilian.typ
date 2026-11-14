@@ -1,6 +1,7 @@
 #import "@preview/nova-pset:0.1.0": *
 #import "@preview/adaptive-dots:0.1.0": adaptive-dots, ldots, cdots
-#show math.equation: set text(font: "Libertinus Math")
+#import "@local/typst-math:0.1.0": setup, scr
+#show: setup
 #show: adaptive-dots
 #let class = "Algebra 1"
 #let assignment = "Homework 4"
@@ -42,7 +43,31 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   (d) Look up the statement of the Steinitz exchange lemma. Try to prove it on your own. Uncover the proof one line at a time and repeat.
 ]
 
-#b() 
+#b()
+
+I'll do (a). Let $S = {vb(s)_1, ldots, vb(s)_n}$. If $I$ is infinite, we can just take $n + 1$ vectors from it, which are still independent. So suppose $I = {vb(u)_1, ldots, vb(u)_m}$ with $m > n$.
+
+Since $S$ spans $V$, we can write
+$ vb(u)_j = sum_(i = 1)^n a_(i j) vb(s)_i $
+for each $j$. Let $A = (a_(i j))$, which is $n times m$, so wide. We define a row of vectors times a matrix the same way as for numbers, i.e. $(vb(s)_1, ldots, vb(s)_n) A$ is the row whose $j$th entry is $sum_i a_(i j) vb(s)_i$. Then the above says
+$ (vb(u)_1, ldots, vb(u)_m) = (vb(s)_1, ldots, vb(s)_n) A. $
+This is associative, in the sense that for $vb(x) in RR^m$,
+$
+  ((vb(s)_1, ldots, vb(s)_n) A) vb(x)
+  &= sum_j x_j sum_i a_(i j) vb(s)_i \
+  &= sum_i (sum_j a_(i j) x_j) vb(s)_i
+  = (vb(s)_1, ldots, vb(s)_n)(A vb(x))
+$
+by rearranging the (finite) sum.
+
+Now since $A$ is wide, $A vb(x) = vb(0)$ has a non-trivial solution (a REF of $A$ has at most $n$ pivots, so there is a free variable). For this $vb(x)$,
+$
+  sum_j x_j vb(u)_j
+  &= ((vb(s)_1, ldots, vb(s)_n) A) vb(x) \
+  &= (vb(s)_1, ldots, vb(s)_n)(A vb(x)) = vb(0),
+$
+which is a non-trivial linear combination of the $vb(u)_j$ equal to $vb(0)$. But $I$ is independent, a contradiction. Thus $|I| <= |S|$.
+
 #Q()
 
 #pagebreak()
@@ -51,7 +76,42 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   Let $A = mat(1, 2, 3; 0, 1, 4; 5, 6, 0)$. Show that $A$ is invertible, write $A$ as a product of elementary matrices and find the inverse of $A$.
 ]
 
-#b() 
+#b()
+
+We row reduce $(A | I)$:
+$
+  mat(1, 2, 3, |, 1, 0, 0; 0, 1, 4, |, 0, 1, 0; 5, 6, 0, |, 0, 0, 1)
+  stretch(->)^(R_3 - 5R_1)
+  mat(1, 2, 3, |, 1, 0, 0; 0, 1, 4, |, 0, 1, 0; 0, -4, -15, |, -5, 0, 1)
+$
+$
+  stretch(->)^(R_3 + 4R_2)
+  mat(1, 2, 3, |, 1, 0, 0; 0, 1, 4, |, 0, 1, 0; 0, 0, 1, |, -5, 4, 1)
+  stretch(->)^(R_2 - 4R_3)
+  mat(1, 2, 3, |, 1, 0, 0; 0, 1, 0, |, 20, -15, -4; 0, 0, 1, |, -5, 4, 1)
+$
+$
+  stretch(->)^(R_1 - 3R_3)
+  mat(1, 2, 0, |, 16, -12, -3; 0, 1, 0, |, 20, -15, -4; 0, 0, 1, |, -5, 4, 1)
+  stretch(->)^(R_1 - 2R_2)
+  mat(1, 0, 0, |, -24, 18, 5; 0, 1, 0, |, 20, -15, -4; 0, 0, 1, |, -5, 4, 1)
+$
+Since $"RREF"(A) = I$, $A$ is invertible, and
+$ A^(-1) = mat(-24, 18, 5; 20, -15, -4; -5, 4, 1). $
+The row operations above are given by the elementary matrices
+$
+  E_1 = mat(1, 0, 0; 0, 1, 0; -5, 0, 1), quad
+  E_2 = mat(1, 0, 0; 0, 1, 0; 0, 4, 1), quad
+  E_3 = mat(1, 0, 0; 0, 1, -4; 0, 0, 1),
+$
+$
+  E_4 = mat(1, 0, -3; 0, 1, 0; 0, 0, 1), quad
+  E_5 = mat(1, -2, 0; 0, 1, 0; 0, 0, 1),
+$
+so $E_5 E_4 E_3 E_2 E_1 A = I$, and thus
+$ A = E_1^(-1) E_2^(-1) E_3^(-1) E_4^(-1) E_5^(-1), $
+where $E_i^(-1)$ is $E_i$ with the sign of the off-diagonal entry flipped, i.e. the elementary matrices for $R_3 + 5R_1$, $R_3 - 4R_2$, $R_2 + 4R_3$, $R_1 + 3R_3$ and $R_1 + 2R_2$.
+
 #Q()
 
 #pagebreak()
@@ -60,7 +120,30 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   Let $A = mat(2, 3, 1; 1, 2, 3)$. Show that $A$ has infinitely many right inverses. Find them all. Now give a matrix $B$ having infinitely many right inverses and find them all.
 ]
 
-#b() 
+#b()
+
+Note that $A R = I$ for a $3 times 2$ matrix $R$ iff its columns $vb(r)_1, vb(r)_2$ satisfy $A vb(r)_1 = vb(e)_1$ and $A vb(r)_2 = vb(e)_2$. Row reducing both at once,
+$
+  mat(2, 3, 1, |, 1, 0; 1, 2, 3, |, 0, 1)
+  stretch(->)^(R_1 <-> R_2)
+  mat(1, 2, 3, |, 0, 1; 2, 3, 1, |, 1, 0)
+  stretch(->)^(R_2 - 2R_1)
+  mat(1, 2, 3, |, 0, 1; 0, -1, -5, |, 1, -2)
+$
+$
+  stretch(->)^(-R_2)
+  mat(1, 2, 3, |, 0, 1; 0, 1, 5, |, -1, 2)
+  stretch(->)^(R_1 - 2R_2)
+  mat(1, 0, -7, |, 2, -3; 0, 1, 5, |, -1, 2)
+$
+So $x_3$ is free in both, and the solutions are
+$ vb(r)_1 = vec(2 + 7s, -1 - 5s, s), quad vb(r)_2 = vec(-3 + 7t, 2 - 5t, t) $
+for $s, t in RR$. Thus the right inverses of $A$ are
+$ R = mat(2 + 7s, -3 + 7t; -1 - 5s, 2 - 5t; s, t), quad s, t in RR, $
+and there are infinitely many of them.
+
+For $B$, take $B = mat(1, 1)$. Its right inverses are $vec(a, b)$ with $a + b = 1$, i.e. $vec(t, 1 - t)$ for $t in RR$.
+
 #Q()
 
 #pagebreak()
@@ -71,7 +154,33 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   (Recall: the $i$-th column of $P$ is the coordinate vector of the $i$-th new basis vector in terms of the old basis, $B' = B P$, and $[vb(v)]_B = P [vb(v)]_(B')$.)
 ]
 
-#b() 
+#b()
+
+Let $P$ be the matrix with columns $vb(v)_1, vb(v)_2, vb(v)_3$. Row reducing,
+$
+  P = mat(1, 0, 2; 2, 1, 0; 1, 2, 1)
+  stretch(->)^(R_2 - 2R_1, R_3 - R_1)
+  mat(1, 0, 2; 0, 1, -4; 0, 2, -1)
+  stretch(->)^(R_3 - 2R_2)
+  mat(1, 0, 2; 0, 1, -4; 0, 0, 7)
+$
+which has a pivot in every row and column, so the columns are independent and span $RR^3$, i.e. $B$ is a basis.
+
+$P$ is also the change of basis matrix, since its $i$th column is $vb(v)_i$ written in the standard basis.
+
+Then $vb(w) = P [vb(w)]_B$, so
+$ vb(w) = 4 vb(v)_1 + 5 vb(v)_2 + 5 vb(v)_3 = vec(14, 13, 19). $
+
+For $[vb(v)]_B$, we solve $P vb(y) = vb(v)$:
+$
+  mat(1, 0, 2, |, 4; 2, 1, 0, |, 5; 1, 2, 1, |, 5)
+  stretch(->)^(R_2 - 2R_1, R_3 - R_1)
+  mat(1, 0, 2, |, 4; 0, 1, -4, |, -3; 0, 2, -1, |, 1)
+  stretch(->)^(R_3 - 2R_2)
+  mat(1, 0, 2, |, 4; 0, 1, -4, |, -3; 0, 0, 7, |, 7)
+$
+which gives $y_3 = 1$, $y_2 = 1$ and $y_1 = 2$, so $[vb(v)]_B = (2, 1, 1)^T$.
+
 #Q()
 
 #pagebreak()
@@ -80,7 +189,14 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   Write a formula, with justification, for the linear function $f: RR^2 -> RR^2$ that takes $(1, 2)^T$ to $(3, 4)^T$ and $(2, 5)^T$ to $(10, 13)^T$.
 ]
 
-#b() 
+#b()
+
+Let $C = mat(1, 2; 2, 5)$. $C$ is invertible, with $C^(-1) = mat(5, -2; -2, 1)$, so $(1, 2)^T$ and $(2, 5)^T$ form a basis, and $f$ is determined by where it sends them. If $f(vb(x)) = M vb(x)$, then
+$ M C = mat(3, 10; 4, 13), $
+so
+$ M = mat(3, 10; 4, 13) mat(5, -2; -2, 1) = mat(-5, 4; -6, 5), $
+i.e. $f(x, y) = (-5x + 4y, -6x + 5y)$.
+
 #Q()
 
 #pagebreak()
@@ -89,7 +205,27 @@ _Submit: 2 (one of the four proofs, in your own words), 5 (only the computation)
   Write a formula, with justification, for reflection in the line $y = k x$ for a real number $k$. Do this in two ways: first, directly working with the standard basis. Second, start with a more convenient basis and then change it to the standard basis. Maybe it helps to name an angle?
 ]
 
-#b() 
+#b()
+
+Let $vb(d) = (1, k)^T$, which spans the line, and $vb(m) = (-k, 1)^T$, which is perpendicular to it. The reflection $T$ fixes $vb(d)$ and sends $vb(m)$ to $-vb(m)$.
+
+First, directly. Writing $vb(v)$ as its projection onto the line plus the rest, $T$ flips the rest, so
+$ T(vb(v)) = 2 (vb(v) dot vb(d))/(vb(d) dot vb(d)) vb(d) - vb(v) = (2 (vb(v) dot vb(d)))/(1 + k^2) vec(1, k) - vb(v). $
+Plugging in $vb(e)_1$ and $vb(e)_2$,
+$ T(vb(e)_1) = 1/(1 + k^2) vec(1 - k^2, 2k), quad T(vb(e)_2) = 1/(1 + k^2) vec(2k, k^2 - 1), $
+so
+$ [T] = 1/(1 + k^2) mat(1 - k^2, 2k; 2k, k^2 - 1). $
+
+Second, in the basis $B' = {vb(d), vb(m)}$, $T$ is just $D = mat(1, 0; 0, -1)$. The change of basis matrix is $P = mat(1, -k; k, 1)$, with $P^(-1) = 1/(1 + k^2) mat(1, k; -k, 1)$, so
+$
+  [T] = P D P^(-1)
+  &= 1/(1 + k^2) mat(1, k; k, -1) mat(1, k; -k, 1) \
+  &= 1/(1 + k^2) mat(1 - k^2, 2k; 2k, k^2 - 1).
+$
+
+If $theta$ is the angle the line makes with the $x$-axis, then $k = tan theta$, and this is
+$ [T] = mat(cos 2theta, sin 2theta; sin 2theta, -cos 2theta). $
+
 #Q()
 
 #pagebreak()

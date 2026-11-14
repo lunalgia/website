@@ -1,6 +1,7 @@
 #import "@preview/nova-pset:0.1.0": *
 #import "@preview/adaptive-dots:0.1.0": adaptive-dots, ldots, cdots
-#show math.equation: set text(font: "Libertinus Math")
+#import "@local/typst-math:0.1.0": setup, scr
+#show: setup
 #show: adaptive-dots
 #let class = "Algebra 1"
 #let assignment = "Homework 1"

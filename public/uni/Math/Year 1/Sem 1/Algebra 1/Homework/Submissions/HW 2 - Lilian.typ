@@ -1,6 +1,7 @@
 #import "@preview/nova-pset:0.1.0": *
 #import "@preview/adaptive-dots:0.1.0": adaptive-dots, ldots, cdots
-#show math.equation: set text(font: "Garamond Math")
+#import "@local/typst-math:0.1.0": setup, scr
+#show: setup
 #show: adaptive-dots
 #let class = "Algebra 1"
 #let assignment = "Homework 2"
@@ -234,6 +235,12 @@ For (b): by construction, each $E$ is the result of applying the corresponding r
 
 Now note that doing this procedure on the row $sigma(2)$ does not change $rho_sigma(1)$. The row operations we did involve scaling, and subtracting this row from all the rows above it. But, scaling doesn't change that any entry (except the pivot) in $rho_sigma(1)$ is $0$, and neither will subtracting $0$ from $0$. The pivot is of course unchanged as well, because we only ever subtract $0$ from it. Hence, these procedures do not impact any other pivot columns. So, we can independently do them for $sigma(1), ..., sigma(k)$ and get that the only non-zero entries in $rho_(sigma(i))$ is the pivot, and thus have the matrix in RREF.
 
-(b) We already know that a matrix can be converted to a REF. We also saw that it can be converted to a RREF in (a). It suffices to show that it is unique. We may do this inductively, inducting on the number of rows. It is obvious that this is true 
+(b) We already know that a matrix can be converted to a REF. We also saw that it can be converted to a RREF in (a). It suffices to show that it is unique. We may do this inductively, inducting on the number of columns. It is obvious that this is true for one column, since then the RREF is $vb(0)$ if the column is zero, and $vb(e)_1$ otherwise (row operations are reversible, so they cannot make a non-zero column zero).
+
+Note that row operations do not change the solutions of $A vb(x) = vb(0)$, again because they are reversible. So if $R$ and $S$ are both RREFs of $A$, then $R vb(x) = vb(0)$ iff $S vb(x) = vb(0)$.
+
+Now let $A$ have $n$ columns, and let $R$ and $S$ be RREFs of $A$. Deleting the last column of $R$ and $S$ gives RREFs of $A$ with its last column deleted (a row whose pivot was in the last column just becomes a zero row at the bottom). So by induction, $R$ and $S$ can only differ in the last column. Suppose they do. Then for any $vb(x)$ with $R vb(x) = vb(0)$,
+$ vb(0) = (R - S) vb(x) = x_n (vb(r)_n - vb(s)_n) $
+where $vb(r)_n, vb(s)_n$ are the last columns, so $x_n = 0$. So $x_n$ is not a free variable, i.e. the last column of $R$ has a pivot, and similarly for $S$. But then if $k$ is the number of pivots in the other columns, the last column of both is $vb(e)_(k+1)$, which means they do not differ. Thus $R = S$.
 
 #Q()

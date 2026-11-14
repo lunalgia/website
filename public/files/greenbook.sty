@@ -941,7 +941,12 @@
 %  * before a box with a label an empty \marginpar as high as the label is
 %    set, so LaTeX moves a later \marginpar below the label at once.
 \RequirePackage{zref-savepos,zref-abspage,etoolbox}
-\newcount\gb@mino   % the things in the margin, in the order of the text
+% the things in the margin, in the order of the text.  A LaTeX counter, so
+% that \include saves it with each file: under \includeonly the things of
+% the files that are typeset keep their numbers, and with them their places
+% from the last full run.
+\newcounter{gb@mino}
+\let\gb@mino\c@gb@mino
 \newdimen\gb@mishift
 \def\gb@miclear{5pt}% the least space between two of them
 % from the .aux file: #1 = number, #2 = kind (p, n, l), #3 = page,

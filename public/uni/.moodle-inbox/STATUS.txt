@@ -1,2 +1,2 @@
-2026-11-07 07:27 UTC
-OK: 139 new or changed file(s) in 2026-11-07
+2026-11-12 16:09 UTC
+FAILED: could not reach Moodle (HTTPError)
