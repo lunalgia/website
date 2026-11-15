@@ -953,6 +953,24 @@
     "h": 360,
     "taken": "2026-11-07"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/22-bst.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Data structures – Binary search trees",
+    "pages": 83,
+    "image": "/previews/25e28d35f1e1.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-15"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Lecture Slides/23-avl.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Haskell Programming - Data structures – AVL trees",
+    "pages": 113,
+    "image": "/previews/b7827adb833e.webp",
+    "w": 640,
+    "h": 360,
+    "taken": "2026-11-15"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 solutions.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming: Quiz 1 Solutions",
