@@ -2,6 +2,7 @@
  * Credits and notes for /academics/past. The files themselves live in
  * public/uni/Past Material, laid out `Sem N / Course / <year> <season> - <who> (<source>)`,
  * and the page lists whatever is there. Edit this file to change the words around them.
+ * Archives in LINKED are not hosted; the page only links to them.
  */
 
 /** Who collected what. The key is the text in brackets at the end of a folder name. */
@@ -12,13 +13,20 @@ export const SOURCES: Record<string, { name: string; people: string; href: strin
     href: 'https://thearjunagarwal.github.io/courses.html',
     covers: 'the 2024 Fall offerings of the first-semester courses',
   },
-  fourthground: {
+}
+
+/**
+ * Archives that are only linked: their owners asked not to have the files
+ * (or the links to the individual files) hosted here.
+ */
+export const LINKED: { name: string; people: string; href: string; covers: string }[] = [
+  {
     name: 'fourthground',
     people: 'Tejas Sah and Soham Saha',
     href: 'https://fourthground.codeberg.page/prev_material/index.html',
     covers: '2025 Fall, 2026 Spring and the 2026 Fall semester in progress',
   },
-}
+]
 
 /**
  * Notes on single offerings, keyed `Course/<year> <season>`.
@@ -26,6 +34,9 @@ export const SOURCES: Record<string, { name: string; people: string; href: strin
  */
 export const NOTES: Record<string, string> = {
   'Algebra 1/2022 Fall': 'Posted by Prof. Upendra Kulkarni on the 2026 Algebra 1 course page.',
+  'Algebra 1/2025 Fall': 'From the 2025 Algebra 1 course page on Moodle: quizzes, Test 1 with solutions, Test 2 and two homework sheets. The endsem is not posted there.',
+  'Algebra 3/2025 Fall': 'Tutorial sheets from the Moodle course page.',
+  'Theory Of Computation/2025 Fall': 'Assignments, one solution and practice problems from the Moodle course page.',
   'Algebra 1/2024 Fall':
     "No prescribed textbook; Treil's *Linear Algebra Done Wrong* was recommended. Hard problems, lenient grade cutoffs. The homeworks were quiz prep and weren't submitted.",
   'Analysis 1/2024 Fall':
@@ -36,5 +47,4 @@ export const NOTES: Record<string, string> = {
     "Morin, plus Morin's relativity book for the relativity part and [Kevin Zhou's handouts](https://knzhou.github.io/) for harder problems.",
   'Empowerment with English/2024 Fall':
     "The literature changes every year. The linguistics and speaking parts aren't in the materials.",
-  'Calculus 1/2026 Spring': 'The "Problem Sheet" link on the source page was dead, so it is missing.',
 }

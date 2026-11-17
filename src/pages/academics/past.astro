@@ -6,7 +6,7 @@
 import Base from '@/layouts/Base.astro'
 import PastOfferings from '@/components/PastOfferings.astro'
 import { readPast } from '@/lib/past-material'
-import { SOURCES } from '@/data/past-material'
+import { LINKED, SOURCES } from '@/data/past-material'
 import { roman } from '@/lib/utils'
 
 const courses = await readPast()
@@ -40,7 +40,22 @@ const total = courses.reduce((n, c) => n + c.offerings.reduce((m, o) => m + o.fi
           </dd>
         ))
       }
-      <dd class="ah__fine">{total} files, mirrored from the pages above.</dd>
+      <dd class="ah__fine">{total} files.</dd>
+    </dl>
+    <dl class="ah__cred">
+      <dt>ALSO SEE</dt>
+      {
+        LINKED.map((s) => (
+          <dd>
+            <a href={s.href} target="_blank" rel="noopener">
+              {s.name}
+            </a>{' '}
+            <span>
+              ({s.people}): {s.covers}.
+            </span>
+          </dd>
+        ))
+      }
     </dl>
   </header>
 
