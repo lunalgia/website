@@ -6,7 +6,7 @@ import { NOTES, SOURCES } from '@/data/past-material'
 export const PAST_ROOT = 'Past Material'
 
 export interface Offering {
-  /** folder name, e.g. "2025 Fall - Prof. B. V. Rao (fourthground)" */
+  /** folder name, e.g. "2025 Fall - Prof. B. V. Rao (source)" */
   folder: string
   year: number
   season: 'Fall' | 'Spring' | string
@@ -42,7 +42,7 @@ const dirs = async (p: string) =>
 const countFiles = (nodes: TreeNode[]): number =>
   nodes.reduce((n, x) => n + (x.type === 'file' ? 1 : countFiles(x.children ?? [])), 0)
 
-/** "2025 Fall - Prof. B. V. Rao (fourthground)" / "2024 Fall - Moodle archive" */
+/** "2025 Fall - Prof. B. V. Rao (source)" / "2024 Fall - Moodle archive" */
 function parse(folder: string) {
   const m = folder.match(/^(\d{4})\s+(\w+)\s+-\s+(.+?)(?:\s+\(([^()]+)\))?$/)
   if (!m) return { year: 0, season: '', instructor: folder, source: null }

@@ -14,7 +14,7 @@
  *   "Past - 2022 course" becomes "2022 Fall - Course page archive"; a folder already named in the
  *   Past Material style ("Past - 2022 Fall - Prof. X (source)") keeps that name.
  *   The course name comes from the `past:` field of the course's file in src/content/academics.
- * - Never published: Books/ (copyrighted textbooks), _to_delete/, Syncthing and git folders,
+ * - Never published: the top-level folders .moodle-inbox and Projects, "(fourthground)" folders (the archive's owners asked not to be hosted; the site links to it), Books/ (copyrighted textbooks), _to_delete/, Syncthing and git folders,
  *   lock and temp files, LaTeX build files, and anything of 25 MiB or more (Cloudflare Pages'
  *   per-file limit). Large files are listed at the end.
  * - Removing: a file in public/uni is deleted only if this script put it there (it is listed in
@@ -40,6 +40,11 @@ const SKIP_FILE = [
   /\.(aux|log|out|toc|synctex\.gz|fls|fdb_latexmk|bbl|blg|nav|snm|bcf|run\.xml)$/i,
   /^(Thumbs\.db|desktop\.ini)$/i,
 ]
+
+// Archives whose owners asked not to be hosted here; they stay in ~/Uni but are never published.
+// Top-level folders of ~/Uni that are never synced.
+const SKIP_TOP = new Set(['.moodle-inbox', 'Projects'])
+const NOT_HOSTED = /\(fourthground\)/
 
 const rel = (p) => p.split(path.sep).join('/')
 
@@ -86,8 +91,9 @@ const clashes = []
 async function walk(dir, names) {
   for (const e of await fs.readdir(dir, { withFileTypes: true })) {
     const full = path.join(dir, e.name)
+    if (dir === SRC && SKIP_TOP.has(e.name)) continue
     if (e.isDirectory()) {
-      if (!SKIP_DIRS.has(e.name)) await walk(full, names)
+      if (!SKIP_DIRS.has(e.name) && !NOT_HOSTED.test(e.name)) await walk(full, names)
       continue
     }
     if (!e.isFile() || SKIP_FILE.some((r) => r.test(e.name))) continue
