@@ -1007,6 +1007,15 @@
     "h": 905,
     "taken": "2026-10-26"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 3.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: Quiz 3",
+    "pages": 5,
+    "image": "/previews/d6e344718a00.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-18"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Reading/Evolution of a Haskell Programmer.pdf": {
     "kind": "pdf",
     "title": "The Evolution of a Haskell Programmer",
@@ -1916,6 +1925,15 @@
     "h": 905,
     "taken": "2026-11-07"
   },
+  "/uni/Math/Year 1/Sem 1/Analysis 1/Quizzes/Quiz 2 makeup.pdf": {
+    "kind": "pdf",
+    "title": "Analysis 1: Aug–Nov 2026",
+    "pages": 1,
+    "image": "/previews/60b72652c669.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-18"
+  },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Quizzes/Quiz 2.pdf": {
     "kind": "pdf",
     "title": "Analysis 1: Quiz 2",
@@ -1924,6 +1942,15 @@
     "w": 640,
     "h": 905,
     "taken": "2026-11-07"
+  },
+  "/uni/Math/Year 1/Sem 1/Analysis 1/Quizzes/Quiz 3.pdf": {
+    "kind": "pdf",
+    "title": "Analysis 1: Aug–Nov 2026",
+    "pages": 1,
+    "image": "/previews/19cb04c2800a.webp",
+    "w": 640,
+    "h": 905,
+    "taken": "2026-11-18"
   },
   "/uni/Math/Year 1/Sem 1/Analysis 1/Tests/Midsem (corrected).pdf": {
     "kind": "pdf",
@@ -2239,6 +2266,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-05"
+  },
+  "/uni/Past Material/Sem 1/Algebra 1/2024 Fall - Prof. Aditya Karnataki (Arjun Agarwal)/Course Information.pdf": {
+    "kind": "pdf",
+    "title": "ALGEBRA I - AUGUST-NOVEMBER 2024",
+    "pages": 1,
+    "image": "/previews/8671f6294566.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-17"
   },
   "/uni/Past Material/Sem 1/Algebra 1/2024 Fall - Prof. Aditya Karnataki (Arjun Agarwal)/Endsem - Official Solutions.pdf": {
     "kind": "pdf",
