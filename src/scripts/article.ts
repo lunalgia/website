@@ -61,17 +61,6 @@ const setup = () => {
     ),
   )
 
-  // ---- print: the button, and fold-out answers printed open ----
-  // white for paper, or the site's lavender for a PDF read on screen
-  document.querySelectorAll<HTMLElement>('[data-print]').forEach((b) =>
-    b.addEventListener('click', async () => {
-      // lazy images further down haven't loaded yet and would print blank
-      await Promise.all(eager().map((img) => img.decode().catch(() => {})))
-      document.documentElement.dataset.print = b.dataset.print
-      document.dispatchEvent(new Event('lunalgia:print'))
-      print()
-    }),
-  )
   // ---- code: Expressive Code draws the frame and copy button; long blocks start folded ----
   text.querySelectorAll<HTMLElement>('.expressive-code').forEach((ec) => {
     const pre = ec.querySelector('pre')
@@ -99,7 +88,8 @@ const eager = () => {
   return imgs
 }
 
-// fold-out answers can't be opened on paper, so print them open and close them again after
+// The PDF links serve files made by scripts/pdfs.mjs; this is for Ctrl+P.
+// Fold-out answers can't be opened on paper, so print them open and close them again after
 addEventListener('beforeprint', () => {
   eager()
   document.querySelectorAll<HTMLDetailsElement>('.ax__text details:not([open])').forEach((d) => {
@@ -108,7 +98,6 @@ addEventListener('beforeprint', () => {
   })
 })
 addEventListener('afterprint', () => {
-  delete document.documentElement.dataset.print
   document.querySelectorAll<HTMLDetailsElement>('.ax__text details[data-print-opened]').forEach((d) => {
     d.open = false
     delete d.dataset.printOpened
