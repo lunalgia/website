@@ -35,6 +35,42 @@
     "h": 792,
     "taken": "2026-11-09"
   },
+  "/pdfs/writing/love-and-disillusionment-colour.pdf": {
+    "kind": "pdf",
+    "title": "Love and Disillusionment in the world of In Rainbows · lunalgia",
+    "pages": 6,
+    "image": "/previews/2718469486bf.webp",
+    "w": 640,
+    "h": 906,
+    "taken": "2026-11-23"
+  },
+  "/pdfs/writing/love-and-disillusionment.pdf": {
+    "kind": "pdf",
+    "title": "Love and Disillusionment in the world of In Rainbows · lunalgia",
+    "pages": 6,
+    "image": "/previews/00fd4a4c1f3e.webp",
+    "w": 640,
+    "h": 906,
+    "taken": "2026-11-23"
+  },
+  "/pdfs/writing/what-is-an-author-colour.pdf": {
+    "kind": "pdf",
+    "title": "What is an Author? · lunalgia",
+    "pages": 9,
+    "image": "/previews/5f3f12097790.webp",
+    "w": 640,
+    "h": 906,
+    "taken": "2026-11-23"
+  },
+  "/pdfs/writing/what-is-an-author.pdf": {
+    "kind": "pdf",
+    "title": "What is an Author? · lunalgia",
+    "pages": 9,
+    "image": "/previews/699e54900331.webp",
+    "w": 640,
+    "h": 906,
+    "taken": "2026-11-23"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Assignments/Assignment1.pdf": {
     "kind": "pdf",
     "title": "Assignment 1",
@@ -43,6 +79,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-10-10"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Assignments/Assignment2.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: Practice Assignment",
+    "pages": 6,
+    "image": "/previews/6e2e215ca241.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-23"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Course Information.pdf": {
     "kind": "pdf",
@@ -260,6 +305,15 @@
     "h": 360,
     "taken": "2026-11-15"
   },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 makeup.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: Quiz 1 (Make-up)",
+    "pages": 2,
+    "image": "/previews/a4534b255b48.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-23"
+  },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Quizzes/Quiz 1 solutions.pdf": {
     "kind": "pdf",
     "title": "Introduction to Programming: Quiz 1 Solutions",
@@ -322,6 +376,15 @@
     "w": 640,
     "h": 905,
     "taken": "2026-11-07"
+  },
+  "/uni/CS/Year 1/Sem 1/Intro_Prog/Tests/Endsem.pdf": {
+    "kind": "pdf",
+    "title": "Introduction to Programming: End-semester Examination Part A",
+    "pages": 3,
+    "image": "/previews/2f4190f56f2c.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-23"
   },
   "/uni/CS/Year 1/Sem 1/Intro_Prog/Tests/Midsem.pdf": {
     "kind": "pdf",
@@ -2230,6 +2293,15 @@
     "w": 640,
     "h": 828,
     "taken": "2026-11-07"
+  },
+  "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Assignments/Assignment 6.pdf": {
+    "kind": "pdf",
+    "title": "CM1_2026_Prob6",
+    "pages": 2,
+    "image": "/previews/c30c098556a9.webp",
+    "w": 640,
+    "h": 828,
+    "taken": "2026-11-23"
   },
   "/uni/Physics/Year 1/Sem 1/Classical Mechanics 1/Quizzes/Quiz 1.pdf": {
     "kind": "pdf",
