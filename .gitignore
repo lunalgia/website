@@ -8,6 +8,7 @@ dist/
 *.pem
 *.key
 # local to this machine
+.moodle-inbox/
 .DS_Store
 .claude/
 CLAUDE.md
